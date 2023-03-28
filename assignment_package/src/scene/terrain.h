@@ -54,6 +54,10 @@ private:
 
     OpenGLContext* mp_context;
 
+    bool needsVBOrecompute;
+
+
+
 public:
     Terrain(OpenGLContext *context);
     ~Terrain();
