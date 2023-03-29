@@ -4,13 +4,15 @@
 #include <iostream>
 #include <QApplication>
 #include <QKeyEvent>
+#include <QDateTime>
 
 
 MyGL::MyGL(QWidget *parent)
     : OpenGLContext(parent),
       m_worldAxes(this),
       m_progLambert(this), m_progFlat(this), m_progInstanced(this),
-      m_terrain(this), m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain)
+      m_terrain(this), m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain),
+      m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
@@ -94,6 +96,12 @@ void MyGL::resizeGL(int w, int h) {
 // all per-frame actions here, such as performing physics updates on all
 // entities in the scene.
 void MyGL::tick() {
+
+    glm::vec3 prevPlayerPos = m_player.mcr_position;
+    float dT = (QDateTime::currentMSecsSinceEpoch() - m_currMSecSinceEpoch) / 1000.f;
+    m_player.tick(dT, m_inputs);
+    m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
+
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 }
@@ -175,6 +183,17 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
 
 void MyGL::mouseMoveEvent(QMouseEvent *e) {
     // TODO
+
+    const float SENSITIVITY = 50.0;
+    float dx = this->width() * 0.5 - e->pos().x();
+    if (dx != 0) {
+        m_player.rotateOnUpGlobal(dx/width() * SENSITIVITY);
+    }
+    float dy = this->height() * 0.5 - e->pos().y() - 0.5;
+    if (dy != 0) {
+        m_player.rotateOnRightLocal(dy/height() * SENSITIVITY);
+    }
+    moveMouseToCenter();
 }
 
 void MyGL::mousePressEvent(QMouseEvent *e) {
