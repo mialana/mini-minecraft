@@ -38,7 +38,7 @@ float noise1D( vec2 p ) {
 }
 
 
-float interpNoise2D(float x, float y) {
+float interpNoise(float x, float y) {
     int intX = int(floor(x));
     float fractX = fract(x);
     int intY = int(floor(y));
@@ -67,7 +67,7 @@ float fbm(const in vec2 uv) {
     float freq = 2.f;
     float amp = 0.5f;
     for(int i = 1; i <= octaves; i++) {
-        total += interpNoise2D(uv.x * freq,
+        total += interpNoise(uv.x * freq,
                                uv.y * freq) * amp;
         freq *= 2.f;
         amp *= persistence;
@@ -123,69 +123,86 @@ float worley(vec2 uv) {
 
 void main()
 {
-//    vec4 offsetPos = vs_Pos + vec4(vs_OffsetInstanced, 0.);
-//    fs_Pos = offsetPos;
-//    fs_Col = vec4(vs_ColInstanced, 1.);                         // Pass the vertex colors to the fragment shader for interpolation
+    vec4 offsetPos = vs_Pos + vec4(vs_OffsetInstanced, 0.);
+    fs_Pos = offsetPos;
+    fs_Col = vec4(vs_ColInstanced, 1.);  // Pass the vertex colors to the fragment shader for interpolation
 
-//    fs_Nor = vs_Nor;
+    fs_Nor = vs_Nor;
 
-//    fs_LightVec = (lightDir);  // Compute the direction in which the light source lies
+    fs_LightVec = (lightDir);  // Compute the direction in which the light source lies
 
-//    gl_Position = u_ViewProj * offsetPos;// gl_Position is a built-in variable of OpenGL which is
-//                                             // used to render the final positions of the geometry's vertices
+    gl_Position = u_ViewProj * offsetPos;// gl_Position is a built-in variable of OpenGL which is
+                                             // used to render the final positions of the geometry's vertices
 
 
     // terrace hills
-/*    vec4 offsetPos = vs_Pos + vec4(vs_OffsetInstanced, 0.);
-    vec2 xz = vs_OffsetInstanced.xz;
+//    vec4 offsetPos = vs_Pos + vec4(vs_OffsetInstanced, 0.);
+//    vec2 xz = vs_OffsetInstanced.xz;
 
-    float h = 0;
-    float freq = 200.f;
-    float dF = 0.725;
+//    float h = 0;
+//    float freq = 200.f;
+//    float dF = 0.725;
 
-    for (int i = 0; i < 4; ++i) {
-        h += perlin(xz / freq);
-        freq *= dF;
-    }
+//    for (int i = 0; i < 4; ++i) {
+//        h += perlin(xz / freq);
+//        freq *= dF;
+//    }
 
-    float flatten = 2.f;
-    float sharpen = 1.25f;
-    float max = -0.25f;
-    float min = -0.9f;
-    if (h > max) {
-        h -= max;
-        h /= flatten;
-        h += max;
-    }
+//    float flatten = 2.f;
+//    float sharpen = 1.25f;
+//    float max = -0.25f;
+//    float min = -0.9f;
+//    if (h > max) {
+//        h -= max;
+//        h /= flatten;
+//        h += max;
+//    }
 
-    if (h < min) {
-        h -= min;
-        h *= sharpen;
-        h += min;
-    }
+//    if (h < min) {
+//        h -= min;
+//        h *= sharpen;
+//        h += min;
+//    }
 
-    offsetPos.y *= floor(178.f + h * 50);   */                // Pass the vertex colors to the fragment shader for interpolation
+//    offsetPos.y *= floor(178.f + h * 50);
 
     // mountains
-    vec4 offsetPos = vs_Pos + vec4(vs_OffsetInstanced, 0.);
-    vec2 xz = vs_OffsetInstanced.xz;
+//    vec4 offsetPos = vs_Pos + vec4(vs_OffsetInstanced, 0.);
+//    vec2 xz = vs_OffsetInstanced.xz;
 
-    float h = 0;
+//    float h = 0;
 
-    float amp = 0.5;
-    float freq = 175.f;
+//    float amp = 0.5;
+//    float freq = 175.f;
 
-    for (int i = 0; i < 4; ++i) {
-        float h1 = perlin(xz / freq);
-        h1 = 1. - abs(h1);
-        h1 = pow(h1, 1.25);
-        h += h1 * amp;
+//    for (int i = 0; i < 4; ++i) {
+//        float h1 = perlin(xz / freq);
+//        h1 = 1. - abs(h1);
+//        h1 = pow(h1, 1.25);
+//        h += h1 * amp;
 
-        amp *= 0.5;
-        freq *= 0.5;
-    }
+//        amp *= 0.5;
+//        freq *= 0.5;
+//    }
 
-    offsetPos.y *= floor(50.f + h * 200.f);
+//    offsetPos.y *= floor(50.f + h * 200.f);
+
+    // swamp/ grasslands
+//    vec4 offsetPos = vs_Pos + vec4(vs_OffsetInstanced, 0.);
+//    vec2 xz = vs_OffsetInstanced.xz;
+
+//    float h = 0;
+
+//    float amp = 0.5;
+//    float freq = 90.f;
+
+//    for (int i = 0; i < 4; ++i) {
+//        h += amp * perlin(xz / freq);
+//        freq *= 0.5;
+//        amp *= 0.5;
+//    }
+
+//    offsetPos.y *= floor(128.f + h * 21);
 
     fs_Pos = offsetPos;
     fs_Col = vec4(vs_ColInstanced, 1.);

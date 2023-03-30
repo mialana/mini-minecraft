@@ -1,0 +1,6 @@
+https://thebookofshaders.com/glossary/?search=fract
+
+float perlin = PerlinZeroToOne();
+float heightMix = glm::smoothstep(0.25, 0.75, perlin);
+
+float height = glm::lerp(grasslandHeight, mountainHeight, heightMix);
