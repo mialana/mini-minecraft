@@ -51,3 +51,6 @@ address_sanitizer {
 HEADERS +=
 
 SOURCES +=
+
+DISTFILES += \
+    help-log-amy.txt
