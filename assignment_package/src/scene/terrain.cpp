@@ -117,7 +117,7 @@ void Terrain::setBlockAt(int x, int y, int z, BlockType t)
 Chunk* Terrain::instantiateChunkAt(int x, int z) {
     uPtr<Chunk> chunk = mkU<Chunk>();
     Chunk *cPtr = chunk.get();
-    m_chunks[toKey(x, z)] = move(chunk);
+    m_chunks[toKey(x, z)] = std::move(chunk);
     // Set the neighbor pointers of itself and its neighbors
     if(hasChunkAt(x, z + 16)) {
         auto &chunkNorth = m_chunks[toKey(x, z + 16)];

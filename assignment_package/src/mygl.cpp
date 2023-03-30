@@ -183,8 +183,7 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
 
 void MyGL::mouseMoveEvent(QMouseEvent *e) {
     // TODO
-
-    const float SENSITIVITY = 50.0;
+    const float SENSITIVITY = 5.0;
     float dx = this->width() * 0.5 - e->pos().x();
     if (dx != 0) {
         m_player.rotateOnUpGlobal(dx/width() * SENSITIVITY);

@@ -9,8 +9,10 @@ private:
     Camera m_camera;
     const Terrain &mcr_terrain;
 
-    void processInputs(InputBundle &inputs);
-    void computePhysics(float dT, const Terrain &terrain);
+    int infAxis;
+
+    void processInputs(const Terrain& terrain, InputBundle &inputs);
+    void computePhysics(float dT, const Terrain &terrain, InputBundle& inputs);
 
 public:
     // Readonly public reference to our camera
@@ -23,6 +25,16 @@ public:
     void setCameraWidthHeight(unsigned int w, unsigned int h);
 
     void tick(float dT, InputBundle &input) override;
+
+    bool isOnGround(const Terrain& terrain, InputBundle& input);
+    void detectCollision(glm::vec3* direction, const Terrain& terrain);
+
+    bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection,
+                   const Terrain& terrain, float *out_dist,
+                   glm::ivec3* out_blockHit);
+
+    BlockType placeBlock(Terrain& terrain, BlockType currBlock);
+    BlockType removeBlock(Terrain& terrain);
 
     // Player overrides all of Entity's movement
     // functions so that it transforms its camera
