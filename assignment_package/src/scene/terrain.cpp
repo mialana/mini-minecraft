@@ -210,27 +210,68 @@ void Terrain::CreateTestScene()
     m_generatedTerrain.insert(toKey(0, 0));
 
     // Create the basic terrain floor
-    for(int x = 0; x < 256; ++x) {
-        for(int z = 0; z < 256; ++z) {
-            if((x + z) % 2 == 0) {
-                setBlockAt(x, 0, z, STONE);
-            }
-            else {
-                setBlockAt(x, 0, z, DIRT);
+//    for(int x = 0; x < 256; ++x) {
+//        for(int z = 0; z < 256; ++z) {
+//            if((x + z) % 2 == 0) {
+//                setBlockAt(x, 0, z, STONE);
+//            }
+//            else {
+//                setBlockAt(x, 0, z, DIRT);
+//            }
+//        }
+//    }
+    // Add "walls" for collision testing
+//    for(int x = 0; x < 64; ++x) {
+//        setBlockAt(x, 129, 0, GRASS);
+//        setBlockAt(x, 130, 0, GRASS);
+//        setBlockAt(x, 129, 63, GRASS);
+//        setBlockAt(0, 130, x, GRASS);
+//    }
+//    // Add a central column
+//    for(int y = 129; y < 140; ++y) {
+//        setBlockAt(32, y, 32, GRASS);
+//    }
+
+    // Make everything below y=128 stone
+    for (int x = 0; x < 256; ++x) {
+        for (int z = 0; z < 256; ++z) {
+
+            float h_h = hills(glm::vec2(x, z));
+            float h_m = mountains(glm::vec2(x, z));
+//            float h_f = forest(glm::vec2(x, z));
+
+            float h = blendTerrain(glm::vec2(x, z), h_h, h_m);
+            float biomeType = blendTerrain(glm::vec2(x, z), 0.f, 1.f);
+            if (biomeType < 0.5) {
+                // hills
+                for (int y = 0; y < 128; ++y) {
+                    setBlockAt(x, y, z, STONE);
+                }
+                for (int y = 128; y < h - 1; ++y) {
+                    setBlockAt(x, y, z, DIRT);
+                }
+                setBlockAt(x, h - 1, z, GRASS);
+            } else {
+                // mountains
+                if (h <= 200) {
+                    for (int y = 0; y < h; ++y) {
+                        setBlockAt(x, y, z, STONE);
+                    }
+                } else {
+                    int numDirtBlocks = 10 * fbm(glm::vec2(x, z));
+                    for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
+                        setBlockAt(x, y, z, STONE);
+                    }
+                    for (int y = h - numDirtBlocks; y < h - 1; ++y) {
+                        setBlockAt(x, y, z, DIRT);
+                    }
+                    setBlockAt(x, h - 1, z, DIRT);
+                }
             }
         }
     }
-    // Add "walls" for collision testing
-    //    for(int x = 0; x < 64; ++x) {
-    //        setBlockAt(x, 129, 0, GRASS);
-    //        setBlockAt(x, 130, 0, GRASS);
-    //        setBlockAt(x, 129, 63, GRASS);
-    //        setBlockAt(0, 130, x, GRASS);
-    //    }
-    //    // Add a central column
-    //    for(int y = 129; y < 140; ++y) {
-    //        setBlockAt(32, y, 32, GRASS);
-    //    }
+
+
 }
 
 glm::vec2 Terrain::noise2D(glm::vec2 p) {
@@ -335,7 +376,7 @@ float Terrain::hills(glm::vec2 xz) {
         h -= min;
         h *= sharpen;
         h += min;
-    } return floor(178.f + h * 50);
+    } return floor(180.f + h * 50);
 }
 float Terrain::mountains(glm::vec2 xz) {
     float h = 0;
@@ -350,7 +391,7 @@ float Terrain::mountains(glm::vec2 xz) {
 
         amp *= 0.5;
         freq *= 0.5;
-    } return floor(50.f + h * 200.f);
+    } return floor(100.f + h * 150.f);
 }
 float Terrain::forest(glm::vec2 xz) {
     float h = 0;
@@ -362,7 +403,7 @@ float Terrain::forest(glm::vec2 xz) {
         h += amp * perlin(xz / freq);
         freq *= 0.5;
         amp *= 0.5;
-    } return floor(128.f + h * 21);
+    } return floor(150.f + h * 20);
 }
 float Terrain::blendTerrain(glm::vec2 uv, float h1, float h2) {
     double p = perlin(uv);

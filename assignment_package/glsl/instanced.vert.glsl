@@ -187,7 +187,7 @@ void main()
 
 //    offsetPos.y *= floor(50.f + h * 200.f);
 
-    // swamp/ grasslands
+    // forest/ swamp/ grasslands
 //    vec4 offsetPos = vs_Pos + vec4(vs_OffsetInstanced, 0.);
 //    vec2 xz = vs_OffsetInstanced.xz;
 
@@ -202,7 +202,7 @@ void main()
 //        amp *= 0.5;
 //    }
 
-//    offsetPos.y *= floor(128.f + h * 21);
+//    offsetPos.y *= floor(148.f + h * 20);
 
     fs_Pos = offsetPos;
     fs_Col = vec4(vs_ColInstanced, 1.);
