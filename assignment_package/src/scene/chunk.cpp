@@ -54,37 +54,37 @@ BlockType Chunk::getAdjBlockType(Direction d, glm::ivec3 pos) {
     return EMPTY;
 }
 
-void Chunk::createFaceVBOData(std::vector<Vertex>& verts, int currX, int currY, int currZ, DirectionVector dirVec) {
+void Chunk::createFaceVBOData(std::vector<Vertex>& verts, int currX, int currY, int currZ, DirectionVector dirVec, BlockType bt) {
     Direction d = dirVec.dir;
     switch (d) {
         case XPOS: case XNEG:
             if (d == XPOS) {
                 currX++;
             }
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, EMPTY));
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ+1, 1), dirVec.vec, EMPTY));
-            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ+1, 1), dirVec.vec, EMPTY));
-            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, EMPTY));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ+1, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ+1, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, bt));
             break;
 
         case YPOS: case YNEG:
             if (d == YPOS) {
                 currY++;
             }
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, EMPTY));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, EMPTY));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ+1, 1), dirVec.vec, EMPTY));
-            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ+1, 1), dirVec.vec, EMPTY));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ+1, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ+1, 1), dirVec.vec, bt));
             break;
 
         case ZPOS: case ZNEG:
             if (d == ZPOS) {
                 currZ++;
             }
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, EMPTY));
-            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, EMPTY));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ, 1), dirVec.vec, EMPTY));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, EMPTY));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, bt));
             break;
     }
 }
@@ -112,23 +112,25 @@ void Chunk::createVBOdata() {
                             adjBlockType = this->getAdjBlockType(dv.dir, adjBlockPos);
                         }
 
-                        std::vector<Vertex> faceVerts;
-                        Chunk::createFaceVBOData(faceVerts, x, y, z, dv);
+                        if (adjBlockType == EMPTY) {
+                            std::vector<Vertex> faceVerts;
+                            Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType);
 
-                        for (const Vertex& v : faceVerts) {
-                            vertData.push_back(v.position);
-                            vertData.push_back(v.normal);
-                            vertData.push_back(v.color);
+                            for (const Vertex& v : faceVerts) {
+                                vertData.push_back(v.position);
+                                vertData.push_back(v.normal);
+                                vertData.push_back(v.color);
+                            }
+
+                            indices.push_back(vertCount);
+                            indices.push_back(vertCount + 1);
+                            indices.push_back(vertCount + 2);
+                            indices.push_back(vertCount);
+                            indices.push_back(vertCount + 2);
+                            indices.push_back(vertCount + 3);
+
+                            vertCount += 4;
                         }
-
-                        indices.push_back(vertCount);
-                        indices.push_back(vertCount + 1);
-                        indices.push_back(vertCount + 2);
-                        indices.push_back(vertCount);
-                        indices.push_back(vertCount + 2);
-                        indices.push_back(vertCount + 3);
-
-                        vertCount += 4;
                     }
                 }
             }
@@ -152,11 +154,9 @@ void Chunk::redistributeVertexData(std::vector<glm::vec4> vd, std::vector<GLuint
     std::vector<glm::vec4> colors;
 
     for (int i = 0; i < vd.size(); i = i+3) {
-
         positions.push_back(vd[i]);
         normals.push_back(vd[i+1]);
         colors.push_back(vd[i+2]);
-
     }
 
     m_count = indices.size();

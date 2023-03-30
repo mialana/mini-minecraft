@@ -67,7 +67,24 @@ struct Vertex {
     Vertex(glm::vec4 p, glm::ivec3 n, BlockType b) {
         position = p;
         normal = glm::vec4(n, 1);
-        color = glm::vec4(0, 0, 0, 1);
+
+        switch (b) {
+            case GRASS:
+                color = glm::vec4(95.f, 159.f, 53.f, 255.f) / 255.f;
+                break;
+            case DIRT:
+                color = glm::vec4(121.f, 85.f, 58.f, 255.f) / 255.f;
+                break;
+            case STONE:
+                color = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
+                break;
+            case WATER:
+                color = glm::vec4(0.f, 0.f, 0.75f, 1.f);
+                break;
+            default:
+                color = glm::vec4(1.f, 0.f, 1.f, 1.f);
+                break;
+        }
     }
 };
 
@@ -92,7 +109,7 @@ private:
     static bool isInBounds(glm::ivec3);
     BlockType getAdjBlockType(Direction, glm::ivec3);
 
-    static void createFaceVBOData(std::vector<Vertex>&, int, int, int, DirectionVector);
+    static void createFaceVBOData(std::vector<Vertex>&, int, int, int, DirectionVector, BlockType);
 
     void redistributeVertexData(std::vector<glm::vec4>, std::vector<GLuint>);
 
