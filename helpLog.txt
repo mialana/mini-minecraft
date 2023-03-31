@@ -1,0 +1,11 @@
+https://thebookofshaders.com/glossary/?search=fract
+
+float perlin = PerlinZeroToOne();
+float heightMix = glm::smoothstep(0.25, 0.75, perlin);
+
+float height = glm::lerp(grasslandHeight, mountainHeight, heightMix);
+
+questions:
+1. Where should our terrain be created? (I currently have it in createTestScene())
+2. Would it make sense to do barycentric interpolation but with 4 points (for 4 different domains)?
+3. How would I add another block type for snow or sand?
