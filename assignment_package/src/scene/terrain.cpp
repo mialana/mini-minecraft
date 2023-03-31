@@ -174,6 +174,10 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
                                 case WATER:
                                     colors.push_back(glm::vec3(0.f, 0.f, 0.75f));
                                     break;
+                                case SNOW:
+                                    colors.push_back(glm::vec3(220.f, 235.f, 255.f) / 255.f);
+                                case SAND:
+                                    colors.push_back(glm::vec3(215.f, 195.f, 130.f) / 255.f);
                                 default:
                                     // Other block types are not yet handled, so we default to debug purple
                                     colors.push_back(glm::vec3(1.f, 0.f, 1.f));
@@ -210,40 +214,44 @@ void Terrain::CreateTestScene()
     m_generatedTerrain.insert(toKey(0, 0));
 
     // Create the basic terrain floor
-//    for(int x = 0; x < 256; ++x) {
-//        for(int z = 0; z < 256; ++z) {
-//            if((x + z) % 2 == 0) {
-//                setBlockAt(x, 0, z, STONE);
-//            }
-//            else {
-//                setBlockAt(x, 0, z, DIRT);
-//            }
-//        }
-//    }
+    for(int x = 0; x < 256; ++x) {
+        for(int z = 0; z < 256; ++z) {
+            if((x + z) % 2 == 0) {
+                setBlockAt(x, 0, z, STONE);
+            }
+            else {
+                setBlockAt(x, 0, z, DIRT);
+            }
+        }
+    }
     // Add "walls" for collision testing
-//    for(int x = 0; x < 64; ++x) {
-//        setBlockAt(x, 129, 0, GRASS);
-//        setBlockAt(x, 130, 0, GRASS);
-//        setBlockAt(x, 129, 63, GRASS);
-//        setBlockAt(0, 130, x, GRASS);
-//    }
-//    // Add a central column
-//    for(int y = 129; y < 140; ++y) {
-//        setBlockAt(32, y, 32, GRASS);
-//    }
+    for(int x = 0; x < 64; ++x) {
+        setBlockAt(x, 129, 0, GRASS);
+        setBlockAt(x, 130, 0, GRASS);
+        setBlockAt(x, 129, 63, GRASS);
+        setBlockAt(0, 130, x, GRASS);
+    }
+    // Add a central column
+    for(int y = 129; y < 140; ++y) {
+        setBlockAt(32, y, 32, GRASS);
+    }
 
-    // Make everything below y=128 stone
+
     for (int x = 0; x < 256; ++x) {
         for (int z = 0; z < 256; ++z) {
 
             float h_h = hills(glm::vec2(x, z));
             float h_m = mountains(glm::vec2(x, z));
-//            float h_f = forest(glm::vec2(x, z));
+            float h_f = forest(glm::vec2(x, z));
+            float h_i = islands(glm::vec2(x, z));
+
+            // TODO: add forest and beach biomes
 
             float h = blendTerrain(glm::vec2(x, z), h_h, h_m);
             float biomeType = blendTerrain(glm::vec2(x, z), 0.f, 1.f);
             if (biomeType < 0.5) {
                 // hills
+                // Make everything below y=128 stone
                 for (int y = 0; y < 128; ++y) {
                     setBlockAt(x, y, z, STONE);
                 }
@@ -262,16 +270,15 @@ void Terrain::CreateTestScene()
                     for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
                         setBlockAt(x, y, z, STONE);
                     }
-                    for (int y = h - numDirtBlocks; y < h - 1; ++y) {
+                    for (int y = h - numDirtBlocks; y < h - 2; ++y) {
                         setBlockAt(x, y, z, DIRT);
                     }
-                    setBlockAt(x, h - 1, z, DIRT);
+                    setBlockAt(x, h - 2, z, GRASS);
+                    setBlockAt(x, h - 1, z, SNOW);
                 }
             }
         }
     }
-
-
 }
 
 glm::vec2 Terrain::noise2D(glm::vec2 p) {
@@ -404,6 +411,18 @@ float Terrain::forest(glm::vec2 xz) {
         freq *= 0.5;
         amp *= 0.5;
     } return floor(150.f + h * 20);
+}
+float Terrain::islands(glm::vec2 xz) {
+    float h = 0;
+
+    float amp = 0.5;
+    float freq = 200.f;
+
+    for (int i = 0; i < 4; ++i) {
+        h += amp * perlin(xz / freq);
+        freq *= 0.25;
+        amp *= 0.25;
+    } return floor(35.f + h * 100);
 }
 float Terrain::blendTerrain(glm::vec2 uv, float h1, float h2) {
     double p = perlin(uv);

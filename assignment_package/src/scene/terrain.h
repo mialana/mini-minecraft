@@ -67,6 +67,7 @@ private:
     float hills(glm::vec2 p);
     float mountains(glm::vec2 p);
     float forest(glm::vec2 p);
+    float islands(glm::vec2 p);
     float blendTerrain(glm::vec2 uv, float h1, float h2);
 
 public:

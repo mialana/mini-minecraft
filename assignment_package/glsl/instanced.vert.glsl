@@ -187,7 +187,7 @@ void main()
 
 //    offsetPos.y *= floor(50.f + h * 200.f);
 
-    // forest/ swamp/ grasslands
+    // forest
 //    vec4 offsetPos = vs_Pos + vec4(vs_OffsetInstanced, 0.);
 //    vec2 xz = vs_OffsetInstanced.xz;
 
@@ -203,6 +203,23 @@ void main()
 //    }
 
 //    offsetPos.y *= floor(148.f + h * 20);
+
+    // islands
+//    vec4 offsetPos = vs_Pos + vec4(vs_OffsetInstanced, 0.);
+//    vec2 xz = vs_OffsetInstanced.xz;
+
+//    float h = 0;
+
+//    float amp = 0.5;
+//    float freq = 200.f;
+
+//    for (int i = 0; i < 4; ++i) {
+//        h += amp * perlin(xz / freq);
+//        freq *= 0.25;
+//        amp *= 0.25;
+//    }
+
+//    offsetPos.y *= floor(35.f + h * 100);
 
     fs_Pos = offsetPos;
     fs_Col = vec4(vs_ColInstanced, 1.);
