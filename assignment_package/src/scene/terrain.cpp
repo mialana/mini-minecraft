@@ -165,28 +165,27 @@ void Terrain::CreateTestScene()
     m_generatedTerrain.insert(toKey(0, 0));
 
     // Create the basic terrain floor
-    for(int x = 0; x < 256; ++x) {
-        for(int z = 0; z < 256; ++z) {
-            if((x + z) % 2 == 0) {
-                setBlockAt(x, 0, z, STONE);
-            }
-            else {
-                setBlockAt(x, 0, z, DIRT);
-            }
-        }
-    }
-    // Add "walls" for collision testing
-    for(int x = 0; x < 64; ++x) {
-        setBlockAt(x, 129, 0, GRASS);
-        setBlockAt(x, 130, 0, GRASS);
-        setBlockAt(x, 129, 63, GRASS);
-        setBlockAt(0, 130, x, GRASS);
-    }
-    // Add a central column
-    for(int y = 129; y < 140; ++y) {
-        setBlockAt(32, y, 32, GRASS);
-    }
-
+//    for(int x = 0; x < 256; ++x) {
+//        for(int z = 0; z < 256; ++z) {
+//            if((x + z) % 2 == 0) {
+//                setBlockAt(x, 0, z, STONE);
+//            }
+//            else {
+//                setBlockAt(x, 0, z, DIRT);
+//            }
+//        }
+//    }
+//    // Add "walls" for collision testing
+//    for(int x = 0; x < 64; ++x) {
+//        setBlockAt(x, 129, 0, GRASS);
+//        setBlockAt(x, 130, 0, GRASS);
+//        setBlockAt(x, 129, 63, GRASS);
+//        setBlockAt(0, 130, x, GRASS);
+//    }
+//    // Add a central column
+//    for(int y = 129; y < 140; ++y) {
+//        setBlockAt(32, y, 32, GRASS);
+//    }
 
     for (int x = 0; x < 256; ++x) {
         for (int z = 0; z < 256; ++z) {

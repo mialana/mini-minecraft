@@ -1,7 +1,7 @@
 # mini-minecraft CIS4600/5600
 mini-minecraft-moo-moo-minecrafters created by GitHub Classroom
 
-### Terrain Rendering and Chunking:
+### Terrain Rendering and Chunking - Amy Liu
 
 #### For drawing terrain on per-chunk basis: 
 To implement this feature, I created a function that iterates through the faces of a block and draws the vertices based on whether the adjacent block in that direction is empty. This involved checking whether that block is in the same chunk as the current block, and accessing another chunk's data if not.
@@ -25,3 +25,18 @@ For onGround detection: Used the bottom of the player and essentially cast a pse
 For block placement/removal: Removal was pretty straight forward, because we don't need to worry about block deletion from memory just yet, I just set the block I am clicking on to empty. to get a block, I use gridMarch to see which block is 3 units in front of me.
 
 Simillarly for placement, I used gridMarch to get the block 3 units away from me, then checked if the closest axis adjacent block to that block is empty, then placed a block there.
+
+### Procedural Terrain - Rachel Lin
+
+The procedural terrain generation is based off of several noise functions. 
+
+In the terrain class, I added base noise functions to compute fractal brownian motion and perlin noise. These functions take in a vec2 representing an xz coordinate and output a float. 
+
+I also added four functions that each used the base noise functions to generate terrains for different biomes: hills, forest, mountains, and islands. Each of these functions also takes in a vec2 representing an xz coordinate and outputs a float representing the height of the terrain at that coordinate.
+
+All of the biome height fields are based off of a sum of perlin noise generated at different frequencies and amplitudes. However, the general frequency and amplitude varies between biomes: the forest has a lower frequency, and the mountains and islands have a greater amplitude. For the hills, I also flattened the tops of the hills and deepened the troughs to get the desired look terraced look.
+
+I also wrote a blendTerrain() function that takes in two heights corresponding to different biomes and interpolates between the two heights based on perlin noise. This helps to create a smooth transition between biomes. 
+
+In CreateTestScene(), I used the biome functions to generate four different terrain heights for each xz coordinate. I then used my blendTerrain() function to blend between two of them (right now I'm only using the hill and mountain
+biomes, but I plan on implementing a new blendTerrain() function to allow for more than two biomes). Depending on which terrain was prioritized, I used setBlockAt() to populate each xyz coordinate with a specific block to match that terrain's desired appearance.
