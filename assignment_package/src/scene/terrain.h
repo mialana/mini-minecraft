@@ -61,6 +61,8 @@ private:
 
     OpenGLContext* mp_context;
 
+    Cube m_geomCube;
+
     bool needsVBOrecompute;
 
     glm::vec2 noise2D(glm::vec2 p);
@@ -111,4 +113,6 @@ public:
     // Initializes the Chunks that store the 64 x 256 x 64 block scene you
     // see when the base code is run.
     void CreateTestScene();
+
+    void loadNewChunks(glm::vec3);
 };
