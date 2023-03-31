@@ -53,4 +53,5 @@ HEADERS +=
 SOURCES +=
 
 DISTFILES += \
+    ../README.md \
     help-log-amy.txt
