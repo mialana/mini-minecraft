@@ -18,69 +18,81 @@ void Player::tick(float dT, InputBundle &input) {
 void Player::processInputs(const Terrain& terrain, InputBundle &inputs) {
     // TODO: Update the Player's velocity and acceleration based on the
     // state of the inputs.
-    float acceleration = 20.0f;
+    float acceleration = 10.0f;
+    float gravMultiplier = 20.f;
 
     if (inputs.flightMode) { // flight mode on
+
+        m_acceleration = glm::vec3();
+        m_velocity = glm::vec3();
         if (inputs.wPressed) {
-            m_acceleration = 3 * acceleration * this->m_forward;
-        } else if (inputs.sPressed) {
-            m_acceleration = 3 * -acceleration * this->m_forward;
-        } else if (inputs.dPressed) {
-            m_acceleration = 3 * acceleration * this->m_right;
-        } else if (inputs.aPressed) {
-            m_acceleration = 3 * -acceleration * this->m_right;
-        } else if (inputs.ePressed) {
-            m_acceleration = 3 * acceleration * this->m_up;
-        } else if (inputs.qPressed) {
-            m_acceleration = 3 * -acceleration * this->m_up;
-        } else {
-            m_velocity = glm::vec3();
-            m_acceleration = glm::vec3();
+            m_acceleration += acceleration * glm::normalize(glm::vec3(m_forward.x, 0.0f, m_forward.z));
+        }
+        if (inputs.sPressed) {
+            m_acceleration += -acceleration * glm::normalize(glm::vec3(m_forward.x, 0.0f, m_forward.z));
+        }
+        if (inputs.dPressed) {
+            m_acceleration += acceleration * glm::normalize(glm::vec3(m_right.x, 0.0f, m_right.z));
+        }
+        if (inputs.aPressed) {
+            m_acceleration += -acceleration * glm::normalize(glm::vec3(m_right.x, 0.0f, m_right.z));
+        }
+        if (inputs.ePressed) {
+            m_acceleration += acceleration * glm::normalize(glm::vec3(0.0f, m_up.y, 0.0f));
+        }
+        if (inputs.qPressed) {
+            m_acceleration +=  -acceleration * glm::normalize(glm::vec3(0.0f, m_up.y, 0.0f));
         }
     } else { // flight mode off
         isOnGround(terrain, inputs);
+        m_acceleration = glm::vec3();
+        m_velocity = glm::vec3();
         if (inputs.wPressed) {
-            m_acceleration = acceleration * glm::normalize(glm::vec3(m_forward.x, 0, m_forward.z));
-        } else if (inputs.sPressed) {
-            m_acceleration = -acceleration * glm::normalize(glm::vec3(m_forward.x, 0, m_forward.z));
-        } else if (inputs.dPressed) {
-            m_acceleration = acceleration * glm::normalize(glm::vec3(m_right.x, 0, m_right.z));
-        } else if (inputs.aPressed) {
-            m_acceleration = -acceleration * glm::normalize(glm::vec3(m_right.x, 0, m_right.z));
-        } else if (inputs.spacePressed) {
+            m_acceleration += acceleration * glm::normalize(glm::vec3(m_forward.x, 0.0f, m_forward.z));
+        }
+        if (inputs.sPressed) {
+            m_acceleration += -acceleration * glm::normalize(glm::vec3(m_forward.x, 0.0f, m_forward.z));
+        }
+        if (inputs.dPressed) {
+            m_acceleration += acceleration * glm::normalize(glm::vec3(m_right.x, 0.0f, m_right.z));
+        }
+        if (inputs.aPressed) {
+            m_acceleration += -acceleration * glm::normalize(glm::vec3(m_right.x, 0.0f, m_right.z));
+        }
+        if (inputs.spacePressed) {
             if (inputs.onGround) {
                 // jump on ground
-                m_velocity = acceleration * this->m_up;
+                m_acceleration += acceleration * gravMultiplier * glm::normalize(glm::vec3(0.0f, m_up.y, 0.0f));
             }
-        } else {
-            m_velocity = glm::vec3();
-            m_acceleration = glm::vec3();
         }
     }
 }
 
 void Player::computePhysics(float dT, const Terrain &terrain, InputBundle& inputs) {
-    // TODO: Update the Player's position based on its acceleration
-    // and velocity, and also perform collision detection.
-    m_velocity *= 0.95f; // reduce velocity for friction + drag
-    m_velocity += m_acceleration * dT;
-    glm::vec3 rayDirection = m_velocity * dT;
-    glm::vec3 gravity = glm::vec3(0.f, -98.f, 0.f); // -9.8 for gravity * 10 for mass lol
 
-    // handle collision & gravity while the player is in non-flightmode
-    // if the player is not on ground, apply gravity
+    glm::vec3 rayDirection = glm::vec3();
+    glm::vec3 gravity = glm::vec3(0.f, -9.8f, 0.f); // -9.8 for gravity * 10 for mass lol
+
     if (!inputs.flightMode) {
+
         isOnGround(terrain, inputs);
-        if (!inputs.onGround) {
-            // falling
-            m_acceleration = gravity;
+
+        if(!inputs.onGround)
+        {
+            m_acceleration += gravity;
             m_velocity += m_acceleration * dT;
-        } else if (inputs.onGround && !inputs.spacePressed) {
-            // come back down after jumping on ground
-            m_velocity.y = 0.f;
         }
-        rayDirection = m_velocity * dT;
+        else
+        {
+            m_velocity += m_acceleration * dT;
+        }
+        rayDirection = m_velocity;
         detectCollision(&rayDirection, terrain);
+    }
+    else
+    {
+        m_velocity += m_acceleration * dT;
+        rayDirection = m_velocity;
     }
     this->moveAlongVector(rayDirection);
 }
@@ -89,7 +101,7 @@ bool Player::isOnGround(const Terrain &terrain, InputBundle &input) {
     glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, 0, 0.5f);
     for (int x = 0; x <= 1; x++) {
         for (int z = 0; z <= 1; z++) {
-            glm::vec3 p = glm::vec3(floor(bottomLeftVertex.x) + x, floor(bottomLeftVertex.y - 0.005f),
+            glm::vec3 p = glm::vec3(floor(bottomLeftVertex.x) + x, floor(bottomLeftVertex.y - 0.05f),
                           floor(bottomLeftVertex.z) + z);
             if (terrain.getBlockAt(p) != EMPTY
                     && terrain.getBlockAt(p) != WATER) {
@@ -104,20 +116,21 @@ bool Player::isOnGround(const Terrain &terrain, InputBundle &input) {
 
 void Player::detectCollision(glm::vec3 *rayDirection, const Terrain &terrain) {
     glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, 0.f, 0.5f);
-    glm::ivec3 outBlockHit = glm::ivec3();
-    float outDist = 0.f;
+        glm::ivec3 outBlockHit = glm::ivec3();
+        float outDist = 0.f;
 
-    for (int x = 0; x <= 1; x++) {
-        for (int z = 0; z >= -1; z--) {
-            for (int y = 0; y <= 2; y++) {
-                glm::vec3 rayOrigin = bottomLeftVertex + glm::vec3(x, y, z);
-                if (gridMarch(rayOrigin, *rayDirection, terrain, &outDist, &outBlockHit)) {
-                    float distance = glm::min(outDist - 0.005f, abs(glm::length(this->m_position - glm::vec3(outBlockHit))));
-                    *rayDirection = distance * glm::normalize(*rayDirection);
+        for (int x = 0; x <= 1; x++) {
+            for (int z = 0; z <= 1; z++) {
+                for (int y = 0; y <= 2; y++) {
+                    glm::vec3 rayOrigin = bottomLeftVertex + glm::vec3(x, y, z);
+                    if (gridMarch(rayOrigin, *rayDirection, terrain, &outDist, &outBlockHit)) {
+                        float distance = glm::min(outDist - 0.005f, glm::length(this->m_position - glm::vec3(outBlockHit)));
+                        *rayDirection = distance * glm::normalize(*rayDirection);
+                        return;
+                    }
                 }
             }
         }
-    }
 }
 
 bool Player::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection,
@@ -172,6 +185,49 @@ bool Player::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection,
 
     *out_dist = glm::min(maxLen, curr_t);
     return false;
+}
+
+BlockType Player::removeBlock(Terrain* terrain) {
+    glm::vec3 rayOrigin = m_camera.mcr_position;
+    glm::vec3 rayDirection = 3.f * glm::normalize(this->m_forward);
+    float outDist = 0.f;
+    glm::ivec3 outBlockHit = glm::ivec3();
+
+    if (gridMarch(rayOrigin, rayDirection, *terrain, &outDist, &outBlockHit)) {
+        BlockType blockType = terrain->getBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z);
+        terrain->setBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z, EMPTY);
+        return blockType;
+    }
+    return EMPTY;
+}
+
+
+// add a block on right click
+BlockType Player::placeBlock(Terrain* terrain, BlockType currBlockType) {
+    glm::vec3 rayOrigin = m_camera.mcr_position;
+    glm::vec3 rayDirection = 3.f * glm::normalize(this->m_forward);
+    float outDist = 0.f;
+    glm::ivec3 outBlockHit = glm::ivec3();
+
+    if (gridMarch(rayOrigin, rayDirection, *terrain, &outDist, &outBlockHit)) {
+        if (infAxis == 2) {
+            if (terrain->getBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z - glm::sign(rayDirection.z)) == EMPTY) {
+                terrain->setBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z - glm::sign(rayDirection.z), currBlockType);
+                return currBlockType;
+            }
+        } else if (infAxis == 1) {
+            if (terrain->getBlockAt(outBlockHit.x, outBlockHit.y - glm::sign(rayDirection.y), outBlockHit.z) == EMPTY) {
+                terrain->setBlockAt(outBlockHit.x, outBlockHit.y - glm::sign(rayDirection.y), outBlockHit.z, currBlockType);
+                return currBlockType;
+            }
+        } else if (infAxis == 0) {
+            if (terrain->getBlockAt(outBlockHit.x - glm::sign(rayDirection.x), outBlockHit.y, outBlockHit.z) == EMPTY) {
+                terrain->setBlockAt(outBlockHit.x - glm::sign(rayDirection.x), outBlockHit.y, outBlockHit.z, currBlockType);
+                return currBlockType;
+             }
+        }
+    }
+    return EMPTY;
 }
 
 void Player::setCameraWidthHeight(unsigned int w, unsigned int h) {

@@ -33,8 +33,8 @@ public:
                    const Terrain& terrain, float *out_dist,
                    glm::ivec3* out_blockHit);
 
-    BlockType placeBlock(Terrain& terrain, BlockType currBlock);
-    BlockType removeBlock(Terrain& terrain);
+    BlockType placeBlock(Terrain* terrain, BlockType currBlock);
+    BlockType removeBlock(Terrain* terrain);
 
     // Player overrides all of Entity's movement
     // functions so that it transforms its camera

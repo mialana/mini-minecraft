@@ -65,6 +65,7 @@ protected:
     // Automatically invoked when the user
     // presses a key on the keyboard
     void keyPressEvent(QKeyEvent *e);
+    void keyReleaseEvent(QKeyEvent *e);
     // Automatically invoked when the user
     // moves the mouse
     void mouseMoveEvent(QMouseEvent *e);
