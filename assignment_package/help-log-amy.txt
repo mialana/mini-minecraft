@@ -1,0 +1,2 @@
+https://stackoverflow.com/questions/4494170/grouping-switch-statement-cases-together
+    - used this site to understand switch statements better.

@@ -1,5 +1,4 @@
 #include "terrain.h"
-#include "cube.h"
 #include <stdexcept>
 #include <iostream>
 
@@ -8,7 +7,6 @@ Terrain::Terrain(OpenGLContext *context)
 {}
 
 Terrain::~Terrain() {
-    m_geomCube.destroyVBOdata();
 }
 
 // Combine two 32-bit ints into one 64-bit int
@@ -115,9 +113,9 @@ void Terrain::setBlockAt(int x, int y, int z, BlockType t)
 }
 
 Chunk* Terrain::instantiateChunkAt(int x, int z) {
-    uPtr<Chunk> chunk = mkU<Chunk>();
+    uPtr<Chunk> chunk = mkU<Chunk>(mp_context);
     Chunk *cPtr = chunk.get();
-    m_chunks[toKey(x, z)] = move(chunk);
+    m_chunks[toKey(x, z)] = std::move(chunk);
     // Set the neighbor pointers of itself and its neighbors
     if(hasChunkAt(x, z + 16)) {
         auto &chunkNorth = m_chunks[toKey(x, z + 16)];
@@ -139,11 +137,7 @@ Chunk* Terrain::instantiateChunkAt(int x, int z) {
     return cPtr;
 }
 
-// TODO: When you make Chunk inherit from Drawable, change this code so
-// it draws each Chunk with the given ShaderProgram, remembering to set the
-// model matrix to the proper X and Z translation!
 void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shaderProgram) {
-
     if(needsVBOrecompute) {
         needsVBOrecompute = false;
         m_geomCube.clearOffsetBuf();
@@ -197,9 +191,6 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
 
 void Terrain::CreateTestScene()
 {
-    // TODO: DELETE THIS LINE WHEN YOU DELETE m_geomCube!
-    m_geomCube.createVBOdata();
-
     // Create the Chunks that will
     // store the blocks for our
     // initial world space
@@ -431,4 +422,17 @@ float Terrain::blendTerrain(glm::vec2 uv, float h1, float h2) {
     // perform linear interpolation
     float height = ((1 - heightMix) * h1) + (heightMix * h2);
     return height;
+}
+
+void Terrain::loadNewChunks(glm::vec3 currPos) {
+    for (const glm::ivec2& p : directionHelper) {
+        if (!hasChunkAt(currPos.x + p[0], currPos.z + p[1])) {
+            glm::ivec2 currChunkOrigin = 16 * glm::ivec2(glm::floor(glm::vec2(currPos.x, currPos.z) / 16.f));
+
+            glm::ivec2 newChunkOrigin = currChunkOrigin + p;
+
+            Chunk* newChunk = instantiateChunkAt(newChunkOrigin[0], newChunkOrigin[1]);
+            newChunk->createVBOdata();
+        }
+    }
 }

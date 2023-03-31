@@ -235,6 +235,38 @@ void ShaderProgram::drawInstanced(InstancedDrawable &d)
 
 }
 
+void ShaderProgram::drawInterleaved(Drawable &d) {
+    useMe();
+
+    if(d.elemCount() < 0) {
+        throw std::out_of_range("Attempting to draw a drawable with m_count of " + std::to_string(d.elemCount()) + "!");
+    }
+
+    if (d.bindVertData()) {
+        if (attrPos != -1) {
+            context->glEnableVertexAttribArray(attrPos);
+            context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 3 * sizeof(glm::vec4), (void*) 0);
+        }
+        if (attrNor != -1) {
+            context->glEnableVertexAttribArray(attrNor);
+            context->glVertexAttribPointer(attrNor, 4, GL_FLOAT, false, 3 * sizeof(glm::vec4), (void*) sizeof(glm::vec4));
+        }
+        if (attrCol != -1) {
+            context->glEnableVertexAttribArray(attrCol);
+            context->glVertexAttribPointer(attrCol, 4, GL_FLOAT, false, 3 * sizeof(glm::vec4), (void*) (2 * sizeof(glm::vec4)));
+        }
+    }
+
+    d.bindIdx();
+    context->glDrawElements(d.drawMode(), d.elemCount(), GL_UNSIGNED_INT, 0);
+
+    if (attrPos != -1) context->glDisableVertexAttribArray(attrPos);
+    if (attrNor != -1) context->glDisableVertexAttribArray(attrNor);
+    if (attrCol != -1) context->glDisableVertexAttribArray(attrCol);
+
+    context->printGLErrorLog();
+}
+
 char* ShaderProgram::textFileRead(const char* fileName) {
     char* text;
 

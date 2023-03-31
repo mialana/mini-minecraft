@@ -11,6 +11,14 @@
 
 //using namespace std;
 
+
+const static std::vector<glm::ivec2> directionHelper = {
+    glm::ivec2(16, 0),
+    glm::ivec2(-16, 0),
+    glm::ivec2(0, 16),
+    glm::ivec2(0, -16),
+};
+
 // Helper functions to convert (x, z) to and from hash map key
 int64_t toKey(int x, int z);
 glm::ivec2 toCoords(int64_t k);
@@ -50,7 +58,6 @@ private:
     // for every non-EMPTY block within its Chunks. This is horribly
     // inefficient, and will cause your game to run very slowly until
     // milestone 1's Chunk VBO setup is completed.
-    Cube m_geomCube;
 
     OpenGLContext* mp_context;
 
@@ -104,6 +111,4 @@ public:
     // Initializes the Chunks that store the 64 x 256 x 64 block scene you
     // see when the base code is run.
     void CreateTestScene();
-
-
 };
