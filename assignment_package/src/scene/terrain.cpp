@@ -3,7 +3,7 @@
 #include <iostream>
 
 Terrain::Terrain(OpenGLContext *context)
-    : m_chunks(), m_generatedTerrain(), m_geomCube(context), mp_context(context), needsVBOrecompute(true)
+    : m_chunks(), m_generatedTerrain(), mp_context(context)
 {}
 
 Terrain::~Terrain() {
@@ -138,55 +138,15 @@ Chunk* Terrain::instantiateChunkAt(int x, int z) {
 }
 
 void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shaderProgram) {
-    if(needsVBOrecompute) {
-        needsVBOrecompute = false;
-        m_geomCube.clearOffsetBuf();
-        m_geomCube.clearColorBuf();
+    for(int x = minX; x < maxX; x += 16) {
+        for(int z = minZ; z < maxZ; z += 16) {
+            const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+            currChunk->createVBOdata();
 
-        std::vector<glm::vec3> offsets, colors;
-
-        for(int x = minX; x < maxX; x += 16) {
-            for(int z = minZ; z < maxZ; z += 16) {
-                const uPtr<Chunk> &chunk = getChunkAt(x, z);
-                for(int i = 0; i < 16; ++i) {
-                    for(int j = 0; j < 256; ++j) {
-                        for(int k = 0; k < 16; ++k) {
-                            BlockType t = chunk->getBlockAt(i, j, k);
-
-                            if(t != EMPTY) {
-                                offsets.push_back(glm::vec3(i+x, j, k+z));
-                                switch(t) {
-                                case GRASS:
-                                    colors.push_back(glm::vec3(95.f, 159.f, 53.f) / 255.f);
-                                    break;
-                                case DIRT:
-                                    colors.push_back(glm::vec3(121.f, 85.f, 58.f) / 255.f);
-                                    break;
-                                case STONE:
-                                    colors.push_back(glm::vec3(0.5f));
-                                    break;
-                                case WATER:
-                                    colors.push_back(glm::vec3(0.f, 0.f, 0.75f));
-                                    break;
-                                case SNOW:
-                                    colors.push_back(glm::vec3(220.f, 235.f, 255.f) / 255.f);
-                                case SAND:
-                                    colors.push_back(glm::vec3(215.f, 195.f, 130.f) / 255.f);
-                                default:
-                                    // Other block types are not yet handled, so we default to debug purple
-                                    colors.push_back(glm::vec3(1.f, 0.f, 1.f));
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            shaderProgram->setModelMatrix(glm::translate(glm::mat4(1), glm::vec3(x, 0, z)));
+            shaderProgram->drawInterleaved(*currChunk);
         }
-
-        m_geomCube.createInstancedVBOdata(offsets, colors);
     }
-    shaderProgram->drawInstanced(m_geomCube);
 }
 
 void Terrain::CreateTestScene()

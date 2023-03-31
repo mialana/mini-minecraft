@@ -1,16 +1,12 @@
 #pragma once
 #include "smartpointerhelp.h"
-#include "glm_includes.h"
 #include "chunk.h"
 #include <array>
 #include <unordered_map>
 #include <unordered_set>
 #include "shaderprogram.h"
-#include "cube.h"
-
 
 //using namespace std;
-
 
 const static std::vector<glm::ivec2> directionHelper = {
     glm::ivec2(16, 0),
@@ -60,10 +56,6 @@ private:
     // milestone 1's Chunk VBO setup is completed.
 
     OpenGLContext* mp_context;
-
-    Cube m_geomCube;
-
-    bool needsVBOrecompute;
 
     glm::vec2 noise2D(glm::vec2 p);
     float noise1D(glm::vec2 p);

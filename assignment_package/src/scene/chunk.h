@@ -81,6 +81,10 @@ struct Vertex {
             case WATER:
                 color = glm::vec4(0.f, 0.f, 0.75f, 1.f);
                 break;
+            case SNOW:
+                color = glm::vec4(220.f, 235.f, 255.f, 255.f) / 255.f;
+            case SAND:
+                color = glm::vec4(215.f, 195.f, 130.f, 255.f) / 255.f;
             default:
                 color = glm::vec4(1.f, 0.f, 1.f, 1.f);
                 break;
