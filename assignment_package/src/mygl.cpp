@@ -4,13 +4,15 @@
 #include <iostream>
 #include <QApplication>
 #include <QKeyEvent>
+#include <QDateTime>
 
 
 MyGL::MyGL(QWidget *parent)
     : OpenGLContext(parent),
       m_worldAxes(this),
       m_progLambert(this), m_progFlat(this), m_progInstanced(this),
-      m_terrain(this), m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain)
+      m_terrain(this), m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain),
+      m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
@@ -94,6 +96,12 @@ void MyGL::resizeGL(int w, int h) {
 // all per-frame actions here, such as performing physics updates on all
 // entities in the scene.
 void MyGL::tick() {
+
+    glm::vec3 prevPlayerPos = m_player.mcr_position;
+    float dT = (QDateTime::currentMSecsSinceEpoch() - m_currMSecSinceEpoch) / 1000.f;
+    m_player.tick(dT, m_inputs);
+    m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
+
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
@@ -152,33 +160,81 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
     // chain of if statements instead
     if (e->key() == Qt::Key_Escape) {
         QApplication::quit();
-    } else if (e->key() == Qt::Key_Right) {
-        m_player.rotateOnUpGlobal(-amount);
-    } else if (e->key() == Qt::Key_Left) {
-        m_player.rotateOnUpGlobal(amount);
-    } else if (e->key() == Qt::Key_Up) {
-        m_player.rotateOnRightLocal(-amount);
-    } else if (e->key() == Qt::Key_Down) {
-        m_player.rotateOnRightLocal(amount);
-    } else if (e->key() == Qt::Key_W) {
-        m_player.moveForwardLocal(amount);
-    } else if (e->key() == Qt::Key_S) {
-        m_player.moveForwardLocal(-amount);
-    } else if (e->key() == Qt::Key_D) {
-        m_player.moveRightLocal(amount);
-    } else if (e->key() == Qt::Key_A) {
-        m_player.moveRightLocal(-amount);
-    } else if (e->key() == Qt::Key_Q) {
-        m_player.moveUpGlobal(-amount);
-    } else if (e->key() == Qt::Key_E) {
-        m_player.moveUpGlobal(amount);
+    }
+
+    if (e->key() == Qt::Key_W) {
+        m_inputs.wPressed = true;
+    }
+    if (e->key() == Qt::Key_S) {
+        m_inputs.sPressed = true;
+    }
+    if (e->key() == Qt::Key_D) {
+        m_inputs.dPressed = true;
+    }
+    if (e->key() == Qt::Key_A) {
+        m_inputs.aPressed = true;
+    }
+    if (e->key() == Qt::Key_F) {
+        m_inputs.flightMode = !m_inputs.flightMode;
+    }
+
+    if (m_inputs.flightMode) {
+        if (e->key() == Qt::Key_Q) {
+            m_inputs.qPressed = true;
+        }
+        if (e->key() == Qt::Key_E) {
+            m_inputs.ePressed = true;
+        }
+    } else {
+        if (e->key() == Qt::Key_Space) {
+            m_inputs.spacePressed = true;
+        }
+    }
+}
+
+void MyGL::keyReleaseEvent(QKeyEvent *e) {
+
+    if (e->key() == Qt::Key_W) {
+        m_inputs.wPressed = false;
+    }
+    if (e->key() == Qt::Key_S) {
+        m_inputs.sPressed = false;
+    }
+    if (e->key() == Qt::Key_D) {
+        m_inputs.dPressed = false;
+    }
+    if (e->key() == Qt::Key_A) {
+        m_inputs.aPressed = false;
+    }
+    if (e->key() == Qt::Key_Q) {
+        m_inputs.qPressed = false;
+    }
+    if (e->key() == Qt::Key_E) {
+        m_inputs.ePressed = false;
+    }
+    if (e->key() == Qt::Key_Space) {
+        m_inputs.spacePressed = false;
     }
 }
 
 void MyGL::mouseMoveEvent(QMouseEvent *e) {
     // TODO
+    const float SENSITIVITY = 50.0;
+    float dx = this->width() * 0.5 - e->pos().x();
+    if (dx != 0) {
+        m_player.rotateOnUpGlobal(dx/width() * SENSITIVITY);
+    }
+    float dy = this->height() * 0.5 - e->pos().y() - 0.5;
+    if (dy != 0) {
+        m_player.rotateOnRightLocal(dy/height() * SENSITIVITY);
+    }
+    moveMouseToCenter();
 }
 
 void MyGL::mousePressEvent(QMouseEvent *e) {
-    // TODO
+    if (e->button() == Qt::LeftButton) {
+        BlockType removed = m_player.removeBlock(&m_terrain);
+    } else if (e->button() == Qt::RightButton) {
+        m_player.placeBlock(&m_terrain, GRASS);
+    }
 }
