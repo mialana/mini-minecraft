@@ -26,6 +26,8 @@ For block placement/removal: Removal was pretty straight forward, because we don
 
 Simillarly for placement, I used gridMarch to get the block 3 units away from me, then checked if the closest axis adjacent block to that block is empty, then placed a block there.
 
+Fly mode: pressing the F key allows the player to enable fly mode, in which the player can move freely throughout the world without the restrictions of collisions and gravity.
+
 ### Procedural Terrain - Rachel Lin
 
 The procedural terrain generation is based off of several noise functions. 

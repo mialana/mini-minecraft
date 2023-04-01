@@ -154,8 +154,8 @@ void Terrain::CreateTestScene()
     // Create the Chunks that will
     // store the blocks for our
     // initial world space
-    for(int x = 0; x < 256; x += 16) {
-        for(int z = 0; z < 256; z += 16) {
+    for(int x = 0; x < 48; x += 16) {
+        for(int z = 0; z < 48; z += 16) {
             instantiateChunkAt(x, z);
         }
     }
@@ -187,8 +187,8 @@ void Terrain::CreateTestScene()
 //        setBlockAt(32, y, 32, GRASS);
 //    }
 
-    for (int x = 0; x < 256; ++x) {
-        for (int z = 0; z < 256; ++z) {
+    for (int x = 0; x < 48; ++x) {
+        for (int z = 0; z < 48; ++z) {
 
             float h_h = hills(glm::vec2(x, z));
             float h_m = mountains(glm::vec2(x, z));
@@ -199,28 +199,27 @@ void Terrain::CreateTestScene()
 
             float h = blendTerrain(glm::vec2(x, z), h_h, h_m);
             float biomeType = blendTerrain(glm::vec2(x, z), 0.f, 1.f);
-            if (biomeType < 0.5) {
+            int numDirtBlocks = 10 * fbm(glm::vec2(x, z));
+            if (biomeType >= 0.5) {
                 // hills
-                // Make everything below y=128 stone
-                for (int y = 0; y < 128; ++y) {
+                for (int y = 0; y < h - 3 - numDirtBlocks; ++y) {
                     setBlockAt(x, y, z, STONE);
                 }
-                for (int y = 128; y < h - 1; ++y) {
+                for (int y = h - 3 - numDirtBlocks; y < h - 1; ++y) {
                     setBlockAt(x, y, z, DIRT);
                 }
                 setBlockAt(x, h - 1, z, GRASS);
             } else {
                 // mountains
-                if (h <= 200) {
-                    for (int y = 0; y < h; ++y) {
+                if (h <= 100) {
+                    for (int y = 0; y < h - 1; ++y) {
                         setBlockAt(x, y, z, STONE);
                     }
                 } else {
-                    int numDirtBlocks = 10 * fbm(glm::vec2(x, z));
                     for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
                         setBlockAt(x, y, z, STONE);
                     }
-                    for (int y = h - numDirtBlocks; y < h - 2; ++y) {
+                    for (int y = h - numDirtBlocks - 1; y < h - 2; ++y) {
                         setBlockAt(x, y, z, DIRT);
                     }
                     setBlockAt(x, h - 2, z, GRASS);
@@ -312,7 +311,7 @@ float Terrain::worley(glm::vec2 uv) {
 float Terrain::hills(glm::vec2 xz) {
     float h = 0;
     float freq = 200.f;
-    float dF = 0.725;
+    float dF = 0.5;
 
     for (int i = 0; i < 4; ++i) {
         h += perlin(xz / freq);
@@ -333,7 +332,7 @@ float Terrain::hills(glm::vec2 xz) {
         h -= min;
         h *= sharpen;
         h += min;
-    } return floor(180.f + h * 50);
+    } return floor(130.f + (h * 50.f));
 }
 float Terrain::mountains(glm::vec2 xz) {
     float h = 0;
