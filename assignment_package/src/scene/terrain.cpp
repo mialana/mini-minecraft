@@ -154,38 +154,16 @@ void Terrain::CreateTestScene()
     // Create the Chunks that will
     // store the blocks for our
     // initial world space
-    for(int x = 0; x < 48; x += 16) {
-        for(int z = 0; z < 48; z += 16) {
+    for(int x = 0; x < 256; x += 16) {
+        for(int z = 0; z < 256; z += 16) {
             instantiateChunkAt(x, z);
         }
     }
+
     // Tell our existing terrain set that
     // the "generated terrain zone" at (0,0)
     // now exists.
     m_generatedTerrain.insert(toKey(0, 0));
-
-    // Create the basic terrain floor
-//    for(int x = 0; x < 256; ++x) {
-//        for(int z = 0; z < 256; ++z) {
-//            if((x + z) % 2 == 0) {
-//                setBlockAt(x, 0, z, STONE);
-//            }
-//            else {
-//                setBlockAt(x, 0, z, DIRT);
-//            }
-//        }
-//    }
-//    // Add "walls" for collision testing
-//    for(int x = 0; x < 64; ++x) {
-//        setBlockAt(x, 129, 0, GRASS);
-//        setBlockAt(x, 130, 0, GRASS);
-//        setBlockAt(x, 129, 63, GRASS);
-//        setBlockAt(0, 130, x, GRASS);
-//    }
-//    // Add a central column
-//    for(int y = 129; y < 140; ++y) {
-//        setBlockAt(32, y, 32, GRASS);
-//    }
 
     for (int x = 0; x < 48; ++x) {
         for (int z = 0; z < 48; ++z) {
@@ -230,14 +208,31 @@ void Terrain::CreateTestScene()
     }
 }
 
+void Terrain::loadNewChunks(glm::vec3 currPos) {
+    for (const glm::ivec2& p : directionHelper) {
+        if (!hasChunkAt(currPos.x + p[0], currPos.z + p[1])) {
+            glm::ivec2 currChunkOrigin = 16 * glm::ivec2(glm::floor(glm::vec2(currPos.x, currPos.z) / 16.f));
+
+            glm::ivec2 newChunkOrigin = currChunkOrigin + p;
+
+            Chunk* newChunk = instantiateChunkAt(newChunkOrigin[0], newChunkOrigin[1]);
+            newChunk->createVBOdata();
+        }
+    }
+}
+
+
+// Terrain Generation Functions
 glm::vec2 Terrain::noise2D(glm::vec2 p) {
     float x = glm::fract(43758.5453 * glm::sin(glm::dot(p, glm::vec2(127.1, 311.7))));
     float y = glm::fract(43758.5453 * glm::sin(glm::dot(p, glm::vec2(269.5, 183.3))));
     return glm::vec2(x, y);
 }
+
 float Terrain::noise1D(glm::vec2 p) {
     return glm::fract(sin(glm::dot(p, glm::vec2(127.1, 311.7))) * 43758.5453);
 }
+
 float Terrain::interpNoise(float x, float y) {
     int intX = int(floor(x));
     float fractX = glm::fract(x);
@@ -254,6 +249,7 @@ float Terrain::interpNoise(float x, float y) {
     float i2 = glm::mix(v3, v4, fractX);
     return glm::mix(i1, i2, fractY);
 }
+
 float Terrain::fbm(const glm::vec2 uv) {
     float total = 0;
     float persistence = 0.5f;
@@ -268,6 +264,7 @@ float Terrain::fbm(const glm::vec2 uv) {
     }
     return total;
 }
+
 float Terrain::surflet(glm::vec2 P, glm::vec2 gridPoint) {
     // Compute falloff function by converting linear distance to a polynomial
     float distX = abs(P.x - gridPoint.x);
@@ -283,6 +280,7 @@ float Terrain::surflet(glm::vec2 P, glm::vec2 gridPoint) {
     // Scale our height field (i.e. reduce it) by our polynomial falloff function
     return height * tX * tY;
 }
+
 float Terrain::perlin(glm::vec2 uv) {
     float surfletSum = 0.f;
     // Iterate over the four integer corners surrounding uv
@@ -292,6 +290,7 @@ float Terrain::perlin(glm::vec2 uv) {
             }
     } return surfletSum;
 }
+
 float Terrain::worley(glm::vec2 uv) {
     uv *= 10; // Now the space is 10x10 instead of 1x1. Change this to any number you want.
     glm::vec2 uvInt = glm::floor(uv);
@@ -334,6 +333,7 @@ float Terrain::hills(glm::vec2 xz) {
         h += min;
     } return floor(130.f + (h * 50.f));
 }
+
 float Terrain::mountains(glm::vec2 xz) {
     float h = 0;
     float amp = 0.5;
@@ -349,6 +349,7 @@ float Terrain::mountains(glm::vec2 xz) {
         freq *= 0.5;
     } return floor(100.f + h * 150.f);
 }
+
 float Terrain::forest(glm::vec2 xz) {
     float h = 0;
 
@@ -361,6 +362,7 @@ float Terrain::forest(glm::vec2 xz) {
         amp *= 0.5;
     } return floor(150.f + h * 20);
 }
+
 float Terrain::islands(glm::vec2 xz) {
     float h = 0;
 
@@ -373,6 +375,7 @@ float Terrain::islands(glm::vec2 xz) {
         amp *= 0.25;
     } return floor(35.f + h * 100);
 }
+
 float Terrain::blendTerrain(glm::vec2 uv, float h1, float h2) {
     double p = perlin(uv);
     float heightMix = glm::smoothstep(0.25, 0.75, p);
@@ -380,17 +383,4 @@ float Terrain::blendTerrain(glm::vec2 uv, float h1, float h2) {
     // perform linear interpolation
     float height = ((1 - heightMix) * h1) + (heightMix * h2);
     return height;
-}
-
-void Terrain::loadNewChunks(glm::vec3 currPos) {
-    for (const glm::ivec2& p : directionHelper) {
-        if (!hasChunkAt(currPos.x + p[0], currPos.z + p[1])) {
-            glm::ivec2 currChunkOrigin = 16 * glm::ivec2(glm::floor(glm::vec2(currPos.x, currPos.z) / 16.f));
-
-            glm::ivec2 newChunkOrigin = currChunkOrigin + p;
-
-            Chunk* newChunk = instantiateChunkAt(newChunkOrigin[0], newChunkOrigin[1]);
-            newChunk->createVBOdata();
-        }
-    }
 }
