@@ -48,9 +48,11 @@ address_sanitizer {
     QMAKE_LFLAGS += -fsanitize=address
 }
 
-HEADERS +=
+HEADERS += \
+    texture.h
 
-SOURCES +=
+SOURCES += \
+    texture.cpp
 
 DISTFILES += \
     ../README.md \

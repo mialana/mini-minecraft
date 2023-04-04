@@ -6,6 +6,11 @@
 #include <QKeyEvent>
 #include <QDateTime>
 
+#include <iostream>
+#include <QFile>
+#include <QImage>
+#include <QOpenGLWidget>
+
 
 MyGL::MyGL(QWidget *parent)
     : OpenGLContext(parent),
@@ -27,6 +32,7 @@ MyGL::MyGL(QWidget *parent)
 MyGL::~MyGL() {
     makeCurrent();
     glDeleteVertexArrays(1, &vao);
+    glDeleteTextures(1, &textureHandle);
 }
 
 
@@ -53,6 +59,9 @@ void MyGL::initializeGL()
 
     // Create a Vertex Attribute Object
     glGenVertexArrays(1, &vao);
+
+    // Create a Texture Object
+    glGenTextures(1, &textureHandle);
 
     //Create the instance of the world axes
     m_worldAxes.createVBOdata();
@@ -237,4 +246,22 @@ void MyGL::mousePressEvent(QMouseEvent *e) {
     } else if (e->button() == Qt::RightButton) {
         m_player.placeBlock(&m_terrain, GRASS);
     }
+}
+
+void MyGL::loadTextures() {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureHandle);
+    char* texturePath = ":/textures/minecraft_textures_all.png";
+    QImage img(texturePath);
+    img = img.convertToFormat(QImage::Format_ARGB32);
+    img = img.mirrored();
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA,
+                 img.width(),
+                 img.height(),
+                 0,
+                 GL_BGRA,
+                 GL_UNSIGNED_BYTE,
+                 img.bits());
 }

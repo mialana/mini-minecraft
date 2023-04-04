@@ -8,6 +8,7 @@
 #include "scene/terrain.h"
 #include "scene/player.h"
 
+#include <memory>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
 #include <smartpointerhelp.h>
@@ -41,6 +42,7 @@ private:
 
     int m_time; //not sure what this does
 
+    GLuint textureHandle;
 
 public:
     explicit MyGL(QWidget *parent = nullptr);
@@ -60,6 +62,9 @@ public:
     // Called from paintGL().
     // Calls Terrain::draw().
     void renderTerrain();
+
+    void loadTextures();
+
 
 protected:
     // Automatically invoked when the user
