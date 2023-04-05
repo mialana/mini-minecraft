@@ -2,8 +2,21 @@
 #include <glm_includes.h>
 
 Drawable::Drawable(OpenGLContext* context)
-    : m_count(-1), m_bufIdx(), m_bufPos(), m_bufNor(), m_bufCol(), m_bufVertData(),
-      m_idxGenerated(false), m_posGenerated(false), m_norGenerated(false), m_colGenerated(false), m_vertDataGenerated(false),
+    : m_count(-1),
+      m_bufIdx(),
+      m_bufPos(),
+      m_bufNor(),
+      m_bufCol(),
+      m_bufUVs(),
+      m_bufBTs(),
+      m_bufVertData(),
+      m_idxGenerated(false),
+      m_posGenerated(false),
+      m_norGenerated(false),
+      m_colGenerated(false),
+      m_uvsGenerated(false),
+      m_btsGenerated(false),
+      m_vertDataGenerated(false),
       mp_context(context)
 {}
 
@@ -64,6 +77,16 @@ void Drawable::generateCol()
     m_colGenerated = true;
     // Create a VBO on our GPU and store its handle in bufCol
     mp_context->glGenBuffers(1, &m_bufCol);
+}
+
+void Drawable::generateUVs() {
+    m_uvsGenerated = true;
+    mp_context->glGenBuffers(1, &m_bufUVs);
+}
+
+void Drawable::generateBTs() {
+    m_btsGenerated = true;
+    mp_context->glGenBuffers(1, &m_bufBTs);
 }
 
 void Drawable::generateVertData()

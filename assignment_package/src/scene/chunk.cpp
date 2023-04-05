@@ -55,36 +55,37 @@ BlockType Chunk::getAdjBlockType(Direction d, glm::ivec3 pos) {
 }
 
 void Chunk::createFaceVBOData(std::vector<Vertex>& verts, int currX, int currY, int currZ, DirectionVector dirVec, BlockType bt) {
+    int biome = 0;
     Direction d = dirVec.dir;
     switch (d) {
         case XPOS: case XNEG:
             if (d == XPOS) {
                 currX++;
             }
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt));
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ+1, 1), dirVec.vec, bt));
-            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ+1, 1), dirVec.vec, bt));
-            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt, glm::vec2(0, 0), biome));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ+1, 1), dirVec.vec, bt, glm::vec2(1, 0), biome));
+            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ+1, 1), dirVec.vec, bt, glm::vec2(1, 1), biome));
+            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, bt, glm::vec2(0, 1), biome));
             break;
 
         case YPOS: case YNEG:
             if (d == YPOS) {
                 currY++;
             }
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, bt));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ+1, 1), dirVec.vec, bt));
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ+1, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt, glm::vec2(0, 0), biome));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, bt, glm::vec2(1, 0), biome));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ+1, 1), dirVec.vec, bt, glm::vec2(1, 1), biome));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ+1, 1), dirVec.vec, bt, glm::vec2(0, 1), biome));
             break;
 
         case ZPOS: case ZNEG:
             if (d == ZPOS) {
                 currZ++;
             }
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt));
-            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, bt));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ, 1), dirVec.vec, bt));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, bt));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt, glm::vec2(0, 0), biome));
+            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, bt, glm::vec2(1, 0), biome));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ, 1), dirVec.vec, bt, glm::vec2(1, 1), biome));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, bt, glm::vec2(0, 1), biome));
             break;
     }
 }
@@ -120,6 +121,8 @@ void Chunk::createVBOdata() {
                                 vertData.push_back(v.position);
                                 vertData.push_back(v.normal);
                                 vertData.push_back(v.color);
+                                vertData.push_back(v.uvCoords);
+                                vertData.push_back(v.blockType);
                             }
 
                             indices.push_back(vertCount);
@@ -152,11 +155,15 @@ void Chunk::redistributeVertexData(std::vector<glm::vec4> vd, std::vector<GLuint
     std::vector<glm::vec4> positions;
     std::vector<glm::vec4> normals;
     std::vector<glm::vec4> colors;
+    std::vector<glm::vec4> uvs;
+    std::vector<glm::vec4> bts;
 
-    for (int i = 0; i < vd.size(); i = i+3) {
+    for (int i = 0; i < vd.size(); i = i+5) {
         positions.push_back(vd[i]);
         normals.push_back(vd[i+1]);
         colors.push_back(vd[i+2]);
+        uvs.push_back(vd[i+3]);
+        bts.push_back(vd[i+4]);
     }
 
     m_count = indices.size();
@@ -176,4 +183,14 @@ void Chunk::redistributeVertexData(std::vector<glm::vec4> vd, std::vector<GLuint
     generateCol();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_bufCol);
     mp_context->glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), colors.data(), GL_STATIC_DRAW);
+
+    generateUVs();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_bufUVs);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec4), uvs.data(), GL_STATIC_DRAW);
+
+    generateBTs();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_bufBTs);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, bts.size() * sizeof(glm::vec4), bts.data(), GL_STATIC_DRAW);
+
+
 }
