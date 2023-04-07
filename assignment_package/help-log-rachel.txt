@@ -1,1 +1,9 @@
+Milestone1:
 https://thebookofshaders.com/glossary/?search=fract
+
+Milestone2:
+https://en.cppreference.com/w/cpp/container/unordered_map
+https://en.cppreference.com/w/cpp/container/unordered_map/at
+https://en.cppreference.com/w/cpp/error/out_of_range
+https://stackoverflow.com/questions/10124679/what-happens-if-i-read-a-maps-value-where-the-key-does-not-exist
+https://cplusplus.com/doc/tutorial/exceptions/

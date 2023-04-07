@@ -7,23 +7,34 @@
 class Drawable
 {
 protected:
-    int m_count;     // The number of indices stored in bufIdx.
-    GLuint m_bufIdx; // A Vertex Buffer Object that we will use to store triangle indices (GLuints)
-    GLuint m_bufPos; // A Vertex Buffer Object that we will use to store mesh vertices (vec4s)
-    GLuint m_bufNor; // A Vertex Buffer Object that we will use to store mesh normals (vec4s)
-    GLuint m_bufCol; // Can be used to pass per-vertex color information to the shader, but is currently unused.
-                   // Instead, we use a uniform vec4 in the shader to set an overall color for the geometry
-    GLuint m_bufUVs;
-    GLuint m_bufBTs;
-    GLuint m_bufVertData;
+    int m_oCount;     // The number of indices stored in bufIdx.
+    int m_tCount;
 
-    bool m_idxGenerated; // Set to TRUE by generateIdx(), returned by bindIdx().
-    bool m_posGenerated;
-    bool m_norGenerated;
-    bool m_colGenerated;
-    bool m_uvsGenerated;
-    bool m_btsGenerated;
-    bool m_vertDataGenerated;    
+    GLuint m_oBufIdx; // A Vertex Buffer Object that we will use to store triangle indices (GLuints)
+    GLuint m_oBufPos; // A Vertex Buffer Object that we will use to store mesh vertices (vec4s)
+    GLuint m_oBufNor; // A Vertex Buffer Object that we will use to store mesh normals (vec4s)
+    GLuint m_oBufCol; // Can be used to pass per-vertex color information to the shader, but is currently unused.
+                   // Instead, we use a uniform vec4 in the shader to set an overall color for the geometry
+    GLuint m_oBufUVs;
+    GLuint m_oBufBTs;
+    GLuint m_oBufVertData;
+
+    GLuint m_tBufIdx;
+    GLuint m_tBufPos;
+    GLuint m_tBufNor;
+    GLuint m_tBufCol;
+
+    GLuint m_tBufUVs;
+    GLuint m_tBufBTs;
+    GLuint m_tBufVertData;
+
+    bool m_tIdxGenerated; // Set to TRUE by generateIdx(), returned by bindIdx().
+    bool m_tPosGenerated;
+    bool m_tNorGenerated;
+    bool m_tColGenerated;
+    bool m_tUVsGenerated;
+    bool m_tBtsGenerated;
+    bool m_tVertDataGenerated;
 
     OpenGLContext* mp_context; // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
                           // we need to pass our OpenGL context to the Drawable in order to call GL functions
@@ -43,13 +54,24 @@ public:
 
     // Call these functions when you want to call glGenBuffers on the buffers stored in the Drawable
     // These will properly set the values of idxBound etc. which need to be checked in ShaderProgram::draw()
-    void generateIdx();
-    void generatePos();
-    void generateNor();
-    void generateCol();
-    void generateVertData();
-    void generateUVs();
-    void generateBTs();
+
+    // opaque
+    void generateOIdx();
+    void generateOPos();
+    void generateONor();
+    void generateOCol();
+    void generateOVertData();
+    void generateOUVs();
+    void generateOBTs();
+
+    // transparent
+    void generateTIdx();
+    void generateTPos();
+    void generateTNor();
+    void generateTCol();
+    void generateTVertData();
+    void generateTUVs();
+    void generateTBTs();
 
     bool bindIdx();
     bool bindPos();
