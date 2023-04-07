@@ -864,6 +864,23 @@ const static std::unordered_set<BlockType, EnumHash> partialZ = {
     PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA, ONCIDIUM_IKEBANA
 };
 
+const static std::unordered_set<BlockType, EnumHash> transparent = {
+    WATER, ICE,
+    LOTUS_1, LOTUS_2, RICE,
+    GHOST_LILY, GHOST_WEED, CORAL, KELP, SEA_GRASS,
+    BAMBOO_1, BAMBOO_2, BAMBOO_3,
+    BONSAI_TREE, MAGNOLIA_IKEBANA, LOTUS_IKEBANA, GREEN_HYDRANGEA_IKEBANA, CHRYSANTHEMUM_IKEBANA,
+    CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, DAFFODIL_IKEBANA,
+    PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA, ONCIDIUM_IKEBANA,
+    TALL_GRASS, WHEAT,
+    CEDAR_WINDOW, TEAK_WINDOW, CHERRY_WINDOW, MAPLE_WINDOW, PINE_WINDOW, WISTERIA_WINDOW,
+    PAPER_LANTERN, WOOD_LANTERN,
+    PAINTING, PAINTING_T, PAINTING_B, PAINTING_L, PAINTING_R,
+    LAVA, SNOW_1, SNOW_2, SNOW_3, SNOW_4, SNOW_5, SNOW_6, SNOW_7,
+    ROOF_TILES_1, ROOF_TILES_2, ROOF_TILES_3, ROOF_TILES_4, STRAW_1, STRAW_2, STRAW_3, STRAW_4,
+    TILLED_DIRT, PATH, TATAMI
+};
+
 struct Vertex {
     glm::vec4 position;
     glm::vec4 normal;
@@ -909,7 +926,7 @@ private:
     // coords given in block space
     static void createFaceVBOData(std::vector<Vertex>&, float, float, float, DirectionVector, BlockType, int);
 
-    void redistributeVertexData(std::vector<glm::vec4>, std::vector<GLuint>);
+    void redistributeVertexData(std::vector<glm::vec4>, std::vector<GLuint>, std::vector<glm::vec4>, std::vector<GLuint>);
 
 public:
     Chunk(OpenGLContext* context);
@@ -928,6 +945,7 @@ public:
     boolean isPartialY(BlockType);
     boolean isPartialZ(BlockType);
     boolean isFullCube(BlockType);
+    boolean isTransparent(BlockType);
 
     void createVBOdata() override;
     GLenum drawMode() override {

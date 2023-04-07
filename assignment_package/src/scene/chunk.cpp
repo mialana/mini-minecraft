@@ -51,30 +51,27 @@ bool Chunk::isInBounds(glm::ivec3 pos) {
 boolean Chunk::isHPlane(BlockType bt) {
     return hPlane.find(bt) != hPlane.end();
 }
-
 boolean Chunk::isCross2(BlockType bt) {
     return cross2.find(bt) != cross2.end();
 }
-
 boolean Chunk::isCross4(BlockType bt) {
     return cross4.find(bt) != cross4.end();
 }
-
 boolean Chunk::isPartialX(BlockType bt) {
     return partialX.find(bt) != partialX.end();
 }
-
 boolean Chunk::isPartialY(BlockType bt) {
     return partialY.find(bt) != partialY.end();
 }
-
 boolean Chunk::isPartialZ(BlockType bt) {
     return partialZ.find(bt) != partialZ.end();
 }
-
 boolean Chunk::isFullCube(BlockType bt) {
     return !isHPlane(bt) && !isCross2(bt) && !isCross4(bt) &&
             !isPartialX(bt) && !isPartialY(bt) && !isPartialZ(bt);
+}
+boolean Chunk::isTransparent(BlockType bt) {
+    return transparent.find(bt) != transparent.end();
 }
 
 BlockType Chunk::getAdjBlockType(Direction d, glm::ivec3 pos) {
@@ -112,73 +109,92 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
     switch(bt) {
         case LILY_PAD: case LOTUS_1: case LOTUS_2:
             offsetYPOS = 0.f;
+            break;
         case WHEAT: case SEA_GRASS:
             offsetXPOS = 0.25f;
             offsetXNEG = 0.75f;
             offsetZPOS = 0.25f;
             offsetZNEG = 0.75f;
             keepEdges = true;
+            break;
         case SNOW_1: case TATAMI:
             offsetYPOS = 0.125;
+            break;
         case SNOW_2: case ROOF_TILES_1: case STRAW_1:
             offsetYPOS = 0.25;
+            break;
         case SNOW_3:
             offsetYPOS = 0.375;
+            break;
         case SNOW_4: case ROOF_TILES_2: case STRAW_2:
             offsetYPOS = 0.5;
+            break;
         case SNOW_5:
             offsetYPOS = 0.625;
+            break;
         case SNOW_6: case ROOF_TILES_3: case STRAW_3:
             offsetYPOS = 0.75;
+            break;
         case SNOW_7:
             offsetYPOS = 0.875;
+            break;
         case CEDAR_WINDOW: case TEAK_WINDOW: case CHERRY_WINDOW: case MAPLE_WINDOW: case PINE_WINDOW: case WISTERIA_WINDOW:
             offsetXPOS = 0.4375; // may be offsetX or offsetZ
             offsetXNEG = 0.5625;
+            break;
         case TILLED_DIRT: case PATH:
             offsetYPOS = 0.9375;
+            break;
         case BAMBOO_1: case BAMBOO_2: case BAMBOO_3:
             offsetXPOS = 0.4375;
             offsetXNEG = 0.5625;
             offsetZPOS = 0.4375;
             offsetZNEG = 0.5625;
+            break;
         case PAPER_LANTERN:
             offsetXPOS = 0.1875;
             offsetXNEG = 0.8125;
             offsetZPOS = 0.1875;
             offsetZNEG = 0.8125;
             offsetYPOS = 0.125;
+            break;
         case WOOD_LANTERN:
             offsetXPOS = 0.0625;
             offsetXNEG = 0.9375;
             offsetZPOS = 0.0625;
             offsetZNEG = 0.9375;
+            break;
         case PAINTING: case PAINTING_T: case PAINTING_B: case PAINTING_L: case PAINTING_R:
             offsetXPOS = 0.0625; // may be offsetXPOS, offsetXNEG, offsetZPOS, or offsetZNEG
+            break;
         case BONSAI_TREE: case MAGNOLIA_IKEBANA: case LOTUS_IKEBANA:
             offsetXPOS = 0.0625;
             offsetXNEG = 0.9375;
             offsetZPOS = 0.0625;
             offsetZNEG = 0.9375;
             offsetYPOS = 0.125;
+            break;
         case GREEN_HYDRANGEA_IKEBANA: case CHRYSANTHEMUM_IKEBANA:
             offsetXPOS = 0.25;
             offsetXNEG = 0.75;
             offsetZPOS = 0.25;
             offsetZNEG = 0.75;
             offsetYPOS = 0.25;
+            break;
         case CHERRY_BLOSSOM_IKEBANA: case BLUE_HYDRANGEA_IKEBANA: case TULIP_IKEBANA: case DAFFODIL_IKEBANA:
             offsetXPOS = 0.3125;
             offsetXNEG = 0.6875;
             offsetZPOS = 0.3125;
             offsetZNEG = 0.6875;
             offsetYPOS = 0.375;
+            break;
         case PLUM_BLOSSOM_IKEBANA: case MAGNOLIA_BUD_IKEBANA: case POPPY_IKEBANA: case MAPLE_IKEBANA: case ONCIDIUM_IKEBANA:
             offsetXPOS = 0.40625;
             offsetXNEG = 0.59375;
             offsetZPOS = 0.40625;
             offsetZNEG = 0.59375;
             offsetYPOS = 0.5;
+            break;
         default:
             break;
     }
@@ -189,6 +205,7 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
     float y2;
     float z1;
     float z2;
+
     switch (d) {
         case XPOS: case XNEG:
             if (d == XPOS) {
@@ -454,46 +471,72 @@ void Chunk::createVBOdata() {
     mp_context->glBufferData(GL_ARRAY_BUFFER, tVertData.size() * sizeof(glm::vec4), tVertData.data(), GL_STATIC_DRAW);
 }
 
-void Chunk::redistributeVertexData(std::vector<glm::vec4> vd, std::vector<GLuint> indices) {
+void Chunk::redistributeVertexData(std::vector<glm::vec4> ovd, std::vector<GLuint> oIndices,
+                                   std::vector<glm::vec4> tvd, std::vector<GLuint> tIndices) {
     std::vector<glm::vec4> o_positions;
     std::vector<glm::vec4> o_normals;
     std::vector<glm::vec4> o_colors;
     std::vector<glm::vec4> o_uvs;
     std::vector<glm::vec4> o_bts;
 
-    for (int i = 0; i < vd.size(); i = i+5) {
-        o_positions.push_back(vd[i]);
-        o_normals.push_back(vd[i+1]);
-        o_colors.push_back(vd[i+2]);
-        o_uvs.push_back(vd[i+3]);
-        o_bts.push_back(vd[i+4]);
+    std::vector<glm::vec4> t_positions;
+    std::vector<glm::vec4> t_normals;
+    std::vector<glm::vec4> t_colors;
+    std::vector<glm::vec4> t_uvs;
+    std::vector<glm::vec4> t_bts;
+
+    for (int i = 0; i < (int)ovd.size(); i = i+5) {
+        o_positions.push_back(ovd[i]);
+        o_normals.push_back(ovd[i+1]);
+        o_colors.push_back(ovd[i+2]);
+        o_uvs.push_back(ovd[i+3]);
+        o_bts.push_back(ovd[i+4]);
+    }
+    for (int i = 0; i < (int)tvd.size(); i = i+5) {
+        t_positions.push_back(tvd[i]);
+        t_normals.push_back(tvd[i+1]);
+        t_colors.push_back(tvd[i+2]);
+        t_uvs.push_back(tvd[i+3]);
+        t_bts.push_back(tvd[i+4]);
     }
 
-    m_oCount = indices.size();
-
+    m_oCount = oIndices.size();
     generateOIdx();
     mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
-
+    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, oIndices.size() * sizeof(GLuint), oIndices.data(), GL_STATIC_DRAW);
     generateOPos();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
     mp_context->glBufferData(GL_ARRAY_BUFFER, o_positions.size() * sizeof(glm::vec4), o_positions.data(), GL_STATIC_DRAW);
-
     generateONor();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufNor);
     mp_context->glBufferData(GL_ARRAY_BUFFER, o_normals.size() * sizeof(glm::vec4), o_normals.data(), GL_STATIC_DRAW);
-
     generateOCol();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
     mp_context->glBufferData(GL_ARRAY_BUFFER, o_colors.size() * sizeof(glm::vec4), o_colors.data(), GL_STATIC_DRAW);
-
     generateOUVs();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufUVs);
     mp_context->glBufferData(GL_ARRAY_BUFFER, o_uvs.size() * sizeof(glm::vec4), o_uvs.data(), GL_STATIC_DRAW);
-
     generateOBTs();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufBTs);
     mp_context->glBufferData(GL_ARRAY_BUFFER, o_bts.size() * sizeof(glm::vec4), o_bts.data(), GL_STATIC_DRAW);
 
-
+    m_tCount = tIndices.size();
+    generateTIdx();
+    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
+    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndices.size() * sizeof(GLuint), tIndices.data(), GL_STATIC_DRAW);
+    generateTPos();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufPos);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, t_positions.size() * sizeof(glm::vec4), t_positions.data(), GL_STATIC_DRAW);
+    generateTNor();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufNor);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, t_normals.size() * sizeof(glm::vec4), t_normals.data(), GL_STATIC_DRAW);
+    generateTCol();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, t_colors.size() * sizeof(glm::vec4), t_colors.data(), GL_STATIC_DRAW);
+    generateTUVs();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufUVs);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, t_uvs.size() * sizeof(glm::vec4), t_uvs.data(), GL_STATIC_DRAW);
+    generateTBTs();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufBTs);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, t_bts.size() * sizeof(glm::vec4), t_bts.data(), GL_STATIC_DRAW);
 }
