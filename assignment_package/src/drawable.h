@@ -32,7 +32,6 @@ protected:
     GLuint m_tBufPos;
     GLuint m_tBufNor;
     GLuint m_tBufCol;
-
     GLuint m_tBufUVs;
     GLuint m_tBufBTs;
     GLuint m_tBufVertData;
@@ -77,6 +76,8 @@ public:
     bool bindOPos();
     bool bindONor();
     bool bindOCol();
+    bool bindOUVs();
+    bool bindOBTs();
     bool bindOVertData();
 
     // transparent
@@ -92,6 +93,8 @@ public:
     bool bindTPos();
     bool bindTNor();
     bool bindTCol();
+    bool bindTUVs();
+    bool bindTBTs();
     bool bindTVertData();
 };
 

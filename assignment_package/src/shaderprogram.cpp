@@ -8,7 +8,7 @@
 
 ShaderProgram::ShaderProgram(OpenGLContext *context)
     : vertShader(), fragShader(), prog(),
-      attrPos(-1), attrNor(-1), attrCol(-1),
+      attrPos(-1), attrNor(-1), attrCol(-1), attrUV(-1), attrBT(-1),
       unifModel(-1), unifModelInvTr(-1), unifViewProj(-1), unifColor(-1),
       context(context)
 {}
@@ -154,34 +154,82 @@ void ShaderProgram::draw(Drawable &d)
     // glBindBuffer on the Drawable's VBO for vertex position,
     // meaning that glVertexAttribPointer associates vs_Pos
     // (referred to by attrPos) with that VBO
-    if (attrPos != -1 && d.bindPos()) {
+    if (attrPos != -1 && d.bindOPos()) {
         context->glEnableVertexAttribArray(attrPos);
         context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 0, NULL);
     }
 
-    if (attrNor != -1 && d.bindNor()) {
+    if (attrNor != -1 && d.bindONor()) {
         context->glEnableVertexAttribArray(attrNor);
         context->glVertexAttribPointer(attrNor, 4, GL_FLOAT, false, 0, NULL);
     }
 
-    if (attrCol != -1 && d.bindCol()) {
+    if (attrCol != -1 && d.bindOCol()) {
         context->glEnableVertexAttribArray(attrCol);
         context->glVertexAttribPointer(attrCol, 4, GL_FLOAT, false, 0, NULL);
     }
 
+    if (attrUV != -1 && d.bindOUVs()) {
+        context->glEnableVertexAttribArray(attrCol);
+        context->glVertexAttribPointer(attrUV, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrUV, 1);
+    }
+
+    if (attrBT != -1 && d.bindOBTs()) {
+        context->glEnableVertexAttribArray(attrCol);
+        context->glVertexAttribPointer(attrBT, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrBT, 1);
+    }
+
     // Bind the index buffer and then draw shapes from it.
     // This invokes the shader program, which accesses the vertex buffers.
-    d.bindIdx();
+    d.bindOIdx();
     context->glDrawElements(d.drawMode(), d.elemCount(), GL_UNSIGNED_INT, 0);
+    context->printGLErrorLog();
+
+    if (attrPos != -1 && d.bindTPos()) {
+        context->glEnableVertexAttribArray(attrPos);
+        context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrPos, 0);
+    }
+
+    if (attrNor != -1 && d.bindTNor()) {
+        context->glEnableVertexAttribArray(attrNor);
+        context->glVertexAttribPointer(attrNor, 4, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrNor, 0);
+    }
+
+    if (attrCol != -1 && d.bindTCol()) {
+        context->glEnableVertexAttribArray(attrCol);
+        context->glVertexAttribPointer(attrCol, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrCol, 1);
+    }
+
+    if (attrUV != -1 && d.bindTUVs()) {
+        context->glEnableVertexAttribArray(attrCol);
+        context->glVertexAttribPointer(attrUV, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrUV, 1);
+    }
+
+    if (attrBT != -1 && d.bindTBTs()) {
+        context->glEnableVertexAttribArray(attrCol);
+        context->glVertexAttribPointer(attrBT, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrBT, 1);
+    }
+
+    d.bindTIdx();
+    context->glDrawElements(d.drawMode(), d.elemCount(), GL_UNSIGNED_INT, 0);
+    context->printGLErrorLog();
 
     if (attrPos != -1) context->glDisableVertexAttribArray(attrPos);
     if (attrNor != -1) context->glDisableVertexAttribArray(attrNor);
     if (attrCol != -1) context->glDisableVertexAttribArray(attrCol);
-
-    context->printGLErrorLog();
+    if (attrUV != -1) context->glDisableVertexAttribArray(attrUV);
+    if (attrBT != -1) context->glDisableVertexAttribArray(attrBT);
+    if (attrPosOffset != -1) context->glDisableVertexAttribArray(attrPosOffset);
 }
 
-void ShaderProgram::drawInstanced(InstancedDrawable &d)
+void ShaderProgram::drawInstancedO(InstancedDrawable &d)
 {
     useMe();
 
@@ -198,22 +246,34 @@ void ShaderProgram::drawInstanced(InstancedDrawable &d)
     // glBindBuffer on the Drawable's VBO for vertex position,
     // meaning that glVertexAttribPointer associates vs_Pos
     // (referred to by attrPos) with that VBO
-    if (attrPos != -1 && d.bindPos()) {
+    if (attrPos != -1 && d.bindOPos()) {
         context->glEnableVertexAttribArray(attrPos);
         context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrPos, 0);
     }
 
-    if (attrNor != -1 && d.bindNor()) {
+    if (attrNor != -1 && d.bindONor()) {
         context->glEnableVertexAttribArray(attrNor);
         context->glVertexAttribPointer(attrNor, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrNor, 0);
     }
 
-    if (attrCol != -1 && d.bindCol()) {
+    if (attrCol != -1 && d.bindOCol()) {
         context->glEnableVertexAttribArray(attrCol);
         context->glVertexAttribPointer(attrCol, 3, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrCol, 1);
+    }
+
+    if (attrUV != -1 && d.bindOUVs()) {
+        context->glEnableVertexAttribArray(attrCol);
+        context->glVertexAttribPointer(attrUV, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrUV, 1);
+    }
+
+    if (attrBT != -1 && d.bindOBTs()) {
+        context->glEnableVertexAttribArray(attrCol);
+        context->glVertexAttribPointer(attrBT, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrBT, 1);
     }
 
     if (attrPosOffset != -1 && d.bindOffsetBuf()) {
@@ -224,45 +284,165 @@ void ShaderProgram::drawInstanced(InstancedDrawable &d)
 
     // Bind the index buffer and then draw shapes from it.
     // This invokes the shader program, which accesses the vertex buffers.
-    d.bindIdx();
+    d.bindOIdx();
     context->glDrawElementsInstanced(d.drawMode(), d.elemCount(), GL_UNSIGNED_INT, 0, d.instanceCount());
     context->printGLErrorLog();
 
     if (attrPos != -1) context->glDisableVertexAttribArray(attrPos);
     if (attrNor != -1) context->glDisableVertexAttribArray(attrNor);
     if (attrCol != -1) context->glDisableVertexAttribArray(attrCol);
+    if (attrUV != -1) context->glDisableVertexAttribArray(attrUV);
+    if (attrBT != -1) context->glDisableVertexAttribArray(attrBT);
     if (attrPosOffset != -1) context->glDisableVertexAttribArray(attrPosOffset);
-
 }
 
-void ShaderProgram::drawInterleaved(Drawable &d) {
+void ShaderProgram::drawInstancedT(InstancedDrawable &d)
+{
     useMe();
 
     if(d.elemCount() < 0) {
         throw std::out_of_range("Attempting to draw a drawable with m_count of " + std::to_string(d.elemCount()) + "!");
     }
 
-    if (d.bindVertData()) {
+    // Each of the following blocks checks that:
+    //   * This shader has this attribute, and
+    //   * This Drawable has a vertex buffer for this attribute.
+    // If so, it binds the appropriate buffers to each attribute.
+
+    // Remember, by calling bindPos(), we call
+    // glBindBuffer on the Drawable's VBO for vertex position,
+    // meaning that glVertexAttribPointer associates vs_Pos
+    // (referred to by attrPos) with that VBO
+    if (attrPos != -1 && d.bindTPos()) {
+        context->glEnableVertexAttribArray(attrPos);
+        context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrPos, 0);
+    }
+
+    if (attrNor != -1 && d.bindTNor()) {
+        context->glEnableVertexAttribArray(attrNor);
+        context->glVertexAttribPointer(attrNor, 4, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrNor, 0);
+    }
+
+    if (attrCol != -1 && d.bindTCol()) {
+        context->glEnableVertexAttribArray(attrCol);
+        context->glVertexAttribPointer(attrCol, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrCol, 1);
+    }
+
+    if (attrUV != -1 && d.bindTUVs()) {
+        context->glEnableVertexAttribArray(attrCol);
+        context->glVertexAttribPointer(attrUV, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrUV, 1);
+    }
+
+    if (attrBT != -1 && d.bindTBTs()) {
+        context->glEnableVertexAttribArray(attrCol);
+        context->glVertexAttribPointer(attrBT, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrBT, 1);
+    }
+
+    if (attrPosOffset != -1 && d.bindOffsetBuf()) {
+        context->glEnableVertexAttribArray(attrPosOffset);
+        context->glVertexAttribPointer(attrPosOffset, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribDivisor(attrPosOffset, 1);
+    }
+
+    // Bind the index buffer and then draw shapes from it.
+    // This invokes the shader program, which accesses the vertex buffers.
+    d.bindTIdx();
+    context->glDrawElementsInstanced(d.drawMode(), d.elemCount(), GL_UNSIGNED_INT, 0, d.instanceCount());
+    context->printGLErrorLog();
+
+    if (attrPos != -1) context->glDisableVertexAttribArray(attrPos);
+    if (attrNor != -1) context->glDisableVertexAttribArray(attrNor);
+    if (attrCol != -1) context->glDisableVertexAttribArray(attrCol);
+    if (attrUV != -1) context->glDisableVertexAttribArray(attrUV);
+    if (attrBT != -1) context->glDisableVertexAttribArray(attrBT);
+    if (attrPosOffset != -1) context->glDisableVertexAttribArray(attrPosOffset);
+}
+
+void ShaderProgram::drawInterleavedO(Drawable &d) {
+    useMe();
+
+    if(d.elemCount() < 0) {
+        throw std::out_of_range("Attempting to draw a drawable with m_count of " + std::to_string(d.elemCount()) + "!");
+    }
+
+    if (d.bindOVertData()) {
         if (attrPos != -1) {
             context->glEnableVertexAttribArray(attrPos);
-            context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 3 * sizeof(glm::vec4), (void*) 0);
+            context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*) 0);
         }
         if (attrNor != -1) {
             context->glEnableVertexAttribArray(attrNor);
-            context->glVertexAttribPointer(attrNor, 4, GL_FLOAT, false, 3 * sizeof(glm::vec4), (void*) sizeof(glm::vec4));
+            context->glVertexAttribPointer(attrNor, 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*) sizeof(glm::vec4));
         }
         if (attrCol != -1) {
             context->glEnableVertexAttribArray(attrCol);
-            context->glVertexAttribPointer(attrCol, 4, GL_FLOAT, false, 3 * sizeof(glm::vec4), (void*) (2 * sizeof(glm::vec4)));
+            context->glVertexAttribPointer(attrCol, 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*) (2 * sizeof(glm::vec4)));
+        }
+        if (attrUV != -1) {
+            context->glEnableVertexAttribArray(attrUV);
+            context->glVertexAttribPointer(attrUV, 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*) (3 * sizeof(glm::vec4)));
+        }
+        if (attrBT != -1) {
+            context->glEnableVertexAttribArray(attrBT);
+            context->glVertexAttribPointer(attrBT, 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*) (4 * sizeof(glm::vec4)));
         }
     }
 
-    d.bindIdx();
+    d.bindOIdx();
     context->glDrawElements(d.drawMode(), d.elemCount(), GL_UNSIGNED_INT, 0);
 
     if (attrPos != -1) context->glDisableVertexAttribArray(attrPos);
     if (attrNor != -1) context->glDisableVertexAttribArray(attrNor);
     if (attrCol != -1) context->glDisableVertexAttribArray(attrCol);
+    if (attrUV != -1) context->glDisableVertexAttribArray(attrCol);
+    if (attrBT != -1) context->glDisableVertexAttribArray(attrCol);
+
+    context->printGLErrorLog();
+}
+
+void ShaderProgram::drawInterleavedT(Drawable &d) {
+    useMe();
+
+    if(d.elemCount() < 0) {
+        throw std::out_of_range("Attempting to draw a drawable with m_count of " + std::to_string(d.elemCount()) + "!");
+    }
+
+    if (d.bindTVertData()) {
+        if (attrPos != -1) {
+            context->glEnableVertexAttribArray(attrPos);
+            context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*) 0);
+        }
+        if (attrNor != -1) {
+            context->glEnableVertexAttribArray(attrNor);
+            context->glVertexAttribPointer(attrNor, 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*) sizeof(glm::vec4));
+        }
+        if (attrCol != -1) {
+            context->glEnableVertexAttribArray(attrCol);
+            context->glVertexAttribPointer(attrCol, 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*) (2 * sizeof(glm::vec4)));
+        }
+        if (attrUV != -1) {
+            context->glEnableVertexAttribArray(attrUV);
+            context->glVertexAttribPointer(attrUV, 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*) (3 * sizeof(glm::vec4)));
+        }
+        if (attrBT != -1) {
+            context->glEnableVertexAttribArray(attrBT);
+            context->glVertexAttribPointer(attrBT, 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*) (4 * sizeof(glm::vec4)));
+        }
+    }
+
+    d.bindTIdx();
+    context->glDrawElements(d.drawMode(), d.elemCount(), GL_UNSIGNED_INT, 0);
+
+    if (attrPos != -1) context->glDisableVertexAttribArray(attrPos);
+    if (attrNor != -1) context->glDisableVertexAttribArray(attrNor);
+    if (attrCol != -1) context->glDisableVertexAttribArray(attrCol);
+    if (attrUV != -1) context->glDisableVertexAttribArray(attrCol);
+    if (attrBT != -1) context->glDisableVertexAttribArray(attrCol);
 
     context->printGLErrorLog();
 }

@@ -895,7 +895,7 @@ struct Vertex {
     glm::vec4 normal;
     glm::vec4 color;
     glm::vec4 uvCoords;
-    glm::vec4 blockType; // block idx, biome
+    glm::vec4 blockType; // texture flag, biome
 
     Vertex(glm::vec4 p, glm::ivec3 n, BlockType b, Direction d, glm::vec2 uv, int biome) {
         position = p;
@@ -903,7 +903,7 @@ struct Vertex {
         if (btToUV.find(std::make_pair(b, d)) != btToUV.end()) {
             uvCoords = glm::vec4(uv + btToUV.at(std::make_pair(b, d)).second, 0, 0);
             uvCoords /= 16.f;
-            blockType = glm::vec4();
+            blockType = glm::vec4(std::make_pair(b, d).first, biome, 0, 0);
         } else {
             color = glm::vec4(1.f, 0.f, 1.f, 1.f);
         }

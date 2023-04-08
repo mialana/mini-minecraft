@@ -160,7 +160,8 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
             currChunk->createVBOdata();
 
             shaderProgram->setModelMatrix(glm::translate(glm::mat4(1), glm::vec3(x, 0, z)));
-            shaderProgram->drawInterleaved(*currChunk);
+            shaderProgram->drawInterleavedO(*currChunk);
+            shaderProgram->drawInterleavedT(*currChunk);
         }
     }
 }
