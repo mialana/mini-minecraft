@@ -1,9 +1,18 @@
 Milestone1:
 https://thebookofshaders.com/glossary/?search=fract
 
+
 Milestone2:
 https://en.cppreference.com/w/cpp/container/unordered_map
+
 https://en.cppreference.com/w/cpp/container/unordered_map/at
+
 https://en.cppreference.com/w/cpp/error/out_of_range
+
 https://stackoverflow.com/questions/10124679/what-happens-if-i-read-a-maps-value-where-the-key-does-not-exist
+
 https://cplusplus.com/doc/tutorial/exceptions/
+
+https://stackoverflow.com/questions/20944784/why-is-conversion-from-string-constant-to-char-valid-in-c-but-invalid-in-c
+
+https://stackoverflow.com/questions/11376163/custom-hash-function-for-pair-of-enum-values-used-as-unordered-map-key

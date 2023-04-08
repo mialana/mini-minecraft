@@ -84,6 +84,8 @@ void MyGL::initializeGL()
     // using multiple VAOs, we can just bind one once.
     glBindVertexArray(vao);
 
+    loadTextures();
+
     m_terrain.CreateTestScene();
 }
 
@@ -253,8 +255,8 @@ void MyGL::mousePressEvent(QMouseEvent *e) {
 void MyGL::loadTextures() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureHandle);
-    char* texturePath = ":/textures/minecraft_textures_all.png";
-    QImage img(texturePath);
+    std::string texturePath = ":/textures/custom_minecraft_textures.png";
+    QImage img(texturePath.c_str());
     img = img.convertToFormat(QImage::Format_ARGB32);
     img = img.mirrored();
     glTexImage2D(GL_TEXTURE_2D,

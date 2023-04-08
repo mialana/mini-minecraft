@@ -27,12 +27,12 @@ enum BlockType : unsigned char
     CEDAR_WINDOW, TEAK_WINDOW, CHERRY_WINDOW, MAPLE_WINDOW, PINE_WINDOW, WISTERIA_WINDOW,
     LILY_PAD, LOTUS_1, LOTUS_2, LOTUS_3, TILLED_DIRT, PATH, WHEAT, RICE, BAMBOO_1, BAMBOO_2, BAMBOO_3,
     TATAMI, PAPER_LANTERN, WOOD_LANTERN,
-    PAINTING, PAINTING_T, PAINTING_B, PAINTING_L, PAINTING_R, TEA_KETTLE,
+    PAINTING, PAINTING_T, PAINTING_B, PAINTING_L, PAINTING_R,
     BONSAI_TREE, MAGNOLIA_IKEBANA, LOTUS_IKEBANA,
     GREEN_HYDRANGEA_IKEBANA, CHRYSANTHEMUM_IKEBANA,
     CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, ONCIDIUM_IKEBANA, DAFFODIL_IKEBANA,
     PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA,
-    GHOST_LILY, GHOST_WEED, CORAL, KELP, SEA_GRASS
+    GHOST_LILY, GHOST_WEED, CORAL, KELP, SEA_GRASS, LAST
 };
 
 // The six cardinal directions in 3D space + diagonals (rotated 45 degrees)
@@ -41,12 +41,22 @@ enum Direction : unsigned char
     XPOS, XNEG, YPOS, YNEG, ZPOS, ZNEG, XPOS_ZPOS, XNEG_ZNEG, XPOS_ZNEG, XNEG_ZPOS
 };
 
+typedef std::pair<BlockType, Direction> faceDef;
+
 // Lets us use any enum class as the key of a
 // std::unordered_map
 struct EnumHash {
     template <typename T>
     size_t operator()(T t) const {
         return static_cast<size_t>(t);
+    }
+};
+
+struct PairEnumHash {
+    size_t operator()(const faceDef fd) const {
+        return static_cast<size_t>(fd.first)
+            * static_cast<size_t>(LAST)
+            + static_cast<size_t>(fd.second);
     }
 };
 
@@ -64,7 +74,7 @@ const static std::unordered_map<Direction, Direction, EnumHash> oppositeDirectio
 };
 
 // maps blocktype and direction to texture flag and uv coord
-const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, glm::vec2>, std::pair<EnumHash, EnumHash>> btToUV {
+const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, glm::vec2>, PairEnumHash> btToUV {
     {std::make_pair(GRASS, XPOS), std::make_pair(1, glm::vec2(0, 13))},
     {std::make_pair(GRASS, XNEG), std::make_pair(1, glm::vec2(0, 13))},
     {std::make_pair(GRASS, ZPOS), std::make_pair(1, glm::vec2(0, 13))},
@@ -768,7 +778,6 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
 //    {PAINTING_R, glm::vec2(15, 5)},
 
 };
-//const static std::map<BlockType, glm::vec3> btToBlockIdx;
 
 struct DirectionVector {
     Direction dir;
@@ -878,7 +887,7 @@ const static std::unordered_set<BlockType, EnumHash> transparent = {
     PAINTING, PAINTING_T, PAINTING_B, PAINTING_L, PAINTING_R,
     LAVA, SNOW_1, SNOW_2, SNOW_3, SNOW_4, SNOW_5, SNOW_6, SNOW_7,
     ROOF_TILES_1, ROOF_TILES_2, ROOF_TILES_3, ROOF_TILES_4, STRAW_1, STRAW_2, STRAW_3, STRAW_4,
-    TILLED_DIRT, PATH, TATAMI
+    TILLED_DIRT, PATH, TATAMI, EMPTY
 };
 
 struct Vertex {
@@ -946,6 +955,8 @@ public:
     boolean isPartialZ(BlockType);
     boolean isFullCube(BlockType);
     boolean isTransparent(BlockType);
+
+    boolean isVisible(int x, int y, int z); // checks whether block is enclosed on all sides
 
     void createVBOdata() override;
     GLenum drawMode() override {

@@ -8,7 +8,6 @@ class Drawable
 {
 protected:
     int m_oCount;     // The number of indices stored in bufIdx.
-    int m_tCount;
 
     GLuint m_oBufIdx; // A Vertex Buffer Object that we will use to store triangle indices (GLuints)
     GLuint m_oBufPos; // A Vertex Buffer Object that we will use to store mesh vertices (vec4s)
@@ -18,6 +17,16 @@ protected:
     GLuint m_oBufUVs;
     GLuint m_oBufBTs;
     GLuint m_oBufVertData;
+
+    bool m_oIdxGenerated; // Set to TRUE by generateIdx(), returned by bindIdx().
+    bool m_oPosGenerated;
+    bool m_oNorGenerated;
+    bool m_oColGenerated;
+    bool m_oUVsGenerated;
+    bool m_oBtsGenerated;
+    bool m_oVertDataGenerated;
+
+    int m_tCount;
 
     GLuint m_tBufIdx;
     GLuint m_tBufPos;
@@ -64,6 +73,12 @@ public:
     void generateOUVs();
     void generateOBTs();
 
+    bool bindOIdx();
+    bool bindOPos();
+    bool bindONor();
+    bool bindOCol();
+    bool bindOVertData();
+
     // transparent
     void generateTIdx();
     void generateTPos();
@@ -73,11 +88,11 @@ public:
     void generateTUVs();
     void generateTBTs();
 
-    bool bindIdx();
-    bool bindPos();
-    bool bindNor();
-    bool bindCol();
-    bool bindVertData();
+    bool bindTIdx();
+    bool bindTPos();
+    bool bindTNor();
+    bool bindTCol();
+    bool bindTVertData();
 };
 
 // A subclass of Drawable that enables the base code to render duplicates of
