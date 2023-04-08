@@ -22,6 +22,8 @@ in vec4 fs_Nor;
 in vec4 fs_LightVec;
 in vec4 fs_Col;
 in vec2 fs_UVs; //
+
+
 in int biome; // 0 = mountain, 1 = hills, 2 = forest, 3 = caves, 4 = islands
 in int btIdx;
 

@@ -64,6 +64,8 @@ void ShaderProgram::create(const char *vertfile, const char *fragfile)
     attrPos = context->glGetAttribLocation(prog, "vs_Pos");
     attrNor = context->glGetAttribLocation(prog, "vs_Nor");
     attrCol = context->glGetAttribLocation(prog, "vs_Col");
+    attrUV = context->glGetAttribLocation(prog, "vs_UV");
+    attrBT = context->glGetAttribLocation(prog, "vs_BT");
     if(attrCol == -1) attrCol = context->glGetAttribLocation(prog, "vs_ColInstanced");
     attrPosOffset = context->glGetAttribLocation(prog, "vs_OffsetInstanced");
 
@@ -171,13 +173,13 @@ void ShaderProgram::draw(Drawable &d)
 
     if (attrUV != -1 && d.bindOUVs()) {
         context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrUV, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribPointer(attrUV, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrUV, 1);
     }
 
     if (attrBT != -1 && d.bindOBTs()) {
         context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrBT, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribPointer(attrBT, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrBT, 1);
     }
 
@@ -201,19 +203,19 @@ void ShaderProgram::draw(Drawable &d)
 
     if (attrCol != -1 && d.bindTCol()) {
         context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrCol, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribPointer(attrCol, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrCol, 1);
     }
 
     if (attrUV != -1 && d.bindTUVs()) {
         context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrUV, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribPointer(attrUV, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrUV, 1);
     }
 
     if (attrBT != -1 && d.bindTBTs()) {
         context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrBT, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribPointer(attrBT, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrBT, 1);
     }
 
@@ -260,19 +262,19 @@ void ShaderProgram::drawInstancedO(InstancedDrawable &d)
 
     if (attrCol != -1 && d.bindOCol()) {
         context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrCol, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribPointer(attrCol, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrCol, 1);
     }
 
     if (attrUV != -1 && d.bindOUVs()) {
         context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrUV, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribPointer(attrUV, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrUV, 1);
     }
 
     if (attrBT != -1 && d.bindOBTs()) {
         context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrBT, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribPointer(attrBT, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrBT, 1);
     }
 
@@ -327,19 +329,19 @@ void ShaderProgram::drawInstancedT(InstancedDrawable &d)
 
     if (attrCol != -1 && d.bindTCol()) {
         context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrCol, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribPointer(attrCol, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrCol, 1);
     }
 
     if (attrUV != -1 && d.bindTUVs()) {
         context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrUV, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribPointer(attrUV, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrUV, 1);
     }
 
     if (attrBT != -1 && d.bindTBTs()) {
         context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrBT, 3, GL_FLOAT, false, 0, NULL);
+        context->glVertexAttribPointer(attrBT, 4, GL_FLOAT, false, 0, NULL);
         context->glVertexAttribDivisor(attrBT, 1);
     }
 
