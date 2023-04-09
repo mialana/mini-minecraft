@@ -165,18 +165,17 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
         case SNOW_1: case TATAMI:
             offsetYPOS = 0.125;
             break;
-        case SNOW_2: case ROOF_TILES_1: case STRAW_1:
+        case SNOW_2:
             offsetYPOS = 0.25;
             break;
         case SNOW_3:
             offsetYPOS = 0.375;
             break;
-        case SNOW_4:
+        case SNOW_4: case ROOF_TILES_1: case STRAW_1:
             offsetYPOS = 0.5;
             break;
         case ROOF_TILES_2: case STRAW_2:
-            offsetYPOS = 0.5;
-            offsetYNEG = 0.25;
+            offsetYNEG = 0.5;
             break;
         case SNOW_5:
             offsetYPOS = 0.625;
@@ -184,16 +183,8 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
         case SNOW_6:
             offsetYPOS = 0.75;
             break;
-        case ROOF_TILES_3: case STRAW_3:
-            offsetYPOS = 0.75;
-            offsetYNEG = 0.5;
-            break;
         case SNOW_7:
             offsetYPOS = 0.875;
-            break;
-        case ROOF_TILES_4: case STRAW_4:
-            offsetYPOS = 1.f;
-            offsetYNEG = 0.75;
             break;
         case CEDAR_WINDOW: case TEAK_WINDOW: case CHERRY_WINDOW: case MAPLE_WINDOW: case PINE_WINDOW: case WISTERIA_WINDOW:
             offsetXPOS = 0.4375; // may be offsetX or offsetZ
