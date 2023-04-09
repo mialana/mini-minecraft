@@ -73,7 +73,7 @@ boolean Chunk::isFullCube(BlockType bt) {
 boolean Chunk::isTransparent(BlockType bt) {
     return transparent.find(bt) != transparent.end();
 }
-boolean Chunk::isVisible(int x, int y, int z) {
+boolean Chunk::isVisible(int x, int y, int z, BlockType bt) {
     for (const DirectionVector& dv : directionIter) {
         glm::ivec3 adjBlockPos = glm::ivec3(x, y, z) + dv.vec;
         bool inSameChunk = Chunk::isInBounds(adjBlockPos);
@@ -85,11 +85,38 @@ boolean Chunk::isVisible(int x, int y, int z) {
         } else {
             adjBlockType = this->getAdjBlockType(dv.dir, adjBlockPos);
         }
-        if (isTransparent(adjBlockType)) {
+        if (isTransparent(adjBlockType) && adjBlockType != bt) {
             return true;
         }
     }
     return false;
+}
+boolean Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
+    for (const DirectionVector& dv : directionIter) {
+        glm::ivec3 adjBlockPos = glm::ivec3(x, y, z) + dv.vec;
+        bool inSameChunk = Chunk::isInBounds(adjBlockPos);
+        Direction d = dv.dir;
+
+        BlockType adjBlockType;
+
+        if (isFullCube(bt) && !isTransparent(bt)) {
+            if (inSameChunk) {
+                adjBlockType = this->getBlockAt(adjBlockPos.x, adjBlockPos.y, adjBlockPos.z);
+            } else {
+                adjBlockType = this->getAdjBlockType(dv.dir, adjBlockPos);
+            }
+            if (isTransparent(adjBlockType) && adjBlockType != bt) {
+                return true;
+            }
+            return false;
+        } else if (((d == XPOS || d == XNEG) && !isPartialX(bt)) ||
+                   ((d == YPOS || d == YNEG) && !isPartialY(bt)) ||
+                   ((d == ZPOS || d == ZNEG) && !isPartialZ(bt))) {
+            return false;
+        } else {
+            return isVisible(x, y, z, bt);
+        }
+    }
 }
 
 BlockType Chunk::getAdjBlockType(Direction d, glm::ivec3 pos) {
@@ -128,7 +155,7 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
         case LILY_PAD: case LOTUS_1: case LOTUS_2:
             offsetYPOS = 0.f;
             break;
-        case WHEAT: case SEA_GRASS:
+        case WHEAT_1: case WHEAT_2: case WHEAT_3: case WHEAT_4: case WHEAT_5: case WHEAT_6: case WHEAT_7: case WHEAT_8: case SEA_GRASS:
             offsetXPOS = 0.25f;
             offsetXNEG = 0.75f;
             offsetZPOS = 0.25f;
@@ -144,17 +171,29 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
         case SNOW_3:
             offsetYPOS = 0.375;
             break;
-        case SNOW_4: case ROOF_TILES_2: case STRAW_2:
+        case SNOW_4:
             offsetYPOS = 0.5;
+            break;
+        case ROOF_TILES_2: case STRAW_2:
+            offsetYPOS = 0.5;
+            offsetYNEG = 0.25;
             break;
         case SNOW_5:
             offsetYPOS = 0.625;
             break;
-        case SNOW_6: case ROOF_TILES_3: case STRAW_3:
+        case SNOW_6:
             offsetYPOS = 0.75;
+            break;
+        case ROOF_TILES_3: case STRAW_3:
+            offsetYPOS = 0.75;
+            offsetYNEG = 0.5;
             break;
         case SNOW_7:
             offsetYPOS = 0.875;
+            break;
+        case ROOF_TILES_4: case STRAW_4:
+            offsetYPOS = 1.f;
+            offsetYNEG = 0.75;
             break;
         case CEDAR_WINDOW: case TEAK_WINDOW: case CHERRY_WINDOW: case MAPLE_WINDOW: case PINE_WINDOW: case WISTERIA_WINDOW:
             offsetXPOS = 0.4375; // may be offsetX or offsetZ
@@ -182,8 +221,16 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetZPOS = 0.0625;
             offsetZNEG = 0.9375;
             break;
-        case PAINTING: case PAINTING_T: case PAINTING_B: case PAINTING_L: case PAINTING_R:
-            offsetXPOS = 0.0625; // may be offsetXPOS, offsetXNEG, offsetZPOS, or offsetZNEG
+        case PAINTING_1: case PAINTING_2: case PAINTING_3: case PAINTING_4: case PAINTING_5:
+        case PAINTING_7T: case PAINTING_7B: case PAINTING_6L: case PAINTING_6R:
+            offsetXPOS = 0.0625;
+
+//            // or
+//            offsetYPOS = 0.0625;
+//            // or
+//            offsetXNEG = 0.9375;
+//            // or
+//            offsetYNEG = 0.9375;
             break;
         case BONSAI_TREE: case MAGNOLIA_IKEBANA: case LOTUS_IKEBANA:
             offsetXPOS = 0.0625;
@@ -324,7 +371,7 @@ void Chunk::createVBOdata() {
 
                 if (currType != EMPTY) {
                     if (isHPlane(currType)) {
-                        if (isVisible(x, y, z)) {
+                        if (isVisible(x, y, z, currType)) {
                             for (const DirectionVector& dv : planeDirIter) {
                                 std::vector<Vertex> faceVerts;
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
@@ -349,7 +396,7 @@ void Chunk::createVBOdata() {
                     }
                     if (isCross2(currType)) {
                         // check if the block is exposed to air
-                        if (isVisible(x, y, z)) {
+                        if (isVisible(x, y, z, currType)) {
                             for (const DirectionVector& dv : cross2DirIter) {
                                 std::vector<Vertex> faceVerts;
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
@@ -375,7 +422,7 @@ void Chunk::createVBOdata() {
                     }
                     if (isCross4(currType)) {
                         // check if the block is exposed to air
-                        if (isVisible(x, y, z)) {
+                        if (isVisible(x, y, z, currType)) {
                             for (const DirectionVector& dv : cross4DirIter) {
 
                                 std::vector<Vertex> faceVerts;
@@ -400,10 +447,9 @@ void Chunk::createVBOdata() {
                             }
                         }
                     }
-                    if (isPartialX(currType) || isPartialY(currType) || isPartialZ(currType) ||
-                        (isFullCube(currType) && isTransparent(currType))) {
-                        if (isVisible(x, y, z)) {
-                            for (const DirectionVector& dv : directionIter) {
+                    if (isPartialX(currType) || isPartialY(currType) || isPartialZ(currType)) {
+                        for (const DirectionVector& dv : directionIter) {
+                            if (isVisible(x, y, z, dv, currType)) {
                                 std::vector<Vertex> faceVerts;
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
 
@@ -424,6 +470,7 @@ void Chunk::createVBOdata() {
                                 tVertCount += 4;
                             }
                         }
+
                     }
                     if (isFullCube(currType)) {
                         for (const DirectionVector& dv : directionIter) {
@@ -437,12 +484,26 @@ void Chunk::createVBOdata() {
                                 adjBlockType = this->getAdjBlockType(dv.dir, adjBlockPos);
                             }
 
-                            if (adjBlockType == EMPTY &&
-                                    (isFullCube(currType) ||
-                                    (isPartialX(currType) && (dv.dir == XPOS || dv.dir == XNEG)) ||
-//                                    (isPartialY(currType) && dv.dir == YNEG) ||
-                                    (isPartialZ(currType) && (dv.dir == ZPOS || dv.dir == XPOS)))) {
+                            if (isVisible(x, y, z, currType) && isTransparent(currType)) {
+                                std::vector<Vertex> faceVerts;
+                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
 
+                                for (const Vertex& v : faceVerts) {
+                                    tVertData.push_back(v.position);
+                                    tVertData.push_back(v.normal);
+                                    tVertData.push_back(v.color);
+                                    tVertData.push_back(v.uvCoords);
+                                    tVertData.push_back(v.blockType);
+                                }
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 1);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount + 3);
+
+                                tVertCount += 4;
+                            } else if (adjBlockType == EMPTY) {
                                 std::vector<Vertex> faceVerts;
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
 

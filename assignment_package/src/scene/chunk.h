@@ -25,14 +25,19 @@ enum BlockType : unsigned char
     PINE_LEAVES, WISTERIA_BLOSSOMS_1, WISTERIA_BLOSSOMS_2, WISTERIA_BLOSSOMS_3,
     CEDAR_PLANKS, TEAK_PLANKS, CHERRY_PLANKS, MAPLE_PLANKS, PINE_PLANKS, WISTERIA_PLANKS,
     CEDAR_WINDOW, TEAK_WINDOW, CHERRY_WINDOW, MAPLE_WINDOW, PINE_WINDOW, WISTERIA_WINDOW,
-    LILY_PAD, LOTUS_1, LOTUS_2, LOTUS_3, TILLED_DIRT, PATH, WHEAT, RICE, BAMBOO_1, BAMBOO_2, BAMBOO_3,
+    LILY_PAD, LOTUS_1, LOTUS_2, TILLED_DIRT, PATH,
+    WHEAT_1, WHEAT_2, WHEAT_3, WHEAT_4, WHEAT_5, WHEAT_6, WHEAT_7, WHEAT_8,
+    RICE_1, RICE_2, RICE_3, RICE_4, RICE_5, RICE_6,
+    BAMBOO_1, BAMBOO_2, BAMBOO_3,
     TATAMI, PAPER_LANTERN, WOOD_LANTERN,
-    PAINTING, PAINTING_T, PAINTING_B, PAINTING_L, PAINTING_R,
+    PAINTING_1, PAINTING_2, PAINTING_3, PAINTING_4, PAINTING_5, PAINTING_6L, PAINTING_6R, PAINTING_7T, PAINTING_7B,
     BONSAI_TREE, MAGNOLIA_IKEBANA, LOTUS_IKEBANA,
     GREEN_HYDRANGEA_IKEBANA, CHRYSANTHEMUM_IKEBANA,
     CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, ONCIDIUM_IKEBANA, DAFFODIL_IKEBANA,
     PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA,
-    GHOST_LILY, GHOST_WEED, CORAL, KELP, SEA_GRASS, LAST
+    GHOST_LILY, GHOST_WEED,
+    CORAL_1, CORAL_2, CORAL_3, CORAL_4,
+    KELP_1, KELP_2, SEA_GRASS, LAST
 };
 
 // The six cardinal directions in 3D space + diagonals (rotated 45 degrees)
@@ -129,12 +134,12 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
     {std::make_pair(WATER, YPOS), std::make_pair(2, glm::vec2(13, 3))},
     {std::make_pair(WATER, YNEG), std::make_pair(2, glm::vec2(13, 3))},
 
-    {std::make_pair(LAVA, XPOS), std::make_pair(2, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, XNEG), std::make_pair(2, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, ZPOS), std::make_pair(2, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, ZNEG), std::make_pair(2, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, YPOS), std::make_pair(2, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, YNEG), std::make_pair(2, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, XPOS), std::make_pair(3, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, XNEG), std::make_pair(3, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, ZPOS), std::make_pair(3, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, ZNEG), std::make_pair(3, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, YPOS), std::make_pair(3, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, YNEG), std::make_pair(3, glm::vec2(13, 1))},
 
     {std::make_pair(BEDROCK, XPOS), std::pair(0, glm::vec2(2, 15))},
     {std::make_pair(BEDROCK, XNEG), std::pair(0, glm::vec2(2, 15))},
@@ -501,22 +506,21 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
     {std::make_pair(STRAW_4, YNEG), std::make_pair(0, glm::vec2(11, 13))},
 
     {std::make_pair(LILY_PAD, YPOS), std::make_pair(0, glm::vec2(0, 9))},
-    {std::make_pair(LILY_PAD, YNEG), std::make_pair(0, glm::vec2(4, 9))},
+    {std::make_pair(LILY_PAD, YNEG), std::make_pair(4, glm::vec2(0, 9))},
 
+    {std::make_pair(LOTUS_1, YPOS), std::make_pair(0, glm::vec2(0, 9))},
+    {std::make_pair(LOTUS_1, YNEG), std::make_pair(4, glm::vec2(0, 9))},
     {std::make_pair(LOTUS_1, XPOS_ZPOS), std::make_pair(0, glm::vec2(1, 9))},
     {std::make_pair(LOTUS_1, XNEG_ZNEG), std::make_pair(4, glm::vec2(1, 9))},
     {std::make_pair(LOTUS_1, XPOS_ZNEG), std::make_pair(0, glm::vec2(1, 9))},
     {std::make_pair(LOTUS_1, XNEG_ZPOS), std::make_pair(4, glm::vec2(1, 9))},
 
+    {std::make_pair(LOTUS_2, YPOS), std::make_pair(0, glm::vec2(0, 9))},
+    {std::make_pair(LOTUS_2, YNEG), std::make_pair(4, glm::vec2(0, 9))},
     {std::make_pair(LOTUS_2, XPOS_ZPOS), std::make_pair(0, glm::vec2(1, 10))},
     {std::make_pair(LOTUS_2, XNEG_ZNEG), std::make_pair(4, glm::vec2(1, 10))},
     {std::make_pair(LOTUS_2, XPOS_ZNEG), std::make_pair(0, glm::vec2(1, 10))},
     {std::make_pair(LOTUS_2, XNEG_ZPOS), std::make_pair(4, glm::vec2(1, 10))},
-
-    {std::make_pair(LOTUS_3, XPOS_ZPOS), std::make_pair(0, glm::vec2(1, 11))},
-    {std::make_pair(LOTUS_3, XNEG_ZNEG), std::make_pair(4, glm::vec2(1, 11))},
-    {std::make_pair(LOTUS_3, XPOS_ZNEG), std::make_pair(0, glm::vec2(1, 11))},
-    {std::make_pair(LOTUS_3, XNEG_ZPOS), std::make_pair(4, glm::vec2(1, 11))},
 
     {std::make_pair(TILLED_DIRT, XPOS), std::make_pair(0, glm::vec2(0, 8))},
     {std::make_pair(TILLED_DIRT, XNEG), std::make_pair(0, glm::vec2(0, 13))},
@@ -532,15 +536,75 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
     {std::make_pair(PATH, YPOS), std::make_pair(0, glm::vec2(0, 13))},
     {std::make_pair(PATH, YNEG), std::make_pair(0, glm::vec2(0, 13))},
 
-    {std::make_pair(WHEAT, XPOS), std::make_pair(0, glm::vec2(0, 7))},
-    {std::make_pair(WHEAT, XNEG), std::make_pair(4, glm::vec2(0, 7))},
-    {std::make_pair(WHEAT, ZPOS), std::make_pair(0, glm::vec2(0, 7))},
-    {std::make_pair(WHEAT, ZNEG), std::make_pair(4, glm::vec2(0, 7))},
+    {std::make_pair(WHEAT_1, XPOS), std::make_pair(0, glm::vec2(0, 7))},
+    {std::make_pair(WHEAT_1, XNEG), std::make_pair(4, glm::vec2(0, 7))},
+    {std::make_pair(WHEAT_1, ZPOS), std::make_pair(0, glm::vec2(0, 7))},
+    {std::make_pair(WHEAT_1, ZNEG), std::make_pair(4, glm::vec2(0, 7))},
 
-    {std::make_pair(RICE, XPOS_ZPOS), std::make_pair(0, glm::vec2(0, 6))},
-    {std::make_pair(RICE, XPOS_ZPOS), std::make_pair(4, glm::vec2(0, 6))},
-    {std::make_pair(RICE, XPOS_ZNEG), std::make_pair(0, glm::vec2(0, 6))},
-    {std::make_pair(RICE, XNEG_ZPOS), std::make_pair(4, glm::vec2(0, 6))},
+    {std::make_pair(WHEAT_2, XPOS), std::make_pair(0, glm::vec2(1, 7))},
+    {std::make_pair(WHEAT_2, XNEG), std::make_pair(4, glm::vec2(1, 7))},
+    {std::make_pair(WHEAT_2, ZPOS), std::make_pair(0, glm::vec2(1, 7))},
+    {std::make_pair(WHEAT_2, ZNEG), std::make_pair(4, glm::vec2(1, 7))},
+
+    {std::make_pair(WHEAT_3, XPOS), std::make_pair(0, glm::vec2(2, 7))},
+    {std::make_pair(WHEAT_3, XNEG), std::make_pair(4, glm::vec2(2, 7))},
+    {std::make_pair(WHEAT_3, ZPOS), std::make_pair(0, glm::vec2(2, 7))},
+    {std::make_pair(WHEAT_3, ZNEG), std::make_pair(4, glm::vec2(2, 7))},
+
+    {std::make_pair(WHEAT_4, XPOS), std::make_pair(0, glm::vec2(3, 7))},
+    {std::make_pair(WHEAT_4, XNEG), std::make_pair(4, glm::vec2(3, 7))},
+    {std::make_pair(WHEAT_4, ZPOS), std::make_pair(0, glm::vec2(3, 7))},
+    {std::make_pair(WHEAT_4, ZNEG), std::make_pair(4, glm::vec2(3, 7))},
+
+    {std::make_pair(WHEAT_5, XPOS), std::make_pair(0, glm::vec2(4, 7))},
+    {std::make_pair(WHEAT_5, XNEG), std::make_pair(4, glm::vec2(4, 7))},
+    {std::make_pair(WHEAT_5, ZPOS), std::make_pair(0, glm::vec2(4, 7))},
+    {std::make_pair(WHEAT_5, ZNEG), std::make_pair(4, glm::vec2(4, 7))},
+
+    {std::make_pair(WHEAT_6, XPOS), std::make_pair(0, glm::vec2(5, 7))},
+    {std::make_pair(WHEAT_6, XNEG), std::make_pair(4, glm::vec2(5, 7))},
+    {std::make_pair(WHEAT_6, ZPOS), std::make_pair(0, glm::vec2(5, 7))},
+    {std::make_pair(WHEAT_6, ZNEG), std::make_pair(4, glm::vec2(5, 7))},
+
+    {std::make_pair(WHEAT_7, XPOS), std::make_pair(0, glm::vec2(6, 7))},
+    {std::make_pair(WHEAT_7, XNEG), std::make_pair(4, glm::vec2(6, 7))},
+    {std::make_pair(WHEAT_7, ZPOS), std::make_pair(0, glm::vec2(6, 7))},
+    {std::make_pair(WHEAT_7, ZNEG), std::make_pair(4, glm::vec2(6, 7))},
+
+    {std::make_pair(WHEAT_8, XPOS), std::make_pair(0, glm::vec2(7, 7))},
+    {std::make_pair(WHEAT_8, XNEG), std::make_pair(4, glm::vec2(7, 7))},
+    {std::make_pair(WHEAT_8, ZPOS), std::make_pair(0, glm::vec2(7, 7))},
+    {std::make_pair(WHEAT_8, ZNEG), std::make_pair(4, glm::vec2(7, 7))},
+
+    {std::make_pair(RICE_1, XPOS_ZPOS), std::make_pair(0, glm::vec2(0, 6))},
+    {std::make_pair(RICE_1, XPOS_ZPOS), std::make_pair(4, glm::vec2(0, 6))},
+    {std::make_pair(RICE_1, XPOS_ZNEG), std::make_pair(0, glm::vec2(0, 6))},
+    {std::make_pair(RICE_1, XNEG_ZPOS), std::make_pair(4, glm::vec2(0, 6))},
+
+    {std::make_pair(RICE_2, XPOS_ZPOS), std::make_pair(0, glm::vec2(1, 6))},
+    {std::make_pair(RICE_2, XPOS_ZPOS), std::make_pair(4, glm::vec2(1, 6))},
+    {std::make_pair(RICE_2, XPOS_ZNEG), std::make_pair(0, glm::vec2(1, 6))},
+    {std::make_pair(RICE_2, XNEG_ZPOS), std::make_pair(4, glm::vec2(1, 6))},
+
+    {std::make_pair(RICE_3, XPOS_ZPOS), std::make_pair(0, glm::vec2(2, 6))},
+    {std::make_pair(RICE_3, XPOS_ZPOS), std::make_pair(4, glm::vec2(2, 6))},
+    {std::make_pair(RICE_3, XPOS_ZNEG), std::make_pair(0, glm::vec2(2, 6))},
+    {std::make_pair(RICE_3, XNEG_ZPOS), std::make_pair(4, glm::vec2(2, 6))},
+
+    {std::make_pair(RICE_4, XPOS_ZPOS), std::make_pair(0, glm::vec2(3, 6))},
+    {std::make_pair(RICE_4, XPOS_ZPOS), std::make_pair(4, glm::vec2(3, 6))},
+    {std::make_pair(RICE_4, XPOS_ZNEG), std::make_pair(0, glm::vec2(3, 6))},
+    {std::make_pair(RICE_4, XNEG_ZPOS), std::make_pair(4, glm::vec2(3, 6))},
+
+    {std::make_pair(RICE_5, XPOS_ZPOS), std::make_pair(0, glm::vec2(4, 6))},
+    {std::make_pair(RICE_5, XPOS_ZPOS), std::make_pair(4, glm::vec2(4, 6))},
+    {std::make_pair(RICE_5, XPOS_ZNEG), std::make_pair(0, glm::vec2(4, 6))},
+    {std::make_pair(RICE_5, XNEG_ZPOS), std::make_pair(4, glm::vec2(4, 6))},
+
+    {std::make_pair(RICE_6, XPOS_ZPOS), std::make_pair(0, glm::vec2(5, 6))},
+    {std::make_pair(RICE_6, XPOS_ZPOS), std::make_pair(4, glm::vec2(5, 6))},
+    {std::make_pair(RICE_6, XPOS_ZNEG), std::make_pair(0, glm::vec2(5, 6))},
+    {std::make_pair(RICE_6, XNEG_ZPOS), std::make_pair(4, glm::vec2(5, 6))},
 
     {std::make_pair(BAMBOO_1, XPOS), std::make_pair(0, glm::vec2(12, 13))},
     {std::make_pair(BAMBOO_1, XNEG), std::make_pair(0, glm::vec2(12, 13))},
@@ -591,6 +655,69 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
     {std::make_pair(WOOD_LANTERN, ZNEG), std::make_pair(0, glm::vec2(13, 13))},
     {std::make_pair(WOOD_LANTERN, YPOS), std::make_pair(0, glm::vec2(13, 12))},
     {std::make_pair(WOOD_LANTERN, YNEG), std::make_pair(0, glm::vec2(13, 12))},
+
+    {std::make_pair(PAINTING_1, XPOS), std::make_pair(5, glm::vec2(14, 14))},
+    {std::make_pair(PAINTING_1, XNEG), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_1, ZPOS), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_1, ZNEG), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_1, YPOS), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_1, YNEG), std::make_pair(0, glm::vec2(13, 11))},
+
+    {std::make_pair(PAINTING_2, XPOS), std::make_pair(5, glm::vec2(14, 12))},
+    {std::make_pair(PAINTING_2, XNEG), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_2, ZPOS), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_2, ZNEG), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_2, YPOS), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_2, YNEG), std::make_pair(0, glm::vec2(13, 11))},
+
+    {std::make_pair(PAINTING_3, XPOS), std::make_pair(5, glm::vec2(14, 10))},
+    {std::make_pair(PAINTING_3, XNEG), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_3, ZPOS), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_3, ZNEG), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_3, YPOS), std::make_pair(0, glm::vec2(13, 11))},
+    {std::make_pair(PAINTING_3, YNEG), std::make_pair(0, glm::vec2(13, 11))},
+
+    {std::make_pair(PAINTING_4, XPOS), std::make_pair(6, glm::vec2(13, 7))},
+    {std::make_pair(PAINTING_4, XNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_4, ZPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_4, ZNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_4, YPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_4, YNEG), std::make_pair(0, glm::vec2(13, 10))},
+
+    {std::make_pair(PAINTING_5, XPOS), std::make_pair(6, glm::vec2(13, 4))},
+    {std::make_pair(PAINTING_5, XNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_5, ZPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_5, ZNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_5, YPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_5, YNEG), std::make_pair(0, glm::vec2(13, 10))},
+
+    {std::make_pair(PAINTING_6L, XPOS), std::make_pair(5, glm::vec2(9, 7))},
+    {std::make_pair(PAINTING_6L, XNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_6L, ZPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_6L, ZNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_6L, YPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_6L, YNEG), std::make_pair(0, glm::vec2(13, 10))},
+
+    {std::make_pair(PAINTING_6R, XPOS), std::make_pair(5, glm::vec2(11, 7))},
+    {std::make_pair(PAINTING_6R, XNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_6R, ZPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_6R, ZNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_6R, YPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_6R, YNEG), std::make_pair(0, glm::vec2(13, 10))},
+
+    {std::make_pair(PAINTING_7T, XPOS), std::make_pair(5, glm::vec2(11, 6))},
+    {std::make_pair(PAINTING_7T, XNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_7T, ZPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_7T, ZNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_7T, YPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_7T, YNEG), std::make_pair(0, glm::vec2(13, 10))},
+
+    {std::make_pair(PAINTING_7B, XPOS), std::make_pair(5, glm::vec2(11, 5))},
+    {std::make_pair(PAINTING_7B, XNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_7B, ZPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_7B, ZNEG), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_7B, YPOS), std::make_pair(0, glm::vec2(13, 10))},
+    {std::make_pair(PAINTING_7B, YNEG), std::make_pair(0, glm::vec2(13, 10))},
 
     {std::make_pair(BONSAI_TREE, XPOS), std::make_pair(0, glm::vec2(0, 1))},
     {std::make_pair(BONSAI_TREE, XNEG), std::make_pair(0, glm::vec2(0, 1))},
@@ -756,27 +883,40 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
     {std::make_pair(GHOST_WEED, XPOS_ZNEG), std::make_pair(0, glm::vec2(2, 10))},
     {std::make_pair(GHOST_WEED, XNEG_ZPOS), std::make_pair(4, glm::vec2(2, 10))},
 
-    {std::make_pair(CORAL, XPOS_ZPOS), std::make_pair(0, glm::vec2(3, 9))},
-    {std::make_pair(CORAL, XPOS_ZPOS), std::make_pair(0, glm::vec2(3, 9))},
-    {std::make_pair(CORAL, XPOS_ZNEG), std::make_pair(0, glm::vec2(3, 9))},
-    {std::make_pair(CORAL, XNEG_ZPOS), std::make_pair(0, glm::vec2(3, 9))},
+    {std::make_pair(CORAL_1, XPOS_ZPOS), std::make_pair(0, glm::vec2(3, 9))},
+    {std::make_pair(CORAL_1, XPOS_ZPOS), std::make_pair(0, glm::vec2(3, 9))},
+    {std::make_pair(CORAL_1, XPOS_ZNEG), std::make_pair(0, glm::vec2(3, 9))},
+    {std::make_pair(CORAL_1, XNEG_ZPOS), std::make_pair(0, glm::vec2(3, 9))},
 
-    {std::make_pair(KELP, XPOS_ZPOS), std::make_pair(0, glm::vec2(4, 9))},
-    {std::make_pair(KELP, XPOS_ZPOS), std::make_pair(0, glm::vec2(4, 9))},
-    {std::make_pair(KELP, XPOS_ZNEG), std::make_pair(0, glm::vec2(4, 9))},
-    {std::make_pair(KELP, XNEG_ZPOS), std::make_pair(0, glm::vec2(4, 9))},
+    {std::make_pair(CORAL_2, XPOS_ZPOS), std::make_pair(0, glm::vec2(3, 10))},
+    {std::make_pair(CORAL_2, XPOS_ZPOS), std::make_pair(0, glm::vec2(3, 10))},
+    {std::make_pair(CORAL_2, XPOS_ZNEG), std::make_pair(0, glm::vec2(3, 10))},
+    {std::make_pair(CORAL_2, XNEG_ZPOS), std::make_pair(0, glm::vec2(3, 10))},
 
-    {std::make_pair(SEA_GRASS, XPOS_ZPOS), std::make_pair(0, glm::vec2(5, 9))},
-    {std::make_pair(SEA_GRASS, XPOS_ZPOS), std::make_pair(0, glm::vec2(5, 9))},
-    {std::make_pair(SEA_GRASS, XPOS_ZNEG), std::make_pair(0, glm::vec2(5, 9))},
-    {std::make_pair(SEA_GRASS, XNEG_ZPOS), std::make_pair(0, glm::vec2(5, 9))}
+    {std::make_pair(CORAL_3, XPOS_ZPOS), std::make_pair(0, glm::vec2(3, 11))},
+    {std::make_pair(CORAL_3, XPOS_ZPOS), std::make_pair(0, glm::vec2(3, 11))},
+    {std::make_pair(CORAL_3, XPOS_ZNEG), std::make_pair(0, glm::vec2(3, 11))},
+    {std::make_pair(CORAL_3, XNEG_ZPOS), std::make_pair(0, glm::vec2(3, 11))},
 
-//    {PAINTING, glm::vec2(13, 5)},
-//    {PAINTING_T, glm::vec2(12, 11)},
-//    {PAINTING_B, glm::vec2(12, 10)},
-//    {PAINTING_L, glm::vec2(14, 5)},
-//    {PAINTING_R, glm::vec2(15, 5)},
+    {std::make_pair(CORAL_4, XPOS_ZPOS), std::make_pair(0, glm::vec2(3, 12))},
+    {std::make_pair(CORAL_4, XPOS_ZPOS), std::make_pair(0, glm::vec2(3, 12))},
+    {std::make_pair(CORAL_4, XPOS_ZNEG), std::make_pair(0, glm::vec2(3, 12))},
+    {std::make_pair(CORAL_4, XNEG_ZPOS), std::make_pair(0, glm::vec2(3, 12))},
 
+    {std::make_pair(KELP_1, XPOS_ZPOS), std::make_pair(0, glm::vec2(4, 9))},
+    {std::make_pair(KELP_1, XPOS_ZPOS), std::make_pair(0, glm::vec2(4, 9))},
+    {std::make_pair(KELP_1, XPOS_ZNEG), std::make_pair(0, glm::vec2(4, 9))},
+    {std::make_pair(KELP_1, XNEG_ZPOS), std::make_pair(0, glm::vec2(4, 9))},
+
+    {std::make_pair(KELP_2, XPOS_ZPOS), std::make_pair(0, glm::vec2(4, 10))},
+    {std::make_pair(KELP_2, XPOS_ZPOS), std::make_pair(0, glm::vec2(4, 10))},
+    {std::make_pair(KELP_2, XPOS_ZNEG), std::make_pair(0, glm::vec2(4, 10))},
+    {std::make_pair(KELP_2, XNEG_ZPOS), std::make_pair(0, glm::vec2(4, 10))},
+
+    {std::make_pair(SEA_GRASS, XPOS), std::make_pair(0, glm::vec2(5, 9))},
+    {std::make_pair(SEA_GRASS, XNEG), std::make_pair(0, glm::vec2(5, 9))},
+    {std::make_pair(SEA_GRASS, ZPOS), std::make_pair(0, glm::vec2(5, 9))},
+    {std::make_pair(SEA_GRASS, ZNEG), std::make_pair(0, glm::vec2(5, 9))}
 };
 
 struct DirectionVector {
@@ -832,23 +972,27 @@ const static std::unordered_set<BlockType, EnumHash> hPlane = {
 };
 
 const static std::unordered_set<BlockType, EnumHash> cross2 = {
-    WATER,
-    LOTUS_1, LOTUS_2, RICE,
-    GHOST_LILY, GHOST_WEED, CORAL, KELP, SEA_GRASS,
-    BAMBOO_1, BAMBOO_2, BAMBOO_3,
+    LOTUS_1, LOTUS_2,
+    RICE_1, RICE_2, RICE_3, RICE_4, RICE_5, RICE_6,
+    BAMBOO_2, BAMBOO_3,
     BONSAI_TREE, MAGNOLIA_IKEBANA, LOTUS_IKEBANA, GREEN_HYDRANGEA_IKEBANA, CHRYSANTHEMUM_IKEBANA,
     CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, DAFFODIL_IKEBANA,
-    PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA, ONCIDIUM_IKEBANA
+    PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA, ONCIDIUM_IKEBANA,
+    GHOST_LILY, GHOST_WEED,
+    CORAL_1, CORAL_2, CORAL_3, CORAL_4,
+    KELP_1, KELP_2, SEA_GRASS
 };
 
 const static std::unordered_set<BlockType, EnumHash> cross4 = {
-    TALL_GRASS, WHEAT
+    TALL_GRASS,
+    WHEAT_1, WHEAT_2, WHEAT_3, WHEAT_4, WHEAT_5, WHEAT_6, WHEAT_7, WHEAT_8,
+    SEA_GRASS
 };
 
 const static std::unordered_set<BlockType, EnumHash> partialX = {
     CEDAR_WINDOW, TEAK_WINDOW, CHERRY_WINDOW, MAPLE_WINDOW, PINE_WINDOW, WISTERIA_WINDOW,
     PAPER_LANTERN, WOOD_LANTERN,
-    PAINTING, PAINTING_T, PAINTING_B, PAINTING_L, PAINTING_R,
+    PAINTING_1, PAINTING_2, PAINTING_3, PAINTING_4, PAINTING_5, PAINTING_6L, PAINTING_6R, PAINTING_7T, PAINTING_7B,
     BAMBOO_1, BAMBOO_2, BAMBOO_3,
     BONSAI_TREE, MAGNOLIA_IKEBANA, LOTUS_IKEBANA, GREEN_HYDRANGEA_IKEBANA, CHRYSANTHEMUM_IKEBANA,
     CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, DAFFODIL_IKEBANA,
@@ -856,9 +1000,11 @@ const static std::unordered_set<BlockType, EnumHash> partialX = {
 };
 
 const static std::unordered_set<BlockType, EnumHash> partialY = {
-    LAVA, SNOW_1, SNOW_2, SNOW_3, SNOW_4, SNOW_5, SNOW_6, SNOW_7,
+    WATER, LAVA,
+    SNOW_1, SNOW_2, SNOW_3, SNOW_4, SNOW_5, SNOW_6, SNOW_7,
     ROOF_TILES_1, ROOF_TILES_2, ROOF_TILES_3, ROOF_TILES_4, STRAW_1, STRAW_2, STRAW_3, STRAW_4,
-    TILLED_DIRT, PATH, TATAMI,
+    TILLED_DIRT, PATH,
+    TATAMI,
     PAPER_LANTERN,
     BONSAI_TREE, MAGNOLIA_IKEBANA, LOTUS_IKEBANA, GREEN_HYDRANGEA_IKEBANA, CHRYSANTHEMUM_IKEBANA,
     CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, DAFFODIL_IKEBANA,
@@ -874,20 +1020,30 @@ const static std::unordered_set<BlockType, EnumHash> partialZ = {
 };
 
 const static std::unordered_set<BlockType, EnumHash> transparent = {
-    WATER, ICE,
-    LOTUS_1, LOTUS_2, RICE,
-    GHOST_LILY, GHOST_WEED, CORAL, KELP, SEA_GRASS,
+    WATER, LAVA, ICE,
+    SNOW_1, SNOW_2, SNOW_3, SNOW_4, SNOW_5, SNOW_6, SNOW_7,
+    CEDAR_LEAVES, TEAK_LEAVES,
+    CHERRY_BLOSSOMS_1, CHERRY_BLOSSOMS_2, CHERRY_BLOSSOMS_3, CHERRY_BLOSSOMS_4,
+    MAPLE_LEAVES_1, MAPLE_LEAVES_2, MAPLE_LEAVES_3,
+    PINE_LEAVES,
+    WISTERIA_BLOSSOMS_1, WISTERIA_BLOSSOMS_2, WISTERIA_BLOSSOMS_3,
+    ROOF_TILES_1, ROOF_TILES_2, ROOF_TILES_3, ROOF_TILES_4, STRAW_1, STRAW_2, STRAW_3, STRAW_4,
+    LILY_PAD, LOTUS_1, LOTUS_2,
+    TILLED_DIRT, PATH,
+    WHEAT_1, WHEAT_2, WHEAT_3, WHEAT_4, WHEAT_5, WHEAT_6, WHEAT_7, WHEAT_8,
+    RICE_1, RICE_2, RICE_3, RICE_4, RICE_5, RICE_6,
     BAMBOO_1, BAMBOO_2, BAMBOO_3,
+    TATAMI,
+    PAPER_LANTERN, WOOD_LANTERN,
+    PAINTING_1, PAINTING_2, PAINTING_3, PAINTING_4, PAINTING_5, PAINTING_6L, PAINTING_6R, PAINTING_7T, PAINTING_7B,
     BONSAI_TREE, MAGNOLIA_IKEBANA, LOTUS_IKEBANA, GREEN_HYDRANGEA_IKEBANA, CHRYSANTHEMUM_IKEBANA,
     CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, DAFFODIL_IKEBANA,
     PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA, ONCIDIUM_IKEBANA,
-    TALL_GRASS, WHEAT,
-    CEDAR_WINDOW, TEAK_WINDOW, CHERRY_WINDOW, MAPLE_WINDOW, PINE_WINDOW, WISTERIA_WINDOW,
-    PAPER_LANTERN, WOOD_LANTERN,
-    PAINTING, PAINTING_T, PAINTING_B, PAINTING_L, PAINTING_R,
-    LAVA, SNOW_1, SNOW_2, SNOW_3, SNOW_4, SNOW_5, SNOW_6, SNOW_7,
-    ROOF_TILES_1, ROOF_TILES_2, ROOF_TILES_3, ROOF_TILES_4, STRAW_1, STRAW_2, STRAW_3, STRAW_4,
-    TILLED_DIRT, PATH, TATAMI, EMPTY
+    GHOST_LILY, GHOST_WEED,
+    CORAL_1, CORAL_2, CORAL_3, CORAL_4,
+    KELP_1, KELP_2,
+    SEA_GRASS,
+    EMPTY
 };
 
 struct Vertex {
@@ -956,7 +1112,8 @@ public:
     boolean isFullCube(BlockType);
     boolean isTransparent(BlockType);
 
-    boolean isVisible(int x, int y, int z); // checks whether block is enclosed on all sides
+    boolean isVisible(int x, int y, int z, BlockType bt); // checks whether block is enclosed on all sides
+    boolean isVisible(int x, int y, int z, DirectionVector dv, BlockType bt); // checks whether a x/y/z face is visible
 
     void createVBOdata() override;
     GLenum drawMode() override {
