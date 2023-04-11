@@ -102,10 +102,12 @@ void MyGL::tick() {
     m_player.tick(dT, m_inputs);
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
+    m_terrain.multithreadedWork(m_player.mcr_position, prevPlayerPos);
+
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
-    m_terrain.loadNewChunks(m_player.mcr_position);
+    //m_terrain.loadNewChunks(m_player.mcr_position);
 }
 
 void MyGL::sendPlayerDataToGUI() const {

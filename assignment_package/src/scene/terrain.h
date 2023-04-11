@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "shaderprogram.h"
+#include <mutex>
+#include <thread>
 
 //using namespace std;
 
@@ -25,12 +27,24 @@ glm::ivec2 toCoords(int64_t k);
 // expands.
 class Terrain {
 private:
+
+    std::unordered_map<int64_t, uPtr<Chunk>> newChunks;
+
+    std::unordered_map<int64_t, uPtr<Chunk>> chunksWithBlockData;
+    std::mutex chunksWithBlockDataMutex;
+
+    std::unordered_map<int64_t, uPtr<Chunk>> chunksWithVBOData;
+    std::mutex chunksWithVBODataMutex;
+
+
+
     // Stores every Chunk according to the location of its lower-left corner
     // in world space.
     // We combine the X and Z coordinates of the Chunk's corner into one 64-bit int
     // so that we can use them as a key for the map, as objects like std::pairs or
     // glm::ivec2s are not hashable by default, so they cannot be used as keys.
     std::unordered_map<int64_t, uPtr<Chunk>> m_chunks;
+    std::mutex chunksMutex;
 
     // We will designate every 64 x 64 area of the world's x-z plane
     // as one "terrain generation zone". Every time the player moves
@@ -57,6 +71,11 @@ private:
 
     OpenGLContext* mp_context;
 
+    std::vector<std::thread> blockWorkerThreads;
+    std::vector<std::thread> vboWorkerThreads;
+
+    bool firstTick = true;
+
     glm::vec2 noise2D(glm::vec2 p);
     float noise1D(glm::vec2 p);
     float interpNoise(float x, float y);
@@ -74,6 +93,25 @@ private:
 public:
     Terrain(OpenGLContext *context);
     ~Terrain();
+
+    //new multithreading functions
+
+    void multithreadedWork(glm::vec3, glm::vec3);
+    void tryExpansion(glm::vec3, glm::vec3);
+    void checkThreadResults();
+
+    uPtr<Chunk> instantiateNewChunkAt(int x, int z);
+
+    bool hasTerrainGenerationZoneAt(glm::ivec2);
+
+    void blockWorker(uPtr<Chunk>);
+    void VBOWorker(uPtr<Chunk>);
+
+    bool hasNewChunkAt(int x, int z) const;
+    uPtr<Chunk>& getNewChunkAt(int x, int z);
+    const uPtr<Chunk>& getNewChunkAt(int x, int z) const;
+
+    BlockType generateBlockTypeByHeight(int, bool);
 
     // Instantiates a new Chunk and stores it in
     // our chunk map at the given coordinates.
