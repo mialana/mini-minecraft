@@ -26,7 +26,9 @@ public:
 
     void tick(float dT, InputBundle &input) override;
 
-    bool isOnGround(const Terrain& terrain, InputBundle& input);
+    void isInWater(const Terrain& terrain, InputBundle& input);
+    void isUnderWater(const Terrain& terrain, InputBundle& input);
+    void isOnGround(const Terrain& terrain, InputBundle& input);
     void detectCollision(glm::vec3* direction, const Terrain& terrain);
 
     bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection,

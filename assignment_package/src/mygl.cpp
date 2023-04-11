@@ -144,7 +144,7 @@ void MyGL::paintGL() {
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
 void MyGL::renderTerrain() {
-    m_terrain.draw(0, 48, 0, 48, &m_progLambert);
+    m_terrain.draw(0, 96, 0, 96, &m_progLambert);
 }
 
 
@@ -153,11 +153,20 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
     if(e->modifiers() & Qt::ShiftModifier){
         amount = 10.0f;
     }
-    // http://doc.qt.io/qt-5/qt.html#Key-enum
-    // This could all be much more efficient if a switch
-    // statement were used, but I really dislike their
-    // syntax so I chose to be lazy and use a long
-    // chain of if statements instead
+    if (QSysInfo().productType() == "macos") {
+        if (e->key() == Qt::Key_Right) {
+            m_player.rotateOnUpGlobal(-amount);
+        }
+        if (e->key() == Qt::Key_Left) {
+            m_player.rotateOnUpGlobal(amount);
+        }
+        if (e->key() == Qt::Key_Up) {
+            m_player.rotateOnRightLocal(amount);
+        }
+        if (e->key() == Qt::Key_Down) {
+            m_player.rotateOnRightLocal(-amount);
+        }
+    }
     if (e->key() == Qt::Key_Escape) {
         QApplication::quit();
     }
@@ -217,18 +226,19 @@ void MyGL::keyReleaseEvent(QKeyEvent *e) {
     }
 }
 
-void MyGL::mouseMoveEvent(QMouseEvent *e) {
-    // TODO
-    const float SENSITIVITY = 50.0;
-    float dx = this->width() * 0.5 - e->pos().x();
-    if (dx != 0) {
-        m_player.rotateOnUpGlobal(dx/width() * SENSITIVITY);
+void MyGL::mouseMoveEvent(QMouseEvent *e) {  
+    if (QSysInfo().productType() != "macos") {
+        const float SENSITIVITY = 50.0;
+        float dx = this->width() * 0.5 - e->pos().x();
+        if (dx != 0) {
+            m_player.rotateOnUpGlobal(dx/width() * SENSITIVITY);
+        }
+        float dy = this->height() * 0.5 - e->pos().y() - 0.5;
+        if (dy != 0) {
+            m_player.rotateOnRightLocal(dy/height() * SENSITIVITY);
+        }
+        moveMouseToCenter();
     }
-    float dy = this->height() * 0.5 - e->pos().y() - 0.5;
-    if (dy != 0) {
-        m_player.rotateOnRightLocal(dy/height() * SENSITIVITY);
-    }
-    moveMouseToCenter();
 }
 
 void MyGL::mousePressEvent(QMouseEvent *e) {

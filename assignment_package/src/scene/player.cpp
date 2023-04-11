@@ -1,5 +1,6 @@
 #include "player.h"
 #include <QString>
+#include <iostream>
 
 Player::Player(glm::vec3 pos, const Terrain &terrain)
     : Entity(pos), m_velocity(0,0,0), m_acceleration(0,0,0),
@@ -76,17 +77,19 @@ void Player::computePhysics(float dT, const Terrain &terrain, InputBundle& input
     if (!inputs.flightMode) {
 
         isOnGround(terrain, inputs);
+        isInWater(terrain, inputs);
 
-        if(!inputs.onGround)
-        {
+        if(!inputs.onGround) {
             m_acceleration += gravity;
             m_velocity += m_acceleration * dT;
-        }
-        else
-        {
+        } else {
             m_velocity += m_acceleration * dT;
         }
         rayDirection = m_velocity;
+        if (inputs.inWater) {
+            rayDirection *= 0.2f;
+        }
+
         detectCollision(&rayDirection, terrain);
     }
     else
@@ -97,21 +100,59 @@ void Player::computePhysics(float dT, const Terrain &terrain, InputBundle& input
     this->moveAlongVector(rayDirection);
 }
 
-bool Player::isOnGround(const Terrain &terrain, InputBundle &input) {
+void Player::isInWater(const Terrain &terrain, InputBundle &input) {
+    glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, -1.f, 0.5f);
+    bool acc = false;
+    for (int x = 0; x <= 1; x++) {
+        for (int z = 0; z <= 1; z++) {
+            for (int y = 0; y <= 1; y++) {
+                glm::vec3 p = glm::vec3(floor(bottomLeftVertex.x) + x, floor(bottomLeftVertex.y) + y,
+                              floor(bottomLeftVertex.z) + z);
+                if (terrain.getBlockAt(p) == WATER || terrain.getBlockAt(p) == LAVA) {
+                    acc = acc || true;
+                } else {
+                    acc = acc || true;
+                }
+            }
+        }
+    }
+    input.inWater = acc;
+}
+
+void Player::isUnderWater(const Terrain &terrain, InputBundle &input) {
+    glm::vec3 middleLeftVertex = this->m_position - glm::vec3(0.5f, -2.f, 0.5f);
+    bool acc = false;
+    for (int x = 0; x <= 1; x++) {
+        for (int z = 0; z <= 1; z++) {
+            glm::vec3 p = glm::vec3(floor(middleLeftVertex.x) + x, floor(middleLeftVertex.y + 0.05f),
+                          floor(middleLeftVertex.z) + z);
+            if (terrain.getBlockAt(p) == WATER || terrain.getBlockAt(p) == LAVA) {
+                acc = acc || true;
+            } else {
+                acc = acc ||  false;
+            }
+        }
+    }
+    input.underWater = acc;
+}
+
+void Player::isOnGround(const Terrain &terrain, InputBundle &input) {
     glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, 0, 0.5f);
+    bool acc = false;
     for (int x = 0; x <= 1; x++) {
         for (int z = 0; z <= 1; z++) {
             glm::vec3 p = glm::vec3(floor(bottomLeftVertex.x) + x, floor(bottomLeftVertex.y - 0.05f),
                           floor(bottomLeftVertex.z) + z);
             if (terrain.getBlockAt(p) != EMPTY
-                    && terrain.getBlockAt(p) != WATER) {
-                input.onGround = true;
+                    && terrain.getBlockAt(p) != WATER
+                     && terrain.getBlockAt(p) != LAVA) {
+                acc = acc || true;
             } else {
-                input.onGround = false;
+                acc = acc || false;
             }
         }
     }
-    return input.onGround;
+    input.onGround = acc;
 }
 
 void Player::detectCollision(glm::vec3 *rayDirection, const Terrain &terrain) {
