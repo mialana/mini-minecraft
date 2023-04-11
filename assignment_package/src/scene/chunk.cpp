@@ -361,109 +361,109 @@ void Chunk::createVBOdata() {
                 int currBiome = this->getBiomeAt(x, y, z);
 
                 if (currType != EMPTY) {
-                    if (isHPlane(currType)) {
-                        if (isVisible(x, y, z, currType)) {
-                            for (const DirectionVector& dv : planeDirIter) {
-                                std::vector<Vertex> faceVerts;
-                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
+//                    if (isHPlane(currType)) {
+//                        if (isVisible(x, y, z, currType)) {
+//                            for (const DirectionVector& dv : planeDirIter) {
+//                                std::vector<Vertex> faceVerts;
+//                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
 
-                                for (const Vertex& v : faceVerts) {
-                                    tVertData.push_back(v.position);
-                                    tVertData.push_back(v.normal);
-                                    tVertData.push_back(v.color);
-                                    tVertData.push_back(v.uvCoords);
-                                    tVertData.push_back(v.blockType);
-                                }
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 1);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount + 3);
+//                                for (const Vertex& v : faceVerts) {
+//                                    tVertData.push_back(v.position);
+//                                    tVertData.push_back(v.normal);
+//                                    tVertData.push_back(v.color);
+//                                    tVertData.push_back(v.uvCoords);
+//                                    tVertData.push_back(v.blockType);
+//                                }
+//                                tIndices.push_back(tVertCount);
+//                                tIndices.push_back(tVertCount + 1);
+//                                tIndices.push_back(tVertCount + 2);
+//                                tIndices.push_back(tVertCount);
+//                                tIndices.push_back(tVertCount + 2);
+//                                tIndices.push_back(tVertCount + 3);
 
-                                tVertCount += 4;
-                            }
-                        }
-                    }
-                    if (isCross2(currType)) {
-                        // check if the block is exposed to air
-                        if (isVisible(x, y, z, currType)) {
-                            for (const DirectionVector& dv : cross2DirIter) {
-                                std::vector<Vertex> faceVerts;
-                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
+//                                tVertCount += 4;
+//                            }
+//                        }
+//                    }
+//                    if (isCross2(currType)) {
+//                        // check if the block is exposed to air
+//                        if (isVisible(x, y, z, currType)) {
+//                            for (const DirectionVector& dv : cross2DirIter) {
+//                                std::vector<Vertex> faceVerts;
+//                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
 
-                                for (const Vertex& v : faceVerts) {
-                                    tVertData.push_back(v.position);
-                                    tVertData.push_back(v.normal);
-                                    tVertData.push_back(v.color);
-                                    tVertData.push_back(v.uvCoords);
-                                    tVertData.push_back(v.blockType);
-                                }
+//                                for (const Vertex& v : faceVerts) {
+//                                    tVertData.push_back(v.position);
+//                                    tVertData.push_back(v.normal);
+//                                    tVertData.push_back(v.color);
+//                                    tVertData.push_back(v.uvCoords);
+//                                    tVertData.push_back(v.blockType);
+//                                }
 
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 1);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount + 3);
+//                                tIndices.push_back(tVertCount);
+//                                tIndices.push_back(tVertCount + 1);
+//                                tIndices.push_back(tVertCount + 2);
+//                                tIndices.push_back(tVertCount);
+//                                tIndices.push_back(tVertCount + 2);
+//                                tIndices.push_back(tVertCount + 3);
 
-                                tVertCount += 4;
-                            }
-                        }
-                    }
-                    if (isCross4(currType)) {
-                        // check if the block is exposed to air
-                        if (isVisible(x, y, z, currType)) {
-                            for (const DirectionVector& dv : cross4DirIter) {
+//                                tVertCount += 4;
+//                            }
+//                        }
+//                    }
+//                    if (isCross4(currType)) {
+//                        // check if the block is exposed to air
+//                        if (isVisible(x, y, z, currType)) {
+//                            for (const DirectionVector& dv : cross4DirIter) {
 
-                                std::vector<Vertex> faceVerts;
-                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
+//                                std::vector<Vertex> faceVerts;
+//                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
 
-                                for (const Vertex& v : faceVerts) {
-                                    tVertData.push_back(v.position);
-                                    tVertData.push_back(v.normal);
-                                    tVertData.push_back(v.color);
-                                    tVertData.push_back(v.uvCoords);
-                                    tVertData.push_back(v.blockType);
-                                }
+//                                for (const Vertex& v : faceVerts) {
+//                                    tVertData.push_back(v.position);
+//                                    tVertData.push_back(v.normal);
+//                                    tVertData.push_back(v.color);
+//                                    tVertData.push_back(v.uvCoords);
+//                                    tVertData.push_back(v.blockType);
+//                                }
 
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 1);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount + 3);
+//                                tIndices.push_back(tVertCount);
+//                                tIndices.push_back(tVertCount + 1);
+//                                tIndices.push_back(tVertCount + 2);
+//                                tIndices.push_back(tVertCount);
+//                                tIndices.push_back(tVertCount + 2);
+//                                tIndices.push_back(tVertCount + 3);
 
-                                tVertCount += 4;
-                            }
-                        }
-                    }
-                    if (isPartialX(currType) || isPartialY(currType) || isPartialZ(currType)) {
-                        for (const DirectionVector& dv : directionIter) {
-                            if (isVisible(x, y, z, dv, currType)) {
-                                std::vector<Vertex> faceVerts;
-                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
+//                                tVertCount += 4;
+//                            }
+//                        }
+//                    }
+//                    if (isPartialX(currType) || isPartialY(currType) || isPartialZ(currType)) {
+//                        for (const DirectionVector& dv : directionIter) {
+//                            if (isVisible(x, y, z, dv, currType)) {
+//                                std::vector<Vertex> faceVerts;
+//                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
 
-                                for (const Vertex& v : faceVerts) {
-                                    tVertData.push_back(v.position);
-                                    tVertData.push_back(v.normal);
-                                    tVertData.push_back(v.color);
-                                    tVertData.push_back(v.uvCoords);
-                                    tVertData.push_back(v.blockType);
-                                }
-                                tIndices.push_back(oVertCount);
-                                tIndices.push_back(oVertCount + 1);
-                                tIndices.push_back(oVertCount + 2);
-                                tIndices.push_back(oVertCount);
-                                tIndices.push_back(oVertCount + 2);
-                                tIndices.push_back(oVertCount + 3);
+//                                for (const Vertex& v : faceVerts) {
+//                                    tVertData.push_back(v.position);
+//                                    tVertData.push_back(v.normal);
+//                                    tVertData.push_back(v.color);
+//                                    tVertData.push_back(v.uvCoords);
+//                                    tVertData.push_back(v.blockType);
+//                                }
+//                                tIndices.push_back(oVertCount);
+//                                tIndices.push_back(oVertCount + 1);
+//                                tIndices.push_back(oVertCount + 2);
+//                                tIndices.push_back(oVertCount);
+//                                tIndices.push_back(oVertCount + 2);
+//                                tIndices.push_back(oVertCount + 3);
 
-                                tVertCount += 4;
-                            }
-                        }
+//                                tVertCount += 4;
+//                            }
+//                        }
 
-                    }
-                    if (isFullCube(currType)) {
+//                    }
+//                    if (isFullCube(currType)) {
                         for (const DirectionVector& dv : directionIter) {
                             glm::ivec3 adjBlockPos = glm::ivec3(x, y, z) + dv.vec;
                             bool inSameChunk = Chunk::isInBounds(adjBlockPos);
@@ -475,26 +475,7 @@ void Chunk::createVBOdata() {
                                 adjBlockType = this->getAdjBlockType(dv.dir, adjBlockPos);
                             }
 
-                            if (isVisible(x, y, z, currType) && isTransparent(currType)) {
-                                std::vector<Vertex> faceVerts;
-                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
-
-                                for (const Vertex& v : faceVerts) {
-                                    tVertData.push_back(v.position);
-                                    tVertData.push_back(v.normal);
-                                    tVertData.push_back(v.color);
-                                    tVertData.push_back(v.uvCoords);
-                                    tVertData.push_back(v.blockType);
-                                }
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 1);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount + 3);
-
-                                tVertCount += 4;
-                            } else if (adjBlockType == EMPTY) {
+                            if (adjBlockType == EMPTY) {
                                 std::vector<Vertex> faceVerts;
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
 
@@ -513,9 +494,28 @@ void Chunk::createVBOdata() {
                                 oIndices.push_back(oVertCount + 3);
 
                                 oVertCount += 4;
+                            } else if (isVisible(x, y, z, currType) && isTransparent(currType)) {
+                                std::vector<Vertex> faceVerts;
+                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
+
+                                for (const Vertex& v : faceVerts) {
+                                    tVertData.push_back(v.position);
+                                    tVertData.push_back(v.normal);
+                                    tVertData.push_back(v.color);
+                                    tVertData.push_back(v.uvCoords);
+                                    tVertData.push_back(v.blockType);
+                                }
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 1);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount + 3);
+
+                                tVertCount += 4;
                             }
                         }
-                    }
+//                    }
                 }
             }
         }

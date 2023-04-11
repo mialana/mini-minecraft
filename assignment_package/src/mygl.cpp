@@ -26,13 +26,13 @@ MyGL::MyGL(QWidget *parent)
     setFocusPolicy(Qt::ClickFocus);
 
     setMouseTracking(true); // MyGL will track the mouse's movements even if a mouse button is not pressed
-    setCursor(Qt::BlankCursor); // Make the cursor invisible
+    setCursor(Qt::BlankCursor); // Make the cursor invisible    
 }
 
 MyGL::~MyGL() {
     makeCurrent();
     glDeleteVertexArrays(1, &vao);
-    glDeleteTextures(1, &textureHandle);
+//    glDeleteTextures(1, &textureHandle);
 }
 
 
@@ -62,9 +62,6 @@ void MyGL::initializeGL()
     // Create a Vertex Attribute Object
     glGenVertexArrays(1, &vao);
 
-    // Create a Texture Object
-    glGenTextures(1, &textureHandle);
-
     //Create the instance of the world axes
     m_worldAxes.createVBOdata();
 
@@ -72,7 +69,10 @@ void MyGL::initializeGL()
     m_progLambert.create(":/glsl/lambert.vert.glsl", ":/glsl/lambert.frag.glsl");
     // Create and set up the flat lighting shader
     m_progFlat.create(":/glsl/flat.vert.glsl", ":/glsl/flat.frag.glsl");
-    m_progInstanced.create(":/glsl/instanced.vert.glsl", ":/glsl/lambert.frag.glsl");
+    m_progInstanced.create(":/glsl/instanced.vert.glsl", ":/glsl/instanced.frag.glsl");
+
+    m_texture = new Texture(this);
+    m_texture->create(":/textures/custom_minecraft_textures.png");
 
     // Set a color with which to draw geometry.
     // This will ultimately not be used when you change
@@ -80,11 +80,12 @@ void MyGL::initializeGL()
     // and UV coordinates
     m_progLambert.setGeometryColor(glm::vec4(0,1,0,1));
 
+    m_texture->load(0);
+    m_texture->bind(0);
+
     // We have to have a VAO bound in OpenGL 3.2 Core. But if we're not
     // using multiple VAOs, we can just bind one once.
     glBindVertexArray(vao);
-
-    loadTextures();
 
     m_terrain.CreateTestScene();
 }
@@ -157,7 +158,7 @@ void MyGL::paintGL() {
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
 void MyGL::renderTerrain() {
-    m_terrain.draw(0, 48, 0, 48, &m_progLambert);
+    m_terrain.draw(0, 48, 0, 48, &m_progInstanced);
 }
 
 
@@ -250,22 +251,4 @@ void MyGL::mousePressEvent(QMouseEvent *e) {
     } else if (e->button() == Qt::RightButton) {
         m_player.placeBlock(&m_terrain, GRASS);
     }
-}
-
-void MyGL::loadTextures() {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureHandle);
-    std::string texturePath = ":/textures/custom_minecraft_textures.png";
-    QImage img(texturePath.c_str());
-    img = img.convertToFormat(QImage::Format_ARGB32);
-    img = img.mirrored();
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 GL_RGBA,
-                 img.width(),
-                 img.height(),
-                 0,
-                 GL_BGRA,
-                 GL_UNSIGNED_BYTE,
-                 img.bits());
 }

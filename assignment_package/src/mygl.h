@@ -7,6 +7,7 @@
 #include "scene/camera.h"
 #include "scene/terrain.h"
 #include "scene/player.h"
+#include "texture.h"
 
 #include <memory>
 #include <QOpenGLVertexArrayObject>
@@ -42,7 +43,7 @@ private:
 
     int m_time; //not sure what this does
 
-    GLuint textureHandle;
+    Texture* m_texture;
 
 public:
     explicit MyGL(QWidget *parent = nullptr);
@@ -62,8 +63,6 @@ public:
     // Called from paintGL().
     // Calls Terrain::draw().
     void renderTerrain();
-
-    void loadTextures();
 
 
 protected:

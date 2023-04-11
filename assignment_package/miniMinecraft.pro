@@ -48,12 +48,6 @@ address_sanitizer {
     QMAKE_LFLAGS += -fsanitize=address
 }
 
-HEADERS += \
-    texture.h
-
-SOURCES += \
-    texture.cpp
-
 DISTFILES += \
     ../README.md \
     help-log-amy.txt

@@ -23,7 +23,7 @@ protected:
     bool m_oNorGenerated;
     bool m_oColGenerated;
     bool m_oUVsGenerated;
-    bool m_oBtsGenerated;
+    bool m_oBTsGenerated;
     bool m_oVertDataGenerated;
 
     int m_tCount;
@@ -41,7 +41,7 @@ protected:
     bool m_tNorGenerated;
     bool m_tColGenerated;
     bool m_tUVsGenerated;
-    bool m_tBtsGenerated;
+    bool m_tBTsGenerated;
     bool m_tVertDataGenerated;
 
     OpenGLContext* mp_context; // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,

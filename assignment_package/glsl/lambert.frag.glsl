@@ -1,4 +1,4 @@
-#version 150
+#version 330
 // ^ Change this to version 130 if you have compatibility issues
 
 // This is a fragment shader. If you've opened this file first, please
@@ -12,18 +12,28 @@
 // position, light position, and vertex color.
 
 uniform vec4 u_Color; // The color with which to render this instance of geometry.
-uniform sampler2D textureSampler; //
+uniform sampler2D u_TextureSampler; //
 uniform int u_Time; //
 
 // These are the interpolated values out of the rasterizer, so you can't know
 // their specific values without knowing the vertices that contributed to them
 in vec4 fs_Pos;
 in vec4 fs_Nor;
-in vec4 fs_LightVec;
 in vec4 fs_Col;
-in vec2 fs_UVs;
-in int biome; // 0 = mountain, 1 = hills, 2 = forest, 3 = caves, 4 = islands
-in int texIdx;
+in vec2 fs_UV;
+
+// 0 = no change from base texture at uv coords
+// 1 = draw texture at uv coords, and then draw texture at fs_UV_overlay over it
+// 2 = water (animation + biome color interpolation)
+// 3 = lava animation
+flat in int texIdx;
+
+// 0 = mountain, 1 = hills, 2 = forest, 3 = caves, 4 = islands
+flat in int biome;
+
+in vec2 fs_UV_overlay;
+
+in vec4 fs_LightVec;
 
 out vec4 out_Col; // This is the final output color that you will see on your
                   // screen for the pixel that is currently being processed.
@@ -73,23 +83,67 @@ float fbm(vec3 p) {
     return sum;
 }
 
+float mod(float a, float b) {
+    int div = int (a / b);
+    return a - (div * b);
+}
 void main()
 {
-    // Material base color (before shading)
-        vec4 diffuseColor = fs_Col;
-        diffuseColor = diffuseColor * (0.5 * fbm(fs_Pos.xyz) + 0.5);
+    if (fs_UV.x >= 0 && fs_UV.y >= 0) {
+        // 0 = no change from base texture at uv coords
+        // 1 = draw texture at uv coords, and then draw texture at fs_UV_overlay over it
+        // 2 = water (animation + biome color interpolation)
+        // 3 = lava animation
 
-        // Calculate the diffuse term for Lambert shading
-        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
-        // Avoid negative lighting values
-        diffuseTerm = clamp(diffuseTerm, 0, 1);
+        if (texIdx == 0) {
+            out_Col = vec4(texture(u_TextureSampler, fs_UV));
+        } else if (texIdx == 1) {
+            // assumes all pxls are either fully transparent or fully opaque
+            vec4 col1 = vec4(texture(u_TextureSampler, fs_UV));
+            vec4 col2 = vec4(texture(u_TextureSampler, fs_UV_overlay));
 
-        float ambientTerm = 0.2;
+            if (col2.a == 0) {
+                out_Col = col1;
+            } else {
+                out_Col = col2;
+            }
 
-        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
-                                                            //to simulate ambient lighting. This ensures that faces that are not
-                                                            //lit by our point light are not completely black.
+            // TODO: biome color interpolation (grass)
+        } else if (texIdx == 2) {
+            out_Col = vec4(texture(u_TextureSampler, fs_UV));
 
-        // Compute final shaded color
-        out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
+            // water animation
+            float uOffset = (u_Time / 256.f); // number of pxls to offset u-coord by
+            uOffset = mod(uOffset, 0.0625);
+            vec2 newUV = vec2(fs_UV.x + uOffset, fs_UV.y);
+            out_Col = vec4(texture(u_TextureSampler, newUV));
+
+            // TODO: biome color interpolation (water)
+        } else if (texIdx == 3) {
+            // lava animation
+            float uOffset = sin(u_Time) / 16.f; // number of blocks to offset u-coord by
+            float vOffset = cos(u_Time) / 16.f; // number of blocks to offset v-coord by
+            vec2 newUV = fs_UV + vec2(uOffset, vOffset);
+            out_Col = vec4(texture(u_TextureSampler, newUV));
+        }
+    }
+    else {
+        // Material base color (before shading)
+            vec4 diffuseColor = fs_Col;
+            diffuseColor = diffuseColor * (0.5 * fbm(fs_Pos.xyz) + 0.5);
+
+            // Calculate the diffuse term for Lambert shading
+            float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
+            // Avoid negative lighting values
+            diffuseTerm = clamp(diffuseTerm, 0, 1);
+
+            float ambientTerm = 0.2;
+
+            float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
+                                                                //to simulate ambient lighting. This ensures that faces that are not
+                                                                //lit by our point light are not completely black.
+
+            // Compute final shaded color
+            out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
+    }
 }
