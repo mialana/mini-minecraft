@@ -71,8 +71,9 @@ void MyGL::initializeGL()
     m_progFlat.create(":/glsl/flat.vert.glsl", ":/glsl/flat.frag.glsl");
     m_progInstanced.create(":/glsl/instanced.vert.glsl", ":/glsl/instanced.frag.glsl");
 
-    m_texture = new Texture(this);
-    m_texture->create(":/textures/custom_minecraft_textures.png");
+    m_texture = std::make_shared<Texture>(this);
+    m_texture->create(":/minecraft_textures_all.png");
+
 
     // Set a color with which to draw geometry.
     // This will ultimately not be used when you change
@@ -82,6 +83,7 @@ void MyGL::initializeGL()
 
     m_texture->load(0);
     m_texture->bind(0);
+    m_progLambert.setTexture();
 
     // We have to have a VAO bound in OpenGL 3.2 Core. But if we're not
     // using multiple VAOs, we can just bind one once.
@@ -147,9 +149,12 @@ void MyGL::paintGL() {
 
     renderTerrain();
 
+    m_texture->bind(0);
+    m_progLambert.setTexture();
+
     glDisable(GL_DEPTH_TEST);
     m_progFlat.setModelMatrix(glm::mat4());
-    m_progFlat.draw(m_worldAxes);
+    // m_progFlat.draw(m_worldAxes);
 
     m_progInstanced.setModelMatrix(glm::mat4());
 

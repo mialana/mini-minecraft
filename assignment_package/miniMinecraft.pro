@@ -50,4 +50,8 @@ address_sanitizer {
 
 DISTFILES += \
     ../README.md \
-    help-log-amy.txt
+    help-log-amy.txt \
+    textures/custom_minecraft_textures.png \
+    textures/minecraft_normals_all.png \
+    textures/minecraft_textures_all.png \
+    textures/minecraft_textures_all_copy.png

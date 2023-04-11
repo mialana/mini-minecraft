@@ -43,7 +43,7 @@ private:
 
     int m_time; //not sure what this does
 
-    Texture* m_texture;
+    std::shared_ptr<Texture> m_texture;
 
 public:
     explicit MyGL(QWidget *parent = nullptr);
