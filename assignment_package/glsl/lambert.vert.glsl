@@ -33,7 +33,6 @@ out vec4 fs_Nor;            // The array of normals that has been transformed by
 out vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.
 out vec2 fs_UV;
 flat out int texIdx;
-flat out int biome;
 out vec2 fs_UV_overlay;
 out vec4 fs_LightVec;       // The direction in which our virtual light lies, relative to each vertex. This is implicitly passed to the fragment shader.
 
@@ -50,7 +49,6 @@ void main()
     fs_UV_overlay.x = vs_UV.z;
     fs_UV_overlay.y = vs_UV.w;
     texIdx = int(vs_BT.y);
-    biome = int(vs_BT.x);
 
     mat3 invTranspose = mat3(u_ModelInvTr);
     fs_Nor = vec4(invTranspose * vec3(vs_Nor), 0);          // Pass the vertex normals to the fragment shader for interpolation.

@@ -17,22 +17,8 @@ BlockType Chunk::getBlockAt(int x, int y, int z) const {
 }
 
 // Does bounds checking with at()
-int Chunk::getBiomeAt(unsigned int x, unsigned int y, unsigned int z) const {
-    return m_biomes.at(x + 16 * y + 16 * 256 * z);
-}
-
-// Exists to get rid of compiler warnings about int -> unsigned int implicit conversion
-int Chunk::getBiomeAt(int x, int y, int z) const {
-    return getBiomeAt(static_cast<unsigned int>(x), static_cast<unsigned int>(y), static_cast<unsigned int>(z));
-}
-
-// Does bounds checking with at()
 void Chunk::setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t) {
     m_blocks.at(x + 16 * y + 16 * 256 * z) = t;
-}
-
-void Chunk::setBiomeAt(unsigned int x, unsigned int y, unsigned int z, int b) {
-    m_biomes.at(x + 16 * y + 16 * 256 * z) = b;
 }
 
 void Chunk::linkNeighbor(uPtr<Chunk> &neighbor, Direction dir) {
@@ -67,8 +53,7 @@ boolean Chunk::isPartialZ(BlockType bt) {
     return partialZ.find(bt) != partialZ.end();
 }
 boolean Chunk::isFullCube(BlockType bt) {
-    return !isHPlane(bt) && !isCross2(bt) && !isCross4(bt) &&
-            !isPartialX(bt) && !isPartialY(bt) && !isPartialZ(bt);
+    return fullCube.find(bt) != fullCube.end();
 }
 boolean Chunk::isTransparent(BlockType bt) {
     return transparent.find(bt) != transparent.end();
@@ -139,7 +124,7 @@ BlockType Chunk::getAdjBlockType(Direction d, glm::ivec3 pos) {
     return EMPTY;
 }
 
-void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float currY, float currZ, DirectionVector dirVec, BlockType bt, int biome) {
+void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float currY, float currZ, DirectionVector dirVec, BlockType bt) {
     Direction d = dirVec.dir;
 
     // offsets move the face inwardsfloat offsetXPOS = 0.f;
@@ -275,10 +260,10 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 z1 = currZ + offsetZNEG;
                 z2 = currZ + offsetZPOS;
             }
-            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0), biome));
-            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0), biome));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1), biome));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1), biome));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
             break;
 
         case YPOS: case YNEG:
@@ -293,10 +278,10 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 z1 = currZ + offsetZNEG;
                 z2 = currZ + offsetZPOS;
             }
-            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0), biome));
-            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0), biome));
-            verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1), biome));
-            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 1), biome));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
+            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
             break;
 
         case ZPOS: case ZNEG:
@@ -311,34 +296,34 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 y1 = currY + offsetYNEG;
                 y2 = currY + offsetYPOS;
             }
-            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0), biome));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0), biome));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 1), biome));
-            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1), biome));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
+            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
             break;
         case XPOS_ZPOS:
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt, d, glm::vec2(0, 0), biome));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(1, 0), biome));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(1, 1), biome));
-            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, bt, d, glm::vec2(0, 1), biome));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
             break;
         case XNEG_ZNEG:
-            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, bt, d, glm::vec2(0, 1), biome));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(1, 1), biome));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(1, 0), biome));
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt, d, glm::vec2(0, 0), biome));
+            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
             break;
         case XPOS_ZNEG:
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(0, 1), biome));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, bt, d, glm::vec2(1, 1), biome));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ, 1), dirVec.vec, bt, d, glm::vec2(1, 0), biome));
-            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(0, 0), biome));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
             break;
         case XNEG_ZPOS:
-            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(0, 0), biome));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ, 1), dirVec.vec, bt, d, glm::vec2(1, 0), biome));
-            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, bt, d, glm::vec2(1, 1), biome));
-            verts.push_back(Vertex(glm::vec4(currX, currY, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(0, 1), biome));
+            verts.push_back(Vertex(glm::vec4(currX, currY+1, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY+1, currZ, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(currX+1, currY, currZ, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(currX, currY, currZ+1, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
             break;
     }
 }
@@ -358,7 +343,7 @@ void Chunk::createVBOdata() {
         for (int y = 0; y < 256; y++) {
             for (int z = 0; z < 16; z++) {
                 BlockType currType = this->getBlockAt(x, y, z);
-                int currBiome = this->getBiomeAt(x, y, z);
+                int currBiome = 0;
 
                 if (currType != EMPTY) {
 //                    if (isHPlane(currType)) {
@@ -477,7 +462,7 @@ void Chunk::createVBOdata() {
 
                             if (adjBlockType == EMPTY) {
                                 std::vector<Vertex> faceVerts;
-                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
+                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType);
 
                                 for (const Vertex& v : faceVerts) {
                                     oVertData.push_back(v.position);
@@ -496,7 +481,7 @@ void Chunk::createVBOdata() {
                                 oVertCount += 4;
                             } else if (isVisible(x, y, z, currType) && isTransparent(currType)) {
                                 std::vector<Vertex> faceVerts;
-                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, currBiome);
+                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType);
 
                                 for (const Vertex& v : faceVerts) {
                                     tVertData.push_back(v.position);

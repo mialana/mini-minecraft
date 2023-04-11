@@ -15,7 +15,7 @@
 // block types, but in the scope of this project we'll never get anywhere near that many.
 enum BlockType : unsigned char
 {
-    EMPTY, GRASS, DIRT, STONE, COBBLESTONE, MOSS_STONE, SAND,
+    GRASS, DIRT, STONE, COBBLESTONE, MOSS_STONE, SAND,
     TALL_GRASS, WATER, LAVA, BEDROCK, SNOW_1, SNOW_2, SNOW_3, SNOW_4, SNOW_5, SNOW_6, SNOW_7, SNOW_8, ICE,
     RED_PAINTED_WOOD, BLACK_PAINTED_WOOD, PLASTER,
     ROOF_TILES_1, ROOF_TILES_2, ROOF_TILES, STRAW_1, STRAW_2, STRAW,
@@ -37,7 +37,7 @@ enum BlockType : unsigned char
     PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA,
     GHOST_LILY, GHOST_WEED,
     CORAL_1, CORAL_2, CORAL_3, CORAL_4,
-    KELP_1, KELP_2, SEA_GRASS, LAST
+    KELP_1, KELP_2, SEA_GRASS, EMPTY
 };
 
 // The six cardinal directions in 3D space + diagonals (rotated 45 degrees)
@@ -60,7 +60,7 @@ struct EnumHash {
 struct PairEnumHash {
     size_t operator()(const faceDef fd) const {
         return static_cast<size_t>(fd.first)
-            * static_cast<size_t>(LAST)
+            * static_cast<size_t>(EMPTY)
             + static_cast<size_t>(fd.second);
     }
 };
@@ -928,27 +928,16 @@ const static std::vector<DirectionVector> planeDirIter = {
     DirectionVector(YNEG, glm::ivec3(0, -1, 0)),
 };
 
-const static std::vector<DirectionVector> xzDirIter = {
-    DirectionVector(XPOS, glm::ivec3(1, 0, 0)),
-    DirectionVector(XNEG, glm::ivec3(-1, 0, 0)),
-    DirectionVector(ZPOS, glm::ivec3(0, 0, 1)),
-    DirectionVector(ZNEG, glm::ivec3(0, 0, -1)),
-};
-
 const static std::vector<DirectionVector> cross2DirIter = {
-    DirectionVector(XPOS, glm::ivec3(1, 0, 0)),
-    DirectionVector(XNEG, glm::ivec3(-1, 0, 0)),
-    DirectionVector(YPOS, glm::ivec3(0, 1, 0)),
-    DirectionVector(YNEG, glm::ivec3(0, -1, 0)),
-    DirectionVector(ZPOS, glm::ivec3(0, 0, 1)),
-    DirectionVector(ZNEG, glm::ivec3(0, 0, -1)),
+    DirectionVector(XPOS_ZPOS, glm::ivec3(1, 0, 1)),
+    DirectionVector(XNEG_ZNEG, glm::ivec3(-1, 0, -1)),
+    DirectionVector(XPOS_ZNEG, glm::ivec3(1, 0, -1)),
+    DirectionVector(XNEG_ZPOS, glm::ivec3(-1, 0, 1)),
 };
 
 const static std::vector<DirectionVector> cross4DirIter = {
     DirectionVector(XPOS, glm::ivec3(1, 0, 0)),
     DirectionVector(XNEG, glm::ivec3(-1, 0, 0)),
-    DirectionVector(YPOS, glm::ivec3(0, 1, 0)),
-    DirectionVector(YNEG, glm::ivec3(0, -1, 0)),
     DirectionVector(ZPOS, glm::ivec3(0, 0, 1)),
     DirectionVector(ZNEG, glm::ivec3(0, 0, -1)),
 };
@@ -1005,6 +994,18 @@ const static std::unordered_set<BlockType, EnumHash> partialZ = {
     PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA, ONCIDIUM_IKEBANA
 };
 
+const static std::unordered_set<BlockType, EnumHash> fullCube = {
+    GRASS, DIRT, STONE, COBBLESTONE, MOSS_STONE, SAND, BEDROCK, SNOW_8, ICE,
+    CEDAR_WOOD, TEAK_WOOD, CHERRY_WOOD, MAPLE_WOOD, PINE_WOOD, WISTERIA_WOOD,
+    CEDAR_LEAVES, TEAK_LEAVES,
+    CHERRY_BLOSSOMS_1, CHERRY_BLOSSOMS_2, CHERRY_BLOSSOMS_3, CHERRY_BLOSSOMS_4,
+    MAPLE_LEAVES_1, MAPLE_LEAVES_2, MAPLE_LEAVES_3,
+    PINE_LEAVES,
+    WISTERIA_BLOSSOMS_1, WISTERIA_BLOSSOMS_2, WISTERIA_BLOSSOMS_3,
+    CEDAR_PLANKS, TEAK_PLANKS, CHERRY_PLANKS, MAPLE_PLANKS, PINE_PLANKS, WISTERIA_PLANKS,
+    RED_PAINTED_WOOD, BLACK_PAINTED_WOOD, PLASTER, ROOF_TILES, STRAW
+};
+
 const static std::unordered_set<BlockType, EnumHash> transparent = {
     WATER, LAVA, ICE,
     SNOW_1, SNOW_2, SNOW_3, SNOW_4, SNOW_5, SNOW_6, SNOW_7,
@@ -1036,15 +1037,16 @@ struct Vertex {
     glm::vec4 position;
     glm::vec4 normal;
     glm::vec4 color;
-    glm::vec4 uvCoords;
-    glm::vec4 blockType; // texture flag, biome
+    glm::vec4 uvCoords; // contains a second set of uv coords when overlaying another texture
+    glm::vec4 blockType; // texture flag
+    // glm::vec4 biomes; // contains biome weightings at this xz coord
 
-    Vertex(glm::vec4 p, glm::ivec3 n, BlockType b, Direction d, glm::vec2 uv, int biome) {
+    Vertex(glm::vec4 p, glm::ivec3 n, BlockType b, Direction d, glm::vec2 uv) {
         position = p;
         normal = glm::vec4(n, 1);
         if (btToUV.find(std::make_pair(b, d)) != btToUV.end()) {
 
-            blockType = glm::vec4(std::make_pair(b, d).first, biome, 0, 0);
+            blockType = glm::vec4(std::make_pair(b, d).first, 0, 0, 0);
 
             // GRASS side face
             if (b == GRASS && blockType.y == 1) {
@@ -1082,7 +1084,6 @@ class Chunk : public Drawable {
 private:
     // All of the blocks contained within this Chunk
     std::array<BlockType, 65536> m_blocks;
-    std::array<int, 65536> m_biomes;
     // This Chunk's four neighbors to the north, south, east, and west
     // The third input to this map just lets us use a Direction as
     // a key for this map.
@@ -1093,7 +1094,7 @@ private:
     BlockType getAdjBlockType(Direction, glm::ivec3);
 
     // coords given in block space
-    static void createFaceVBOData(std::vector<Vertex>&, float, float, float, DirectionVector, BlockType, int);
+    static void createFaceVBOData(std::vector<Vertex>&, float, float, float, DirectionVector, BlockType);
 
     void redistributeVertexData(std::vector<glm::vec4>, std::vector<GLuint>, std::vector<glm::vec4>, std::vector<GLuint>);
 
@@ -1101,10 +1102,7 @@ public:
     Chunk(OpenGLContext* context);
     BlockType getBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
     BlockType getBlockAt(int x, int y, int z) const;
-    int getBiomeAt(unsigned int x, unsigned int y, unsigned int z) const;
-    int getBiomeAt(int x, int y, int z) const;
     void setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t);
-    void setBiomeAt(unsigned int x, unsigned int y, unsigned int z, int b);
     void linkNeighbor(uPtr<Chunk>& neighbor, Direction dir);
 
     boolean isHPlane(BlockType);

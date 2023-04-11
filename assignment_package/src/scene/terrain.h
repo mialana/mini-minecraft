@@ -92,12 +92,13 @@ public:
     // values) return the block stored at that point in space.
     BlockType getBlockAt(int x, int y, int z) const;
     BlockType getBlockAt(glm::vec3 p) const;
-    int getBiomeAt(glm::vec3 p) const;
+//    int getBiomeAt(glm::vec3 p) const;
+
     // Given a world-space coordinate (which may have negative
     // values) set the block at that point in space to the
     // given type.
     void setBlockAt(int x, int y, int z, BlockType t);
-    void setBiomeAt(int x, int y, int z, int b);
+//    void setBiomeAt(int x, int y, int z, int b);
 
     // Draws every Chunk that falls within the bounding box
     // described by the min and max coords, using the provided

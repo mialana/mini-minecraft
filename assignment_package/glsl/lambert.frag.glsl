@@ -28,9 +28,6 @@ in vec2 fs_UV;
 // 3 = lava animation
 flat in int texIdx;
 
-// 0 = mountain, 1 = hills, 2 = forest, 3 = caves, 4 = islands
-flat in int biome;
-
 in vec2 fs_UV_overlay;
 
 in vec4 fs_LightVec;

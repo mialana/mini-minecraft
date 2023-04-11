@@ -112,21 +112,21 @@ void Terrain::setBlockAt(int x, int y, int z, BlockType t)
     }
 }
 
-void Terrain::setBiomeAt(int x, int y, int z, int b) {
-    if(hasChunkAt(x, z)) {
-        uPtr<Chunk> &c = getChunkAt(x, z);
-        glm::vec2 chunkOrigin = glm::vec2(floor(x / 16.f) * 16, floor(z / 16.f) * 16);
-        c->setBiomeAt(static_cast<unsigned int>(x - chunkOrigin.x),
-                      static_cast<unsigned int>(y),
-                      static_cast<unsigned int>(z - chunkOrigin.y),
-                      b);
-    }
-    else {
-        throw std::out_of_range("Coordinates " + std::to_string(x) +
-                                " " + std::to_string(y) + " " +
-                                std::to_string(z) + " have no Chunk!");
-    }
-}
+//void Terrain::setBiomeAt(int x, int y, int z, int b) {
+//    if(hasChunkAt(x, z)) {
+//        uPtr<Chunk> &c = getChunkAt(x, z);
+//        glm::vec2 chunkOrigin = glm::vec2(floor(x / 16.f) * 16, floor(z / 16.f) * 16);
+//        c->setBiomeAt(static_cast<unsigned int>(x - chunkOrigin.x),
+//                      static_cast<unsigned int>(y),
+//                      static_cast<unsigned int>(z - chunkOrigin.y),
+//                      b);
+//    }
+//    else {
+//        throw std::out_of_range("Coordinates " + std::to_string(x) +
+//                                " " + std::to_string(y) + " " +
+//                                std::to_string(z) + " have no Chunk!");
+//    }
+//}
 
 Chunk* Terrain::instantiateChunkAt(int x, int z) {
     uPtr<Chunk> chunk = mkU<Chunk>(mp_context);
@@ -199,34 +199,26 @@ void Terrain::CreateTestScene()
                 // hills
                 for (int y = 0; y < h - 3 - numDirtBlocks; ++y) {
                     setBlockAt(x, y, z, STONE);
-                    setBiomeAt(x, y, z, 1);
                 }
                 for (int y = h - 3 - numDirtBlocks; y < h - 1; ++y) {
                     setBlockAt(x, y, z, DIRT);
-                    setBiomeAt(x, y, z, 1);
                 }
                 setBlockAt(x, h - 1, z, GRASS);
-                setBiomeAt(x, h - 1, z, 1);
             } else {
                 // mountains
                 if (h <= 100) {
                     for (int y = 0; y < h - 1; ++y) {
                         setBlockAt(x, y, z, STONE);
-                        setBiomeAt(x, y, z, 0);
                     }
                 } else {
                     for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
                         setBlockAt(x, y, z, STONE);
-                        setBiomeAt(x, y, z, 0);
                     }
                     for (int y = h - numDirtBlocks - 1; y < h - 2; ++y) {
                         setBlockAt(x, y, z, DIRT);
-                        setBiomeAt(x, y, z, 0);
                     }
                     setBlockAt(x, h - 2, z, GRASS);
-                    setBiomeAt(x, h - 2, z, 0);
                     setBlockAt(x, h - 1, z, SNOW_1);
-                    setBiomeAt(x, h - 1, z, 0);
                 }
             }
         }
