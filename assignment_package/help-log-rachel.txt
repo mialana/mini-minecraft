@@ -18,3 +18,13 @@ https://stackoverflow.com/questions/20944784/why-is-conversion-from-string-const
 https://stackoverflow.com/questions/11376163/custom-hash-function-for-pair-of-enum-values-used-as-unordered-map-key
 
 https://registry.khronos.org/OpenGL-Refpages/gl4/html/glVertexAttribDivisor.xhtml
+
+
+
+notes:
+
+- UV coords are wrong for blocks that are not full cubes
+- have chunk store a vec4 biomes that contains weighting of each biome at that xz coord, and in vertex struct, push back the correct interpolated color in the color variable for water and grass
+
+
+

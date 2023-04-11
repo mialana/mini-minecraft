@@ -1048,22 +1048,22 @@ struct Vertex {
 
             blockType = glm::vec4(std::make_pair(b, d).first, 0, 0, 0);
 
-            // GRASS side face
-            if (b == GRASS && blockType.y == 1) {
-                uvCoords.z = 0;
-                uvCoords.w = 12;
-            } else if (d == XPOS) {
-                // 32x32 (double) res
-                if (b == PAINTING_1 || b == PAINTING_2 || b == PAINTING_3 ||
-                        b == PAINTING_6L || b == PAINTING_6R ||
-                        b == PAINTING_7T || b == PAINTING_7B) {
-                    uv *= 2;
+//            // GRASS side face
+//            if (b == GRASS && blockType.y == 1) {
+//                uvCoords.z = 0;
+//                uvCoords.w = 12;
+//            } else if (d == XPOS) {
+//                // 32x32 (double) res
+//                if (b == PAINTING_1 || b == PAINTING_2 || b == PAINTING_3 ||
+//                        b == PAINTING_6L || b == PAINTING_6R ||
+//                        b == PAINTING_7T || b == PAINTING_7B) {
+//                    uv *= 2;
 
-                // 48x48 (triple) res
-                } else if (b == PAINTING_4 || b == PAINTING_5) {
-                    uv *= 3;
-                }
-            }
+//                // 48x48 (triple) res
+//                } else if (b == PAINTING_4 || b == PAINTING_5) {
+//                    uv *= 3;
+//                }
+//            }
             uvCoords = glm::vec4(uv + btToUV.at(std::make_pair(b, d)).second, 0, 0);
             uvCoords /= 16.f;
         } else {

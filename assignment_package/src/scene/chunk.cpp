@@ -343,7 +343,6 @@ void Chunk::createVBOdata() {
         for (int y = 0; y < 256; y++) {
             for (int z = 0; z < 16; z++) {
                 BlockType currType = this->getBlockAt(x, y, z);
-                int currBiome = 0;
 
                 if (currType != EMPTY) {
 //                    if (isHPlane(currType)) {
@@ -471,15 +470,16 @@ void Chunk::createVBOdata() {
                                     oVertData.push_back(v.uvCoords);
                                     oVertData.push_back(v.blockType);
                                 }
+                                float offset = 1;
                                 oIndices.push_back(oVertCount);
-                                oIndices.push_back(oVertCount + 1);
-                                oIndices.push_back(oVertCount + 2);
+                                oIndices.push_back(oVertCount + offset);
+                                oIndices.push_back(oVertCount + 2 * offset);
                                 oIndices.push_back(oVertCount);
-                                oIndices.push_back(oVertCount + 2);
-                                oIndices.push_back(oVertCount + 3);
+                                oIndices.push_back(oVertCount + 2 * offset);
+                                oIndices.push_back(oVertCount + 3 * offset);
 
-                                oVertCount += 4;
-                            } else if (isVisible(x, y, z, currType) && isTransparent(currType)) {
+                                oVertCount += 4 * offset;
+                            } /*else if (isVisible(x, y, z, currType) && isTransparent(currType)) {
                                 std::vector<Vertex> faceVerts;
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType);
 
@@ -498,7 +498,7 @@ void Chunk::createVBOdata() {
                                 tIndices.push_back(tVertCount + 3);
 
                                 tVertCount += 4;
-                            }
+                            }*/
                         }
 //                    }
                 }

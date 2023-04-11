@@ -149,8 +149,11 @@ void MyGL::paintGL() {
 
     glDisable(GL_DEPTH_TEST);
     m_progFlat.setModelMatrix(glm::mat4());
-    m_progFlat.setViewProjMatrix(m_player.mcr_camera.getViewProj());
     m_progFlat.draw(m_worldAxes);
+
+    m_progInstanced.setModelMatrix(glm::mat4());
+
+    m_progLambert.setModelMatrix(glm::mat4());
     glEnable(GL_DEPTH_TEST);
 }
 
@@ -158,7 +161,7 @@ void MyGL::paintGL() {
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
 void MyGL::renderTerrain() {
-    m_terrain.draw(0, 48, 0, 48, &m_progInstanced);
+    m_terrain.draw(0, 48, 0, 48, &m_progLambert);
 }
 
 
