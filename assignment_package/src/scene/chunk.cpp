@@ -70,7 +70,7 @@ boolean Chunk::isVisible(int x, int y, int z, BlockType bt) {
         } else {
             adjBlockType = this->getAdjBlockType(dv.dir, adjBlockPos);
         }
-        if (isTransparent(adjBlockType) && adjBlockType != bt) {
+        if (!isFullCube(adjBlockType) && adjBlockType != bt) {
             return true;
         }
     }
@@ -104,10 +104,11 @@ boolean Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) 
         return true;
     }
 
-    // if this face doesn't reach the bounds of a full block
-    if (((d == XPOS || d == XNEG) && isPartialX(bt)) ||
-            ((d == YPOS) && isPartialY(bt)) ||
-            ((d == ZPOS || d == ZNEG) && isPartialZ(bt))) {
+    // if this face or adjacent block face doesn't reach the bounds of a full block
+    if (((d == XPOS || d == XNEG) && (isPartialX(bt) || isPartialX(adjBlockType) || isPartialY(adjBlockType) || isPartialZ(adjBlockType))) ||
+            ((d == YPOS) && (isPartialY(bt) || isPartialX(adjBlockType) || isPartialZ(adjBlockType))) ||
+            ((d == YNEG) && (isPartialX(adjBlockType) || isPartialY(adjBlockType) || isPartialZ(adjBlockType))) ||
+            ((d == ZPOS || d == ZNEG) && (isPartialZ(bt) || isPartialX(adjBlockType) || isPartialY(adjBlockType) || isPartialZ(adjBlockType)))) {
         return true;
     }
     return false;
@@ -270,10 +271,10 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 z1 = currZ + offsetZNEG;
                 z2 = currZ + offsetZPOS;
             }
-            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetYNEG, offsetZNEG)));
-            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetYPOS, offsetZNEG)));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetYPOS, offsetZPOS)));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetYNEG, offsetZPOS)));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYNEG)));
+            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYPOS)));
+            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYPOS)));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYNEG)));
             break;
 
         case YPOS: case YNEG:
@@ -306,11 +307,10 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 y1 = currY + offsetYNEG;
                 y2 = currY + offsetYPOS;
             }
-            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
-            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
-
+            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
+            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
+            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
+            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
             break;
         case XPOS_ZPOS:
             x1 += offsetDiag;
@@ -434,24 +434,45 @@ void Chunk::createVBOdata() {
                     if (isPartialX(currType) || isPartialY(currType) || isPartialZ(currType)) {
                         for (const DirectionVector& dv : directionIter) {
                             if (isVisible(x, y, z, dv, currType)) {
-                                std::vector<Vertex> faceVerts;
-                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType);
+                                if (!isTransparent(currType)) {
+                                    std::vector<Vertex> faceVerts;
+                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType);
 
-                                for (const Vertex& v : faceVerts) {
-                                    tVertData.push_back(v.position);
-                                    tVertData.push_back(v.normal);
-                                    tVertData.push_back(v.color);
-                                    tVertData.push_back(v.uvCoords);
-                                    tVertData.push_back(v.blockType);
+                                    for (const Vertex& v : faceVerts) {
+                                        oVertData.push_back(v.position);
+                                        oVertData.push_back(v.normal);
+                                        oVertData.push_back(v.color);
+                                        oVertData.push_back(v.uvCoords);
+                                        oVertData.push_back(v.blockType);
+                                    }
+                                    oIndices.push_back(oVertCount);
+                                    oIndices.push_back(oVertCount + 1);
+                                    oIndices.push_back(oVertCount + 2);
+                                    oIndices.push_back(oVertCount);
+                                    oIndices.push_back(oVertCount + 2);
+                                    oIndices.push_back(oVertCount + 3);
+
+                                    oVertCount += 4;
+                                } else {
+                                    std::vector<Vertex> faceVerts;
+                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType);
+
+                                    for (const Vertex& v : faceVerts) {
+                                        tVertData.push_back(v.position);
+                                        tVertData.push_back(v.normal);
+                                        tVertData.push_back(v.color);
+                                        tVertData.push_back(v.uvCoords);
+                                        tVertData.push_back(v.blockType);
+                                    }
+                                    tIndices.push_back(tVertCount);
+                                    tIndices.push_back(tVertCount + 1);
+                                    tIndices.push_back(tVertCount + 2);
+                                    tIndices.push_back(tVertCount);
+                                    tIndices.push_back(tVertCount + 2);
+                                    tIndices.push_back(tVertCount + 3);
+
+                                    tVertCount += 4;
                                 }
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 1);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount + 3);
-
-                                tVertCount += 4;
                             }
                         }
                     }
@@ -467,7 +488,7 @@ void Chunk::createVBOdata() {
                                 adjBlockType = this->getAdjBlockType(dv.dir, adjBlockPos);
                             }
 
-                            if (isTransparent(adjBlockType)) {
+                            if (isVisible(x, y, z, dv, currType)) {
                                 if (!isTransparent(currType)) {
                                     std::vector<Vertex> faceVerts;
                                     Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType);

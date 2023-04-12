@@ -382,45 +382,45 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
 
     {std::make_pair(CEDAR_WINDOW, XPOS), std::make_pair(0, glm::vec2(5, 14))},
     {std::make_pair(CEDAR_WINDOW, XNEG), std::make_pair(0, glm::vec2(5, 14))},
-    {std::make_pair(CEDAR_WINDOW, ZPOS), std::make_pair(0, glm::vec2(5, 14))},
-    {std::make_pair(CEDAR_WINDOW, ZNEG), std::make_pair(0, glm::vec2(5, 14))},
-    {std::make_pair(CEDAR_WINDOW, YPOS), std::make_pair(0, glm::vec2(5, 14))},
-    {std::make_pair(CEDAR_WINDOW, YNEG), std::make_pair(0, glm::vec2(5, 14))},
+    {std::make_pair(CEDAR_WINDOW, ZPOS), std::make_pair(0, glm::vec2(5, 15))},
+    {std::make_pair(CEDAR_WINDOW, ZNEG), std::make_pair(0, glm::vec2(5, 15))},
+    {std::make_pair(CEDAR_WINDOW, YPOS), std::make_pair(0, glm::vec2(5, 15))},
+    {std::make_pair(CEDAR_WINDOW, YNEG), std::make_pair(0, glm::vec2(5, 15))},
 
     {std::make_pair(TEAK_WINDOW, XPOS), std::make_pair(0, glm::vec2(6, 14))},
     {std::make_pair(TEAK_WINDOW, XNEG), std::make_pair(0, glm::vec2(6, 14))},
-    {std::make_pair(TEAK_WINDOW, ZPOS), std::make_pair(0, glm::vec2(6, 14))},
-    {std::make_pair(TEAK_WINDOW, ZNEG), std::make_pair(0, glm::vec2(6, 14))},
-    {std::make_pair(TEAK_WINDOW, YPOS), std::make_pair(0, glm::vec2(6, 14))},
-    {std::make_pair(TEAK_WINDOW, YNEG), std::make_pair(0, glm::vec2(6, 14))},
+    {std::make_pair(TEAK_WINDOW, ZPOS), std::make_pair(0, glm::vec2(6, 15))},
+    {std::make_pair(TEAK_WINDOW, ZNEG), std::make_pair(0, glm::vec2(6, 15))},
+    {std::make_pair(TEAK_WINDOW, YPOS), std::make_pair(0, glm::vec2(6, 15))},
+    {std::make_pair(TEAK_WINDOW, YNEG), std::make_pair(0, glm::vec2(6, 15))},
 
     {std::make_pair(CHERRY_WINDOW, XPOS), std::make_pair(0, glm::vec2(7, 14))},
     {std::make_pair(CHERRY_WINDOW, XNEG), std::make_pair(0, glm::vec2(7, 14))},
-    {std::make_pair(CHERRY_WINDOW, ZPOS), std::make_pair(0, glm::vec2(7, 14))},
-    {std::make_pair(CHERRY_WINDOW, ZNEG), std::make_pair(0, glm::vec2(7, 14))},
-    {std::make_pair(CHERRY_WINDOW, YPOS), std::make_pair(0, glm::vec2(7, 14))},
-    {std::make_pair(CHERRY_WINDOW, YNEG), std::make_pair(0, glm::vec2(7, 14))},
+    {std::make_pair(CHERRY_WINDOW, ZPOS), std::make_pair(0, glm::vec2(7, 15))},
+    {std::make_pair(CHERRY_WINDOW, ZNEG), std::make_pair(0, glm::vec2(7, 15))},
+    {std::make_pair(CHERRY_WINDOW, YPOS), std::make_pair(0, glm::vec2(7, 15))},
+    {std::make_pair(CHERRY_WINDOW, YNEG), std::make_pair(0, glm::vec2(7, 15))},
 
     {std::make_pair(MAPLE_WINDOW, XPOS), std::make_pair(0, glm::vec2(8, 14))},
     {std::make_pair(MAPLE_WINDOW, XNEG), std::make_pair(0, glm::vec2(8, 14))},
-    {std::make_pair(MAPLE_WINDOW, ZPOS), std::make_pair(0, glm::vec2(8, 14))},
-    {std::make_pair(MAPLE_WINDOW, ZNEG), std::make_pair(0, glm::vec2(8, 14))},
-    {std::make_pair(MAPLE_WINDOW, YPOS), std::make_pair(0, glm::vec2(8, 14))},
-    {std::make_pair(MAPLE_WINDOW, YNEG), std::make_pair(0, glm::vec2(8, 14))},
+    {std::make_pair(MAPLE_WINDOW, ZPOS), std::make_pair(0, glm::vec2(8, 15))},
+    {std::make_pair(MAPLE_WINDOW, ZNEG), std::make_pair(0, glm::vec2(8, 15))},
+    {std::make_pair(MAPLE_WINDOW, YPOS), std::make_pair(0, glm::vec2(8, 15))},
+    {std::make_pair(MAPLE_WINDOW, YNEG), std::make_pair(0, glm::vec2(8, 15))},
 
     {std::make_pair(PINE_WINDOW, XPOS), std::make_pair(0, glm::vec2(9, 14))},
     {std::make_pair(PINE_WINDOW, XNEG), std::make_pair(0, glm::vec2(9, 14))},
-    {std::make_pair(PINE_WINDOW, ZPOS), std::make_pair(0, glm::vec2(9, 14))},
-    {std::make_pair(PINE_WINDOW, ZNEG), std::make_pair(0, glm::vec2(9, 14))},
-    {std::make_pair(PINE_WINDOW, YPOS), std::make_pair(0, glm::vec2(9, 14))},
-    {std::make_pair(PINE_WINDOW, YNEG), std::make_pair(0, glm::vec2(9, 14))},
+    {std::make_pair(PINE_WINDOW, ZPOS), std::make_pair(0, glm::vec2(9, 15))},
+    {std::make_pair(PINE_WINDOW, ZNEG), std::make_pair(0, glm::vec2(9, 15))},
+    {std::make_pair(PINE_WINDOW, YPOS), std::make_pair(0, glm::vec2(9, 15))},
+    {std::make_pair(PINE_WINDOW, YNEG), std::make_pair(0, glm::vec2(9, 15))},
 
     {std::make_pair(WISTERIA_WINDOW, XPOS), std::make_pair(0, glm::vec2(10, 14))},
     {std::make_pair(WISTERIA_WINDOW, XNEG), std::make_pair(0, glm::vec2(10, 14))},
-    {std::make_pair(WISTERIA_WINDOW, ZPOS), std::make_pair(0, glm::vec2(10, 14))},
-    {std::make_pair(WISTERIA_WINDOW, ZNEG), std::make_pair(0, glm::vec2(10, 14))},
-    {std::make_pair(WISTERIA_WINDOW, YPOS), std::make_pair(0, glm::vec2(10, 14))},
-    {std::make_pair(WISTERIA_WINDOW, YNEG), std::make_pair(0, glm::vec2(10, 14))},
+    {std::make_pair(WISTERIA_WINDOW, ZPOS), std::make_pair(0, glm::vec2(10, 15))},
+    {std::make_pair(WISTERIA_WINDOW, ZNEG), std::make_pair(0, glm::vec2(10, 15))},
+    {std::make_pair(WISTERIA_WINDOW, YPOS), std::make_pair(0, glm::vec2(10, 15))},
+    {std::make_pair(WISTERIA_WINDOW, YNEG), std::make_pair(0, glm::vec2(10, 15))},
 
     {std::make_pair(RED_PAINTED_WOOD, XPOS), std::make_pair(0, glm::vec2(4, 14))},
     {std::make_pair(RED_PAINTED_WOOD, XNEG), std::make_pair(0, glm::vec2(4, 14))},
@@ -846,16 +846,15 @@ struct DirectionVector {
 
 const static std::vector<DirectionVector> directionIter = {
     DirectionVector(XPOS, glm::ivec3(1, 0, 0)),
-    DirectionVector(XNEG, glm::ivec3(-1, 0, 0)),
+    DirectionVector(XNEG, glm::ivec3(1, 0, 0)),
     DirectionVector(YPOS, glm::ivec3(0, 1, 0)),
-    DirectionVector(YNEG, glm::ivec3(0, -1, 0)),
+    DirectionVector(YNEG, glm::ivec3(0, 1, 0)),
     DirectionVector(ZPOS, glm::ivec3(0, 0, 1)),
-    DirectionVector(ZNEG, glm::ivec3(0, 0, -1))
+    DirectionVector(ZNEG, glm::ivec3(0, 0, 1))
 };
 
 const static std::vector<DirectionVector> planeDirIter = {
     DirectionVector(YPOS, glm::ivec3(0, 1, 0)),
-    DirectionVector(YNEG, glm::ivec3(0, -1, 0))
 };
 
 const static std::vector<DirectionVector> cross2DirIter = {
@@ -865,9 +864,9 @@ const static std::vector<DirectionVector> cross2DirIter = {
 
 const static std::vector<DirectionVector> cross4DirIter = {
     DirectionVector(XPOS, glm::ivec3(1, 0, 0)),
-    DirectionVector(XNEG, glm::ivec3(-1, 0, 0)),
+    DirectionVector(XNEG, glm::ivec3(1, 0, 0)),
     DirectionVector(ZPOS, glm::ivec3(0, 0, 1)),
-    DirectionVector(ZNEG, glm::ivec3(0, 0, -1))
+    DirectionVector(ZNEG, glm::ivec3(0, 0, 1))
 };
 
 const static std::unordered_set<BlockType, EnumHash> hPlane = {
@@ -883,7 +882,7 @@ const static std::unordered_set<BlockType, EnumHash> cross2 = {
     PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA, ONCIDIUM_IKEBANA,
     GHOST_LILY, GHOST_WEED,
     CORAL_1, CORAL_2, CORAL_3, CORAL_4,
-    KELP_1, KELP_2, SEA_GRASS
+    KELP_1, KELP_2
 };
 
 const static std::unordered_set<BlockType, EnumHash> cross4 = {
@@ -935,24 +934,15 @@ const static std::unordered_set<BlockType, EnumHash> fullCube = {
 
 const static std::unordered_set<BlockType, EnumHash> transparent = {
     WATER, LAVA, ICE, TALL_GRASS,
-    SNOW_1, SNOW_2, SNOW_3, SNOW_4, SNOW_5, SNOW_6, SNOW_7,
     CEDAR_LEAVES, TEAK_LEAVES,
     CHERRY_BLOSSOMS_1, CHERRY_BLOSSOMS_2, CHERRY_BLOSSOMS_3, CHERRY_BLOSSOMS_4,
     MAPLE_LEAVES_1, MAPLE_LEAVES_2, MAPLE_LEAVES_3,
     PINE_LEAVES,
     WISTERIA_BLOSSOMS_1, WISTERIA_BLOSSOMS_2, WISTERIA_BLOSSOMS_3,
-    ROOF_TILES_1, ROOF_TILES_2,  STRAW_1, STRAW_2,
+    CEDAR_WINDOW, TEAK_WINDOW, CHERRY_WINDOW, MAPLE_WINDOW, PINE_WINDOW, WISTERIA_WINDOW,
     LILY_PAD, LOTUS_1, LOTUS_2,
-    TILLED_DIRT, PATH,
     WHEAT_1, WHEAT_2, WHEAT_3, WHEAT_4, WHEAT_5, WHEAT_6, WHEAT_7, WHEAT_8,
     RICE_1, RICE_2, RICE_3, RICE_4, RICE_5, RICE_6,
-    BAMBOO_1, BAMBOO_2, BAMBOO_3,
-    TATAMI,
-    PAPER_LANTERN, WOOD_LANTERN,
-    PAINTING_1, PAINTING_2, PAINTING_3, PAINTING_4, PAINTING_5, PAINTING_6L, PAINTING_6R, PAINTING_7T, PAINTING_7B,
-    BONSAI_TREE, MAGNOLIA_IKEBANA, LOTUS_IKEBANA, GREEN_HYDRANGEA_IKEBANA, CHRYSANTHEMUM_IKEBANA,
-    CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, DAFFODIL_IKEBANA,
-    PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA, ONCIDIUM_IKEBANA,
     GHOST_LILY, GHOST_WEED,
     CORAL_1, CORAL_2, CORAL_3, CORAL_4,
     KELP_1, KELP_2,
