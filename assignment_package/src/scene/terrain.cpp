@@ -218,7 +218,7 @@ void Terrain::CreateTestScene()
                         setBlockAt(x, y, z, DIRT);
                     }
                     setBlockAt(x, h - 2, z, GRASS);
-                    setBlockAt(x, h - 1, z, ICE);
+                    setBlockAt(x, h - 1, z, WOOD_LANTERN);
                 }
             }
         }

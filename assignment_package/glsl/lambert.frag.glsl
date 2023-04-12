@@ -156,6 +156,7 @@ void main()
             // Compute final shaded color
             out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
     }
+    float alpha = out_Col.a;
     float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
                 // Avoid negative lighting values
     diffuseTerm = clamp(diffuseTerm, 0, 1);
@@ -167,5 +168,5 @@ void main()
                                                         //lit by our point light are not completely black.
 
     // Compute final shaded color
-    out_Col = vec4(out_Col.rgb * lightIntensity, 1);
+    out_Col = vec4(out_Col.rgb * lightIntensity, alpha);
 }

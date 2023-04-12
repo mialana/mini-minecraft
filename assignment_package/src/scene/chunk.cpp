@@ -306,10 +306,11 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 y1 = currY + offsetYNEG;
                 y2 = currY + offsetYPOS;
             }
-            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
-            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
+            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
+            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
+            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
+
             break;
         case XPOS_ZPOS:
             x1 += offsetDiag;

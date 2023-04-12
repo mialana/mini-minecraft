@@ -154,7 +154,7 @@ void MyGL::paintGL() {
 
     glDisable(GL_DEPTH_TEST);
     m_progFlat.setModelMatrix(glm::mat4());
-    // m_progFlat.draw(m_worldAxes);
+    m_progFlat.draw(m_worldAxes);
 
     m_progInstanced.setModelMatrix(glm::mat4());
 
