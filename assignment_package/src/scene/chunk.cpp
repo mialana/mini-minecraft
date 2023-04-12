@@ -143,7 +143,7 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
     float offsetYNEG = 0.f;
     float offsetZPOS = 1.f;
     float offsetZNEG = 0.f;
-    float offsetDiag = std::sqrt(0.5);
+    float offsetDiag = (std::sqrt(0.5) - 0.5) / std::sqrt(2);
     boolean keepEdges = false; // keep portions of face outside intersection ex: wheat vs lantern
 
     float x1 = currX;
@@ -202,17 +202,17 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetZNEG = 0.5625;
             break;
         case PAPER_LANTERN:
-            offsetXPOS = 0.1875;
-            offsetXNEG = 0.8125;
-            offsetZPOS = 0.1875;
-            offsetZNEG = 0.8125;
-            offsetYPOS = 0.125;
+            offsetXPOS = 0.8125;
+            offsetXNEG = 0.1875;
+            offsetZPOS = 0.8125;
+            offsetZNEG = 0.1875;
+            offsetYPOS = 0.75;
             break;
         case WOOD_LANTERN:
-            offsetXPOS = 0.0625;
-            offsetXNEG = 0.9375;
-            offsetZPOS = 0.0625;
-            offsetZNEG = 0.9375;
+            offsetXPOS = 0.9375;
+            offsetXNEG = 0.0625;
+            offsetZPOS = 0.9375;
+            offsetZNEG = 0.0625;
             break;
         case PAINTING_1: case PAINTING_2: case PAINTING_3: case PAINTING_4: case PAINTING_5:
         case PAINTING_7T: case PAINTING_7B: case PAINTING_6L: case PAINTING_6R:
@@ -226,31 +226,31 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
 //            offsetYNEG = 0.9375;
             break;
         case BONSAI_TREE: case MAGNOLIA_IKEBANA: case LOTUS_IKEBANA:
-            offsetXPOS = 0.0625;
-            offsetXNEG = 0.9375;
-            offsetZPOS = 0.0625;
-            offsetZNEG = 0.9375;
+            offsetXPOS = 0.9375;
+            offsetXNEG = 0.0625;
+            offsetZPOS = 0.9375;
+            offsetZNEG = 0.0625;
             offsetYPOS = 0.125;
             break;
         case GREEN_HYDRANGEA_IKEBANA: case CHRYSANTHEMUM_IKEBANA:
-            offsetXPOS = 0.25;
-            offsetXNEG = 0.75;
-            offsetZPOS = 0.25;
-            offsetZNEG = 0.75;
+            offsetXPOS = 0.75;
+            offsetXNEG = 0.25;
+            offsetZPOS = 0.75;
+            offsetZNEG = 0.25;
             offsetYPOS = 0.25;
             break;
         case CHERRY_BLOSSOM_IKEBANA: case BLUE_HYDRANGEA_IKEBANA: case TULIP_IKEBANA: case DAFFODIL_IKEBANA:
-            offsetXPOS = 0.3125;
-            offsetXNEG = 0.6875;
-            offsetZPOS = 0.3125;
-            offsetZNEG = 0.6875;
+            offsetXPOS = 0.6875;
+            offsetXNEG = 0.3125;
+            offsetZPOS = 0.6875;
+            offsetZNEG = 0.3125;
             offsetYPOS = 0.375;
             break;
         case PLUM_BLOSSOM_IKEBANA: case MAGNOLIA_BUD_IKEBANA: case POPPY_IKEBANA: case MAPLE_IKEBANA: case ONCIDIUM_IKEBANA:
-            offsetXPOS = 0.40625;
-            offsetXNEG = 0.59375;
-            offsetZPOS = 0.40625;
-            offsetZNEG = 0.59375;
+            offsetXPOS = 0.5625;
+            offsetXNEG = 0.4375;
+            offsetZPOS = 0.5625;
+            offsetZNEG = 0.4375;
             offsetYPOS = 0.5;
             break;
         default:
@@ -306,46 +306,32 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 y1 = currY + offsetYNEG;
                 y2 = currY + offsetYPOS;
             }
-            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
-            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
+            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
+            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
+            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
             break;
         case XPOS_ZPOS:
-            x2 += offsetDiag;
-            y2 += offsetDiag;
-            z2 += offsetDiag;
+            x1 += offsetDiag;
+            x2 += 1 - offsetDiag;
+            y2 += 1;
+            z1 += offsetDiag;
+            z2 += 1 - offsetDiag;
             verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
             verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
             verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
             verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
-            break;
-        case XNEG_ZNEG:
-            x2 += offsetDiag;
-            y2 += offsetDiag;
-            z2 += offsetDiag;
-            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
-            verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
-            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
             break;
         case XPOS_ZNEG:
-            x2 += offsetDiag;
-            y2 += offsetDiag;
-            z2 += offsetDiag;
-            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
-            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
-            break;
-        case XNEG_ZPOS:
-            x2 += offsetDiag;
-            y2 += offsetDiag;
-            z2 += offsetDiag;
-            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
-            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
-            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
+            x1 += offsetDiag;
+            x2 += 1 - offsetDiag;
+            y2 += 1;
+            z1 += offsetDiag;
+            z2 += 1 - offsetDiag;
+            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
+            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
             break;
     }
 }
@@ -457,12 +443,12 @@ void Chunk::createVBOdata() {
                                     tVertData.push_back(v.uvCoords);
                                     tVertData.push_back(v.blockType);
                                 }
-                                tIndices.push_back(oVertCount);
-                                tIndices.push_back(oVertCount + 1);
-                                tIndices.push_back(oVertCount + 2);
-                                tIndices.push_back(oVertCount);
-                                tIndices.push_back(oVertCount + 2);
-                                tIndices.push_back(oVertCount + 3);
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 1);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount + 3);
 
                                 tVertCount += 4;
                             }
