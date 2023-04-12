@@ -26,7 +26,7 @@ in vec2 fs_UV;
 // 1 = draw texture at uv coords, and then draw texture at fs_UV_overlay over it
 // 2 = water (animation + biome color interpolation)
 // 3 = lava animation
-// flat in int texIdx;
+flat in int texIdx;
 
 in vec2 fs_UV_overlay;
 
@@ -84,6 +84,14 @@ float mod(float a, float b) {
     int div = int (a / b);
     return a - (div * b);
 }
+
+vec4 tint(vec4 origCol, vec4 tintCol) {
+    float grayscaleCol = (0.21 * origCol.r) + (0.72 * origCol.g) + (0.07 * origCol.b);
+    vec4 finalCol = tintCol * grayscaleCol;
+    finalCol.a = origCol.a;
+    return finalCol;
+}
+
 void main()
 {
     if (fs_UV.x >= 0 && fs_UV.y >= 0) {
@@ -92,52 +100,42 @@ void main()
         // 2 = water (animation + biome color interpolation)
         // 3 = lava animation
 
-        out_Col = vec4(texture(u_TextureSampler, fs_UV));
-//        out_Col = vec4(fs_UV.x,fs_UV.y, 0, 1);
 
-        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
-                    // Avoid negative lighting values
-        diffuseTerm = clamp(diffuseTerm, 0, 1);
+        if (texIdx == 0) {
+            out_Col = vec4(texture(u_TextureSampler, fs_UV));
+        } else if (texIdx == 1) {
+            // assumes all pxls are either fully transparent or fully opaque
+            vec4 col1 = vec4(texture(u_TextureSampler, fs_UV));
+            vec4 col2 = vec4(texture(u_TextureSampler, fs_UV_overlay));
 
-        float ambientTerm = 0.2;
+            if (col2.a == 0) {
+                out_Col = col1;
+            } else {
+                out_Col = col2;
+                out_Col = vec4(tint(out_Col, vec4(0, 1, 0.25, 1)));
+            }
 
-        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
-                                                            //to simulate ambient lighting. This ensures that faces that are not
-                                                            //lit by our point light are not completely black.
+            // TODO: biome color interpolation (grass)
+        } else if (texIdx == 2) {
+            out_Col = vec4(texture(u_TextureSampler, fs_UV));
+            out_Col = vec4(tint(out_Col, vec4(0, 1, 0.25, 1)));
+        } else if (texIdx == 3) {
+            out_Col = vec4(texture(u_TextureSampler, fs_UV));
 
-        // Compute final shaded color
-        out_Col = vec4(out_Col.rgb * lightIntensity, 1);
-//        if (texIdx == 0) {
-//            out_Col = vec4(texture(u_TextureSampler, fs_UV));
-//        } else if (texIdx == 1) {
-//            // assumes all pxls are either fully transparent or fully opaque
-//            vec4 col1 = vec4(texture(u_TextureSampler, fs_UV));
-//            vec4 col2 = vec4(texture(u_TextureSampler, fs_UV_overlay));
+            // water animation
+            float uOffset = (u_Time / 256.f); // number of pxls to offset u-coord by
+            uOffset = mod(uOffset, 0.0625);
+            vec2 newUV = vec2(fs_UV.x + uOffset, fs_UV.y);
+            out_Col = vec4(texture(u_TextureSampler, newUV));
 
-//            if (col2.a == 0) {
-//                out_Col = col1;
-//            } else {
-//                out_Col = col2;
-//            }
-
-//            // TODO: biome color interpolation (grass)
-//        } else if (texIdx == 2) {
-//            out_Col = vec4(texture(u_TextureSampler, fs_UV));
-
-//            // water animation
-//            float uOffset = (u_Time / 256.f); // number of pxls to offset u-coord by
-//            uOffset = mod(uOffset, 0.0625);
-//            vec2 newUV = vec2(fs_UV.x + uOffset, fs_UV.y);
-//            out_Col = vec4(texture(u_TextureSampler, newUV));
-
-//            // TODO: biome color interpolation (water)
-//        } else if (texIdx == 3) {
-//            // lava animation
-//            float uOffset = sin(u_Time) / 16.f; // number of blocks to offset u-coord by
-//            float vOffset = cos(u_Time) / 16.f; // number of blocks to offset v-coord by
-//            vec2 newUV = fs_UV + vec2(uOffset, vOffset);
-//            out_Col = vec4(texture(u_TextureSampler, newUV));
-//        }
+            // TODO: biome color interpolation (water)
+        } else if (texIdx == 4) {
+            // lava animation
+            float uOffset = sin(u_Time) / 16.f; // number of blocks to offset u-coord by
+            float vOffset = cos(u_Time) / 16.f; // number of blocks to offset v-coord by
+            vec2 newUV = fs_UV + vec2(uOffset, vOffset);
+            out_Col = vec4(texture(u_TextureSampler, newUV));
+        }
     }
     else {
         // Material base color (before shading)
@@ -158,4 +156,16 @@ void main()
             // Compute final shaded color
             out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
     }
+    float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
+                // Avoid negative lighting values
+    diffuseTerm = clamp(diffuseTerm, 0, 1);
+
+    float ambientTerm = 0.2;
+
+    float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
+                                                        //to simulate ambient lighting. This ensures that faces that are not
+                                                        //lit by our point light are not completely black.
+
+    // Compute final shaded color
+    out_Col = vec4(out_Col.rgb * lightIntensity, 1);
 }

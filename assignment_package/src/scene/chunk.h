@@ -84,7 +84,7 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
     {std::make_pair(GRASS, XNEG), std::make_pair(1, glm::vec2(0, 13))},
     {std::make_pair(GRASS, ZPOS), std::make_pair(1, glm::vec2(0, 13))},
     {std::make_pair(GRASS, ZNEG), std::make_pair(1, glm::vec2(0, 13))},
-    {std::make_pair(GRASS, YPOS), std::make_pair(0, glm::vec2(0, 11))},
+    {std::make_pair(GRASS, YPOS), std::make_pair(2, glm::vec2(0, 11))},
     {std::make_pair(GRASS, YNEG), std::make_pair(0, glm::vec2(0, 13))},
 
     {std::make_pair(DIRT, XPOS), std::make_pair(0, glm::vec2(0, 13))},
@@ -127,19 +127,19 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
     {std::make_pair(TALL_GRASS, XPOS_ZNEG), std::make_pair(0, glm::vec2(0, 10))},
     {std::make_pair(TALL_GRASS, XNEG_ZPOS), std::make_pair(0, glm::vec2(5, 10))},
 
-    {std::make_pair(WATER, XPOS), std::make_pair(2, glm::vec2(13, 3))},
-    {std::make_pair(WATER, XNEG), std::make_pair(2, glm::vec2(13, 3))},
-    {std::make_pair(WATER, ZPOS), std::make_pair(2, glm::vec2(13, 3))},
-    {std::make_pair(WATER, ZNEG), std::make_pair(2, glm::vec2(13, 3))},
-    {std::make_pair(WATER, YPOS), std::make_pair(2, glm::vec2(13, 3))},
-    {std::make_pair(WATER, YNEG), std::make_pair(2, glm::vec2(13, 3))},
+    {std::make_pair(WATER, XPOS), std::make_pair(3, glm::vec2(13, 3))},
+    {std::make_pair(WATER, XNEG), std::make_pair(3, glm::vec2(13, 3))},
+    {std::make_pair(WATER, ZPOS), std::make_pair(3, glm::vec2(13, 3))},
+    {std::make_pair(WATER, ZNEG), std::make_pair(3, glm::vec2(13, 3))},
+    {std::make_pair(WATER, YPOS), std::make_pair(3, glm::vec2(13, 3))},
+    {std::make_pair(WATER, YNEG), std::make_pair(3, glm::vec2(13, 3))},
 
-    {std::make_pair(LAVA, XPOS), std::make_pair(3, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, XNEG), std::make_pair(3, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, ZPOS), std::make_pair(3, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, ZNEG), std::make_pair(3, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, YPOS), std::make_pair(3, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, YNEG), std::make_pair(3, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, XPOS), std::make_pair(4, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, XNEG), std::make_pair(4, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, ZPOS), std::make_pair(4, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, ZNEG), std::make_pair(4, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, YPOS), std::make_pair(4, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, YNEG), std::make_pair(4, glm::vec2(13, 1))},
 
     {std::make_pair(BEDROCK, XPOS), std::pair(0, glm::vec2(2, 15))},
     {std::make_pair(BEDROCK, XNEG), std::pair(0, glm::vec2(2, 15))},
@@ -1048,22 +1048,22 @@ struct Vertex {
 
             blockType = glm::vec4(std::make_pair(b, d).first, 0, 0, 0);
 
-//            // GRASS side face
-//            if (b == GRASS && blockType.y == 1) {
-//                uvCoords.z = 0;
-//                uvCoords.w = 12;
-//            } else if (d == XPOS) {
-//                // 32x32 (double) res
-//                if (b == PAINTING_1 || b == PAINTING_2 || b == PAINTING_3 ||
-//                        b == PAINTING_6L || b == PAINTING_6R ||
-//                        b == PAINTING_7T || b == PAINTING_7B) {
-//                    uv *= 2;
+            // GRASS side face
+            if (b == GRASS && blockType.y == 1) {
+                uvCoords.z = 0;
+                uvCoords.w = 12;
+            } else if (d == XPOS) {
+                // 32x32 (double) res
+                if (b == PAINTING_1 || b == PAINTING_2 || b == PAINTING_3 ||
+                        b == PAINTING_6L || b == PAINTING_6R ||
+                        b == PAINTING_7T || b == PAINTING_7B) {
+                    uv *= 2;
 
-//                // 48x48 (triple) res
-//                } else if (b == PAINTING_4 || b == PAINTING_5) {
-//                    uv *= 3;
-//                }
-//            }
+                // 48x48 (triple) res
+                } else if (b == PAINTING_4 || b == PAINTING_5) {
+                    uv *= 3;
+                }
+            }
             uvCoords = glm::vec4(uv + btToUV.at(std::make_pair(b, d)).second, 0, 0);
             uvCoords /= 16.f;
         } else {

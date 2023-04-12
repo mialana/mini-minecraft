@@ -72,7 +72,7 @@ void MyGL::initializeGL()
     m_progInstanced.create(":/glsl/instanced.vert.glsl", ":/glsl/instanced.frag.glsl");
 
     m_texture = std::make_shared<Texture>(this);
-    m_texture->create(":/minecraft_textures_all.png");
+    m_texture->create(":/textures/custom_minecraft_textures.png");
 
 
     // Set a color with which to draw geometry.

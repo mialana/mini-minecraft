@@ -192,28 +192,6 @@ void ShaderProgram::draw(Drawable &d)
         context->glVertexAttribDivisor(attrBT, 1);
     }
 
-    if (attrPos != -1 && attrNor != -1 && attrCol != -1 && attrUV != -1 && attrBT != -1 && d.bindOVertData()) {
-        context->glEnableVertexAttribArray(attrPos);
-        context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 0, NULL);
-        context->glVertexAttribDivisor(attrPos, 1);
-
-        context->glEnableVertexAttribArray(attrNor);
-        context->glVertexAttribPointer(attrNor, 4, GL_FLOAT, false, 0, NULL);
-        context->glVertexAttribDivisor(attrNor, 1);
-
-        context->glEnableVertexAttribArray(attrCol);
-        context->glVertexAttribPointer(attrCol, 4, GL_FLOAT, false, 0, NULL);
-        context->glVertexAttribDivisor(attrCol, 1);
-
-        context->glEnableVertexAttribArray(attrUV);
-        context->glVertexAttribPointer(attrUV, 4, GL_FLOAT, false, 0, NULL);
-        context->glVertexAttribDivisor(attrUV, 1);
-
-        context->glEnableVertexAttribArray(attrBT);
-        context->glVertexAttribPointer(attrBT, 4, GL_FLOAT, false, 0, NULL);
-        context->glVertexAttribDivisor(attrBT, 1);
-    }
-
     // Bind the index buffer and then draw shapes from it.
     // This invokes the shader program, which accesses the vertex buffers.
     d.bindOIdx();
