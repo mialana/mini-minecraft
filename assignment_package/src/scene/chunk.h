@@ -33,8 +33,8 @@ enum BlockType : unsigned char
     PAINTING_1, PAINTING_2, PAINTING_3, PAINTING_4, PAINTING_5, PAINTING_6L, PAINTING_6R, PAINTING_7T, PAINTING_7B,
     BONSAI_TREE, MAGNOLIA_IKEBANA, LOTUS_IKEBANA,
     GREEN_HYDRANGEA_IKEBANA, CHRYSANTHEMUM_IKEBANA,
-    CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, ONCIDIUM_IKEBANA, DAFFODIL_IKEBANA,
-    PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA,
+    CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, DAFFODIL_IKEBANA,
+    PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA, ONCIDIUM_IKEBANA,
     GHOST_LILY, GHOST_WEED,
     CORAL_1, CORAL_2, CORAL_3, CORAL_4,
     KELP_1, KELP_2, SEA_GRASS, EMPTY
@@ -846,11 +846,11 @@ struct DirectionVector {
 
 const static std::vector<DirectionVector> directionIter = {
     DirectionVector(XPOS, glm::ivec3(1, 0, 0)),
-    DirectionVector(XNEG, glm::ivec3(1, 0, 0)),
+    DirectionVector(XNEG, glm::ivec3(-1, 0, 0)),
     DirectionVector(YPOS, glm::ivec3(0, 1, 0)),
-    DirectionVector(YNEG, glm::ivec3(0, 1, 0)),
+    DirectionVector(YNEG, glm::ivec3(0, -1, 0)),
     DirectionVector(ZPOS, glm::ivec3(0, 0, 1)),
-    DirectionVector(ZNEG, glm::ivec3(0, 0, 1))
+    DirectionVector(ZNEG, glm::ivec3(0, 0, -1))
 };
 
 const static std::vector<DirectionVector> planeDirIter = {
@@ -864,9 +864,9 @@ const static std::vector<DirectionVector> cross2DirIter = {
 
 const static std::vector<DirectionVector> cross4DirIter = {
     DirectionVector(XPOS, glm::ivec3(1, 0, 0)),
-    DirectionVector(XNEG, glm::ivec3(1, 0, 0)),
+    DirectionVector(XNEG, glm::ivec3(-1, 0, 0)),
     DirectionVector(ZPOS, glm::ivec3(0, 0, 1)),
-    DirectionVector(ZNEG, glm::ivec3(0, 0, 1))
+    DirectionVector(ZNEG, glm::ivec3(0, 0, -1))
 };
 
 const static std::unordered_set<BlockType, EnumHash> hPlane = {

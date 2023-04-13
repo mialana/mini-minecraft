@@ -23,10 +23,11 @@ https://registry.khronos.org/OpenGL-Refpages/gl4/html/glVertexAttribDivisor.xhtm
 
 notes:
 
-- transparency not working
-- x faces are stretched/ misaligned
 - have chunk store a vec4 biomes that contains weighting of each biome at that xz coord, and in vertex struct, push back the correct interpolated color in the color variable for water and grass
 - bilinear interp: end of 4/11 lec
 
+- neg faces are dark (normals are wrong??)
+- transparent faces are clipping other faces
+- lily pads aren't being drawn
 
 
