@@ -48,7 +48,7 @@ void main()
     fs_UV.y = vs_UV.y;
     fs_UV_overlay.x = vs_UV.z;
     fs_UV_overlay.y = vs_UV.w;
-//    texIdx = int(vs_BT.x);
+    texIdx = int(vs_BT.x);
 
     mat3 invTranspose = mat3(u_ModelInvTr);
     fs_Nor = vec4(invTranspose * vec3(vs_Nor), 0);          // Pass the vertex normals to the fragment shader for interpolation.

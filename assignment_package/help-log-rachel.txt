@@ -27,7 +27,8 @@ notes:
 - bilinear interp: end of 4/11 lec
 
 - neg faces are dark (normals are wrong??)
-- transparent faces are clipping other faces
+- transparent flower faces are clipping other transparent faces
 - lily pads aren't being drawn
+- shared transparent faces are being drawn when they shouldn't be
 
 

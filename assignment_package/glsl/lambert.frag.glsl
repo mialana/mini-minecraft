@@ -116,23 +116,37 @@ void main()
             }
 
             // TODO: biome color interpolation (grass)
+
         } else if (texIdx == 2) {
             out_Col = vec4(texture(u_TextureSampler, fs_UV));
             out_Col = vec4(tint(out_Col, vec4(0, 1, 0.25, 1)));
         } else if (texIdx == 3) {
-            out_Col = vec4(texture(u_TextureSampler, fs_UV));
-
             // water animation
-            float uOffset = (u_Time / 256.f); // number of pxls to offset u-coord by
-            uOffset = mod(uOffset, 0.0625);
+            float uOffset = (0.0625 / 8.f) * float(mod(u_Time, 8));
             vec2 newUV = vec2(fs_UV.x + uOffset, fs_UV.y);
             out_Col = vec4(texture(u_TextureSampler, newUV));
 
             // TODO: biome color interpolation (water)
+
+
         } else if (texIdx == 4) {
             // lava animation
-            float uOffset = sin(u_Time) / 16.f; // number of blocks to offset u-coord by
-            float vOffset = cos(u_Time) / 16.f; // number of blocks to offset v-coord by
+            float frame = mod(u_Time, 32);
+            float uOffset;
+            float vOffset;
+            if (frame < 8) {
+                uOffset = (0.0625 / 8.f) * frame;
+                vOffset = 0;
+            } else if (frame < 16) {
+                uOffset = 0.0625;
+                vOffset = (0.0625 / 8.f) * (frame - 8);
+            } else if (frame < 24) {
+                uOffset = 0.0625 - ((0.0625 / 8.f) * (frame - 16));
+                vOffset = 0.0625;
+            } else {
+                uOffset = 0;
+                vOffset = 0.0625 - ((0.0625 / 8.f) * (frame - 24));
+            }
             vec2 newUV = fs_UV + vec2(uOffset, vOffset);
             out_Col = vec4(texture(u_TextureSampler, newUV));
         }

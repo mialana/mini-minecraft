@@ -218,7 +218,12 @@ void Terrain::CreateTestScene()
                         setBlockAt(x, y, z, DIRT);
                     }
                     setBlockAt(x, h - 2, z, GRASS);
-                    setBlockAt(x, h - 1, z, MAPLE_IKEBANA);
+
+                    if (h >= 100) {
+                        setBlockAt(x, h - 1, z, SNOW_1);
+                        setBlockAt(x, h, z, WATER);
+                        setBlockAt(x, h+1, z, WATER);
+                    }
                 }
             }
         }

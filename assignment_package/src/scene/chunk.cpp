@@ -94,6 +94,14 @@ boolean Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) 
         return false;
     }
 
+    if (isFullCube(adjBlockType) && !isTransparent(adjBlockType)) {
+        return false;
+    }
+
+    if ((bt == WATER || bt == LAVA || bt == ICE) && bt == adjBlockType) {
+        return false;
+    }
+
     if (adjBlockType == EMPTY) {
         return true;
     }
@@ -268,11 +276,6 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
 
     switch (d) {
         case XPOS: case XNEG:
-            if (d == XNEG) {
-                x1 = currX + offsetXNEG;
-            } else {
-                x1 = currX + offsetXPOS;
-            }
             if (!keepEdges) {
                 y1 += offsetYNEG;
                 y2 += offsetYPOS;
@@ -287,24 +290,21 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 offsetZPOS = 1.f;
             }
             if (d == XNEG) {
-                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYNEG)));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYNEG)));
+                x1 = currX + offsetXNEG;
+                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYNEG)));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYNEG)));
             } else {
-                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYNEG)));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYNEG)));
+                x2 = currX + offsetXPOS;
+                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYNEG)));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYNEG)));
             }
             break;
 
         case YPOS: case YNEG:
-            if (d == YNEG) {
-                y1 = currY + offsetYNEG;
-            } else {
-                y1 = currY + offsetYPOS;
-            }
             if (!keepEdges) {
                 x1 += offsetXNEG;
                 x2 += offsetXPOS;
@@ -319,24 +319,21 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 offsetZPOS = 1.f;
             }
             if (d == YNEG) {
+                y1 = currY + offsetYNEG;
                 verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZPOS)));
                 verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZPOS)));
                 verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZNEG)));
                 verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZNEG)));
             } else {
-                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZNEG)));
-                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZNEG)));
-                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZPOS)));
-                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZPOS)));
+                y2 = currY + offsetYPOS;
+                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZNEG)));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZNEG)));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZPOS)));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZPOS)));
             }
             break;
 
         case ZPOS: case ZNEG:
-            if (d == ZNEG) {
-                z1 = currZ + offsetZNEG;
-            } else {
-                z1 = currZ + offsetZPOS;
-            }
             if (!keepEdges) {
                 x1 += offsetXNEG;
                 x2 += offsetXPOS;
@@ -351,15 +348,17 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 offsetYPOS = 1.f;
             }
             if (d == ZNEG) {
-                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
-                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
+                z1 = currZ + offsetZNEG;
+                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
             } else {
-                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
+                z2 = currZ + offsetZPOS;
+                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
             }
             break;
         case XPOS_ZPOS:

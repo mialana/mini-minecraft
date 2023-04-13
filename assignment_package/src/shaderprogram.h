@@ -27,6 +27,7 @@ public:
     int unifViewProj; // A handle for the "uniform" mat4 representing combined projection and view matrices in the vertex shader
     int unifColor; // A handle for the "uniform" vec4 representing color of geometry in the vertex shader
     int unifTexture;
+    int unifTime;
 
 public:
     ShaderProgram(OpenGLContext* context);
@@ -42,6 +43,8 @@ public:
     void setGeometryColor(glm::vec4 color);
     // Pass the given texture to this shader on the GPU
     void setTexture();
+    // Pass the current time to this shader on the GPU
+    void setTime(int t);
     // Draw the given object to our screen using this ShaderProgram's shaders
     void draw(Drawable &d);
     // Draw the given object to our screen multiple times using instanced rendering

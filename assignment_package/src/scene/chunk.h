@@ -128,12 +128,12 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
     {std::make_pair(WATER, YPOS), std::make_pair(3, glm::vec2(13, 3))},
     {std::make_pair(WATER, YNEG), std::make_pair(3, glm::vec2(13, 3))},
 
-    {std::make_pair(LAVA, XPOS), std::make_pair(4, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, XNEG), std::make_pair(4, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, ZPOS), std::make_pair(4, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, ZNEG), std::make_pair(4, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, YPOS), std::make_pair(4, glm::vec2(13, 1))},
-    {std::make_pair(LAVA, YNEG), std::make_pair(4, glm::vec2(13, 1))},
+    {std::make_pair(LAVA, XPOS), std::make_pair(4, glm::vec2(14, 0))},
+    {std::make_pair(LAVA, XNEG), std::make_pair(4, glm::vec2(14, 0))},
+    {std::make_pair(LAVA, ZPOS), std::make_pair(4, glm::vec2(14, 0))},
+    {std::make_pair(LAVA, ZNEG), std::make_pair(4, glm::vec2(14, 0))},
+    {std::make_pair(LAVA, YPOS), std::make_pair(4, glm::vec2(14, 0))},
+    {std::make_pair(LAVA, YNEG), std::make_pair(4, glm::vec2(14, 0))},
 
     {std::make_pair(BEDROCK, XPOS), std::pair(0, glm::vec2(2, 15))},
     {std::make_pair(BEDROCK, XNEG), std::pair(0, glm::vec2(2, 15))},
@@ -933,7 +933,7 @@ const static std::unordered_set<BlockType, EnumHash> fullCube = {
 };
 
 const static std::unordered_set<BlockType, EnumHash> transparent = {
-    WATER, LAVA, ICE, TALL_GRASS,
+    WATER, ICE, TALL_GRASS,
     CEDAR_LEAVES, TEAK_LEAVES,
     CHERRY_BLOSSOMS_1, CHERRY_BLOSSOMS_2, CHERRY_BLOSSOMS_3, CHERRY_BLOSSOMS_4,
     MAPLE_LEAVES_1, MAPLE_LEAVES_2, MAPLE_LEAVES_3,
@@ -962,8 +962,7 @@ struct Vertex {
         position = p;
         normal = glm::vec4(n, 1);
         if (btToUV.find(std::make_pair(b, d)) != btToUV.end()) {
-
-            blockType = glm::vec4(std::make_pair(b, d).first, 0, 0, 0);
+            blockType = glm::vec4(btToUV.at(std::make_pair(b, d)).first, 0, 0, 0);
 
             // GRASS side face
             if (b == GRASS && blockType.y == 1) {

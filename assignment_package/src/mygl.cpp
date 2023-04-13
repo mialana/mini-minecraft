@@ -17,7 +17,7 @@ MyGL::MyGL(QWidget *parent)
       m_worldAxes(this),
       m_progLambert(this), m_progFlat(this), m_progInstanced(this),
       m_terrain(this), m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain),
-      m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f)
+      m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
@@ -32,7 +32,6 @@ MyGL::MyGL(QWidget *parent)
 MyGL::~MyGL() {
     makeCurrent();
     glDeleteVertexArrays(1, &vao);
-//    glDeleteTextures(1, &textureHandle);
 }
 
 
@@ -122,6 +121,7 @@ void MyGL::tick() {
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
     m_terrain.loadNewChunks(m_player.mcr_position);
+    m_time++;
 }
 
 void MyGL::sendPlayerDataToGUI() const {
@@ -160,6 +160,8 @@ void MyGL::paintGL() {
 
     m_progLambert.setModelMatrix(glm::mat4());
     glEnable(GL_DEPTH_TEST);
+
+    m_progLambert.setTime(m_time);
 }
 
 // TODO: Change this so it renders the nine zones of generated
