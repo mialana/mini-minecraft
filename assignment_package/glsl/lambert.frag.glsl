@@ -122,7 +122,7 @@ void main()
             out_Col = vec4(tint(out_Col, vec4(0, 1, 0.25, 1)));
         } else if (texIdx == 3) {
             // water animation
-            float uOffset = (0.0625 / 8.f) * float(mod(u_Time, 8));
+            float uOffset = (0.0625 / 64.f) * float(mod(u_Time, 64));
             vec2 newUV = vec2(fs_UV.x + uOffset, fs_UV.y);
             out_Col = vec4(texture(u_TextureSampler, newUV));
 
@@ -131,22 +131,39 @@ void main()
 
         } else if (texIdx == 4) {
             // lava animation
-            float frame = mod(u_Time, 32);
+            float frame = mod(u_Time, 256);
             float uOffset;
             float vOffset;
-            if (frame < 8) {
-                uOffset = (0.0625 / 8.f) * frame;
-                vOffset = 0;
-            } else if (frame < 16) {
-                uOffset = 0.0625;
-                vOffset = (0.0625 / 8.f) * (frame - 8);
-            } else if (frame < 24) {
-                uOffset = 0.0625 - ((0.0625 / 8.f) * (frame - 16));
-                vOffset = 0.0625;
+            if (fbm(fs_Pos.xyz) > 0.5) {
+                if (frame < 64) {
+                    vOffset = (0.0625 / 64.f) * frame;
+                    uOffset = 0;
+                } else if (frame < 128) {
+                    vOffset = 0.0625;
+                    uOffset = (0.0625 / 64.f) * (frame - 64);
+                } else if (frame < 192) {
+                    vOffset = 0.0625 - ((0.0625 / 64.f) * (frame - 128));
+                    uOffset = 0.0625;
+                } else {
+                    vOffset = 0;
+                    uOffset = 0.0625 - ((0.0625 / 64.f) * (frame - 192));
+                }
             } else {
-                uOffset = 0;
-                vOffset = 0.0625 - ((0.0625 / 8.f) * (frame - 24));
+                if (frame < 64) {
+                    uOffset = (0.0625 / 64.f) * frame;
+                    vOffset = 0;
+                } else if (frame < 128) {
+                    uOffset = 0.0625;
+                    vOffset = (0.0625 / 64.f) * (frame - 64);
+                } else if (frame < 192) {
+                    uOffset = 0.0625 - ((0.0625 / 64.f) * (frame - 128));
+                    vOffset = 0.0625;
+                } else {
+                    uOffset = 0;
+                    vOffset = 0.0625 - ((0.0625 / 64.f) * (frame - 192));
+                }
             }
+
             vec2 newUV = fs_UV + vec2(uOffset, vOffset);
             out_Col = vec4(texture(u_TextureSampler, newUV));
         }
@@ -183,4 +200,7 @@ void main()
 
     // Compute final shaded color
     out_Col = vec4(out_Col.rgb * lightIntensity, alpha);
+    if (out_Col.a == 0.f) {
+        discard;
+    }
 }

@@ -1,4 +1,5 @@
 #include "chunk.h"
+#include <iostream>;
 
 
 Chunk::Chunk(OpenGLContext* context) : Drawable(context), m_blocks(), m_neighbors{{XPOS, nullptr}, {XNEG, nullptr}, {ZPOS, nullptr}, {ZNEG, nullptr}}
@@ -83,10 +84,15 @@ boolean Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) 
 
     BlockType adjBlockType;
 
+
     if (inSameChunk) {
         adjBlockType = this->getBlockAt(adjBlockPos.x, adjBlockPos.y, adjBlockPos.z);
     } else {
         adjBlockType = this->getAdjBlockType(dv.dir, adjBlockPos);
+    }
+
+    if (bt == WATER && adjBlockType == WATER) {
+        int i =0;
     }
 
     // if block is completely enclosed by non-transparent blocks
@@ -402,6 +408,11 @@ void Chunk::createVBOdata() {
             for (int z = 0; z < 16; z++) {
                 BlockType currType = this->getBlockAt(x, y, z);
 
+                int i = 0;
+                if (currType == WATER) {
+                    i = 100000;
+                }
+
                 if (currType != EMPTY) {
                     if (isHPlane(currType)) {
                         if (isVisible(x, y, z, currType)) {
@@ -483,9 +494,12 @@ void Chunk::createVBOdata() {
                     if (isPartialX(currType) || isPartialY(currType) || isPartialZ(currType)) {
                         for (const DirectionVector& dv : directionIter) {
                             if (isVisible(x, y, z, dv, currType)) {
+                                i++;
                                 if (!isTransparent(currType)) {
                                     std::vector<Vertex> faceVerts;
                                     Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType);
+
+                                    i += 500;
 
                                     for (const Vertex& v : faceVerts) {
                                         oVertData.push_back(v.position);
@@ -526,6 +540,9 @@ void Chunk::createVBOdata() {
                         }
                     }
                     if (isFullCube(currType)) {
+                        if (currType == WATER) {
+                            std::cout << "something ain't right" << std::endl;
+                        }
                         for (const DirectionVector& dv : directionIter) {
                             glm::ivec3 adjBlockPos = glm::ivec3(x, y, z) + dv.vec;
                             bool inSameChunk = Chunk::isInBounds(adjBlockPos);
@@ -579,9 +596,11 @@ void Chunk::createVBOdata() {
                         }
                     }
                 }
+                if (currType == WATER) {std::cout << i << std::endl;}
             }
         }
     }
+
 
     m_oCount = oIndices.size();
 

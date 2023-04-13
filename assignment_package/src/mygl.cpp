@@ -155,11 +155,12 @@ void MyGL::paintGL() {
     glDisable(GL_DEPTH_TEST);
     m_progFlat.setModelMatrix(glm::mat4());
     m_progFlat.draw(m_worldAxes);
+    glEnable(GL_DEPTH_TEST);
+
 
     m_progInstanced.setModelMatrix(glm::mat4());
 
     m_progLambert.setModelMatrix(glm::mat4());
-    glEnable(GL_DEPTH_TEST);
 
     m_progLambert.setTime(m_time);
 }
@@ -168,7 +169,10 @@ void MyGL::paintGL() {
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
 void MyGL::renderTerrain() {
+//    glEnable(GL_CULL_FACE);
+//    glCullFace(GL_BACK);
     m_terrain.draw(0, 48, 0, 48, &m_progLambert);
+//    glDisable(GL_CULL_FACE);
 }
 
 

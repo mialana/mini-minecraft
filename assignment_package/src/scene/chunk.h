@@ -946,8 +946,7 @@ const static std::unordered_set<BlockType, EnumHash> transparent = {
     GHOST_LILY, GHOST_WEED,
     CORAL_1, CORAL_2, CORAL_3, CORAL_4,
     KELP_1, KELP_2,
-    SEA_GRASS,
-    EMPTY
+    SEA_GRASS
 };
 
 struct Vertex {

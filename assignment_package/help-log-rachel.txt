@@ -27,8 +27,8 @@ notes:
 - bilinear interp: end of 4/11 lec
 
 - neg faces are dark (normals are wrong??)
-- transparent flower faces are clipping other transparent faces
-- lily pads aren't being drawn
 - shared transparent faces are being drawn when they shouldn't be
 
+- think about how to check if you're underwater (not just if the BlockType at this position == WATER)
+- maybe travel upwards until you hit either a full/ partial block or a water block?
 
