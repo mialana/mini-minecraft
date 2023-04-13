@@ -157,6 +157,8 @@ void MyGL::paintGL() {
     m_progFlat.draw(m_worldAxes);
     glEnable(GL_DEPTH_TEST);
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 
     m_progInstanced.setModelMatrix(glm::mat4());
 
@@ -169,10 +171,7 @@ void MyGL::paintGL() {
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
 void MyGL::renderTerrain() {
-//    glEnable(GL_CULL_FACE);
-//    glCullFace(GL_BACK);
     m_terrain.draw(0, 48, 0, 48, &m_progLambert);
-//    glDisable(GL_CULL_FACE);
 }
 
 

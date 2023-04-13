@@ -43,7 +43,7 @@ enum BlockType : unsigned char
 // The six cardinal directions in 3D space + diagonals (rotated 45 degrees)
 enum Direction : unsigned char
 {
-    XPOS, XNEG, YPOS, YNEG, ZPOS, ZNEG, XPOS_ZPOS, XPOS_ZNEG
+    XPOS, XNEG, YPOS, YNEG, ZPOS, ZNEG, XPOS_ZPOS, XPOS_ZNEG, XNEG_ZNEG, XNEG_ZPOS
 };
 
 typedef std::pair<BlockType, Direction> faceDef;
@@ -855,11 +855,14 @@ const static std::vector<DirectionVector> directionIter = {
 
 const static std::vector<DirectionVector> planeDirIter = {
     DirectionVector(YPOS, glm::ivec3(0, 1, 0)),
+    DirectionVector(YNEG, glm::ivec3(0, -1, 0))
 };
 
 const static std::vector<DirectionVector> cross2DirIter = {
     DirectionVector(XPOS_ZPOS, glm::ivec3(1, 0, 1)),
-    DirectionVector(XPOS_ZNEG, glm::ivec3(1, 0, 1))
+    DirectionVector(XNEG_ZNEG, glm::ivec3(-1, 0, -1)),
+    DirectionVector(XPOS_ZNEG, glm::ivec3(1, 0, -1)),
+    DirectionVector(XNEG_ZPOS, glm::ivec3(-1, 0, 1))
 };
 
 const static std::vector<DirectionVector> cross4DirIter = {
@@ -1020,14 +1023,14 @@ public:
     void setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t);
     void linkNeighbor(uPtr<Chunk>& neighbor, Direction dir);
 
-    boolean isHPlane(BlockType);
-    boolean isCross2(BlockType);
-    boolean isCross4(BlockType);
-    boolean isPartialX(BlockType);
-    boolean isPartialY(BlockType);
-    boolean isPartialZ(BlockType);
-    boolean isFullCube(BlockType);
-    boolean isTransparent(BlockType);
+    static boolean isHPlane(BlockType);
+    static boolean isCross2(BlockType);
+    static boolean isCross4(BlockType);
+    static boolean isPartialX(BlockType);
+    static boolean isPartialY(BlockType);
+    static boolean isPartialZ(BlockType);
+    static boolean isFullCube(BlockType);
+    static boolean isTransparent(BlockType);
 
     boolean isVisible(int x, int y, int z, BlockType bt); // checks whether block is enclosed on all sides
     boolean isVisible(int x, int y, int z, DirectionVector dv, BlockType bt); // checks whether a x/y/z face is visible

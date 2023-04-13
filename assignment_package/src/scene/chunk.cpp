@@ -159,7 +159,6 @@ BlockType Chunk::getAdjBlockType(Direction d, glm::ivec3 pos) {
 void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float currY, float currZ, DirectionVector dirVec, BlockType bt) {
     Direction d = dirVec.dir;
 
-    // offsets move the face inwardsfloat offsetXPOS = 0.f;
     float offsetXPOS = 1.f;
     float offsetXNEG = 0.f;
     float offsetYPOS = 1.f;
@@ -212,17 +211,17 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetYPOS = 0.875;
             break;
         case CEDAR_WINDOW: case TEAK_WINDOW: case CHERRY_WINDOW: case MAPLE_WINDOW: case PINE_WINDOW: case WISTERIA_WINDOW:
-            offsetXPOS = 0.4375; // may be offsetX or offsetZ
-            offsetXNEG = 0.5625;
+            offsetXPOS = 0.5625; // may be offsetX or offsetZ
+            offsetXNEG = 0.4375;
             break;
         case TILLED_DIRT: case PATH:
             offsetYPOS = 0.9375;
             break;
         case BAMBOO_1: case BAMBOO_2: case BAMBOO_3:
-            offsetXPOS = 0.4375;
-            offsetXNEG = 0.5625;
-            offsetZPOS = 0.4375;
-            offsetZNEG = 0.5625;
+            offsetXPOS = 0.5625;
+            offsetXNEG = 0.4375;
+            offsetZPOS = 0.5625;
+            offsetZNEG = 0.4375;
             break;
         case PAPER_LANTERN:
             offsetXPOS = 0.8125;
@@ -295,18 +294,32 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 offsetZNEG = 0.f;
                 offsetZPOS = 1.f;
             }
+            x1 = currX + offsetXNEG;
+            x2 = currX + offsetXPOS;
             if (d == XNEG) {
-                x1 = currX + offsetXNEG;
                 verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYNEG)));
                 verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYPOS)));
                 verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYPOS)));
                 verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYNEG)));
+
+                if (isCross4(bt)) {
+                    verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYNEG)));
+                    verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYPOS)));
+                    verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYPOS)));
+                    verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYNEG)));
+                }
             } else {
-                x2 = currX + offsetXPOS;
                 verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYNEG)));
                 verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYPOS)));
                 verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYPOS)));
                 verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYNEG)));
+
+                if (isCross4(bt)) {
+                    verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYNEG)));
+                    verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS, offsetYPOS)));
+                    verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYPOS)));
+                    verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG, offsetYNEG)));
+                }
             }
             break;
 
@@ -324,17 +337,17 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 offsetZNEG = 0.f;
                 offsetZPOS = 1.f;
             }
+            y1 = currY + offsetYNEG;
+            y2 = currY + offsetYPOS;
             if (d == YNEG) {
-                y1 = currY + offsetYNEG;
                 verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZPOS)));
-                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZPOS)));
+                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZPOS)));
                 verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZNEG)));
-                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZNEG)));
+                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZNEG)));
             } else {
-                y2 = currY + offsetYPOS;
-                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZNEG)));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZNEG)));
                 verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZNEG)));
-                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZPOS)));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetZPOS)));
                 verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetZPOS)));
             }
             break;
@@ -353,18 +366,32 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
                 offsetYNEG = 0.f;
                 offsetYPOS = 1.f;
             }
+            z1 = currZ + offsetZNEG;
+            z2 = currZ + offsetZPOS;
             if (d == ZNEG) {
-                z1 = currZ + offsetZNEG;
-                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
-                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
+                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
+
+                if (isCross4(bt)) {
+                    verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
+                    verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
+                    verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
+                    verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
+                }
             } else {
-                z2 = currZ + offsetZPOS;
-                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
-                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
+                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
+                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
+
+                if (isCross4(bt)) {
+                    verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYNEG)));
+                    verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS, offsetYPOS)));
+                    verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYPOS)));
+                    verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG, offsetYNEG)));
+                }
             }
             break;
         case XPOS_ZPOS:
@@ -373,10 +400,26 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             y2 += 1;
             z1 += offsetDiag;
             z2 += 1 - offsetDiag;
-            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
-            verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
+
+            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
+            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
+
+
+            break;
+        case XNEG_ZNEG:
+            x1 += offsetDiag;
+            x2 += 1 - offsetDiag;
+            y2 += 1;
+            z1 += offsetDiag;
+            z2 += 1 - offsetDiag;
+
+            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
+            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
+
             break;
         case XPOS_ZNEG:
             x1 += offsetDiag;
@@ -384,11 +427,27 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             y2 += 1;
             z1 += offsetDiag;
             z2 += 1 - offsetDiag;
-            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
-            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
-            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
+
+            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
+            verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
+
             break;
+        case XNEG_ZPOS:
+            x1 += offsetDiag;
+            x2 += 1 - offsetDiag;
+            y2 += 1;
+            z1 += offsetDiag;
+            z2 += 1 - offsetDiag;
+
+            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1)));
+            verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1)));
+            verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0)));
+            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0)));
+
+            break;
+
     }
 }
 
@@ -487,7 +546,14 @@ void Chunk::createVBOdata() {
                                 tIndices.push_back(tVertCount + 2);
                                 tIndices.push_back(tVertCount + 3);
 
-                                tVertCount += 4;
+                                tIndices.push_back(tVertCount + 4);
+                                tIndices.push_back(tVertCount + 5);
+                                tIndices.push_back(tVertCount + 6);
+                                tIndices.push_back(tVertCount + 4);
+                                tIndices.push_back(tVertCount + 6);
+                                tIndices.push_back(tVertCount + 7);
+
+                                tVertCount += 8;
                             }
                         }
                     }

@@ -42,7 +42,7 @@ const vec4 lightDir = normalize(vec4(0.5, 1, 0.75, 0));  // The direction of our
 void main()
 {
     fs_Pos = vs_Pos;
-    fs_Nor = vs_Nor;
+    fs_Nor = vec4(normalize(vec3(vs_Nor)), vs_Nor.w);
     fs_Col = vs_Col;                         // Pass the vertex colors to the fragment shader for interpolation
     fs_UV.x = vs_UV.x;
     fs_UV.y = vs_UV.y;

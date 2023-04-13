@@ -159,9 +159,8 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
             const uPtr<Chunk>& currChunk = getChunkAt(x, z);
             currChunk->createVBOdata();
 
-            shaderProgram->setModelMatrix(glm::translate(glm::mat4(1), glm::vec3(x, 0, z)));
+            shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
             shaderProgram->drawInterleavedO(*currChunk);
-//            shaderProgram->drawInterleavedT(*currChunk);
         }
     }
 
@@ -170,7 +169,7 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
             const uPtr<Chunk>& currChunk = getChunkAt(x, z);
             currChunk->createVBOdata();
 
-            shaderProgram->setModelMatrix(glm::translate(glm::mat4(1), glm::vec3(x, 0, z)));
+            shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
             shaderProgram->drawInterleavedT(*currChunk);
         }
     }
@@ -253,14 +252,16 @@ void Terrain::CreateTestScene()
     setBlockAt(8, 102, 11, BAMBOO_2);
     setBlockAt(8, 103, 11, BAMBOO_3);
 
-    setBlockAt(9, 100, 11, ICE);
-    setBlockAt(9, 100, 12, ICE);
-    setBlockAt(10, 100, 11, ICE);
-    setBlockAt(10, 100, 12, ICE);
+    setBlockAt(9, 100, 11, WATER);
+    setBlockAt(9, 100, 12, WATER);
+    setBlockAt(10, 100, 11, WATER);
+    setBlockAt(10, 100, 12, WATER);
+
+    setBlockAt(10, 101, 12, LOTUS_2);
 
 //    for (int x = 0; x < 5; x++) {
 //        for (int z = 0; z < 5; z++) {
-//            setBlockAt(x, 100, z, ICE);
+//            setBlockAt(x, 100, z, WATER);
 //        }
 //    }
 
