@@ -223,6 +223,7 @@ void Terrain::CreateTestScene()
                         setBlockAt(x, h - 1, z, SNOW_1);
                         setBlockAt(x, h, z, WATER);
                         setBlockAt(x, h+1, z, WATER);
+                        setBlockAt(x, h+2, z, LILY_PAD);
                     }
                 }
             }

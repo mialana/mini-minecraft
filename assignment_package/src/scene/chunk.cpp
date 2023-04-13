@@ -172,7 +172,7 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
 
     switch(bt) {
         case LILY_PAD: case LOTUS_1: case LOTUS_2:
-            offsetYPOS = 0.f;
+            offsetYPOS = 0.005f;
             break;
         case WHEAT_1: case WHEAT_2: case WHEAT_3: case WHEAT_4: case WHEAT_5: case WHEAT_6: case WHEAT_7: case WHEAT_8: case SEA_GRASS:
             offsetXPOS = 0.75f;
