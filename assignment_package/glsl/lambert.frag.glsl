@@ -22,13 +22,7 @@ in vec4 fs_Nor;
 in vec4 fs_Col;
 in vec2 fs_UV;
 
-// 0 = no change from base texture at uv coords
-// 1 = draw texture at uv coords, and then draw texture at fs_UV_overlay over it
-// 2 = water (animation + biome color interpolation)
-// 3 = lava animation
 flat in int texIdx;
-
-in vec2 fs_UV_overlay;
 
 in vec4 fs_LightVec;
 
@@ -97,7 +91,7 @@ void main()
     vec2 newUV;
     if (fs_UV.x >= 0 && fs_UV.y >= 0) {
         // 0 = no change from base texture at uv coords
-        // 1 = draw texture at uv coords, and then draw texture at fs_UV_overlay over it
+        // 1 = interpolate grass color
         // 2 = water (animation + biome color interpolation)
         // 3 = lava animation
 
@@ -107,67 +101,41 @@ void main()
             newUV = fs_UV;
             out_Col = vec4(texture(u_TextureSampler, fs_UV));
         } else if (texIdx == 1) {
-            // assumes all pxls are either fully transparent or fully opaque
-            vec4 col1 = vec4(texture(u_TextureSampler, fs_UV));
-            vec4 col2 = vec4(texture(u_TextureSampler, fs_UV_overlay));
-
-            if (col2.a == 0) {
-                out_Col = col1;
-            } else {
-                out_Col = col2;
-                out_Col = vec4(tint(out_Col, vec4(0, 1, 0.25, 1)));
-            }
-
-            // TODO: biome color interpolation (grass)
-
-        } else if (texIdx == 2) {
+            newUV = fs_UV;
             out_Col = vec4(texture(u_TextureSampler, fs_UV));
             out_Col = vec4(tint(out_Col, vec4(0, 1, 0.25, 1)));
-        } else if (texIdx == 3) {
+        } else if (texIdx == 2) {
             // water animation
             float uOffset = (0.0625 / 64.f) * float(mod(u_Time, 64));
             newUV = vec2(fs_UV.x + uOffset, fs_UV.y);
             out_Col = vec4(texture(u_TextureSampler, newUV));
 
             // TODO: biome color interpolation (water)
-
-
-        } else if (texIdx == 4) {
+        } else if (texIdx == 3) {
             // lava animation
             float frame = mod(u_Time, 256);
             float uOffset;
             float vOffset;
-            if (fbm(fs_Pos.xyz) > 0.5) {
-                if (frame < 64) {
-                    vOffset = (0.0625 / 64.f) * frame;
-                    uOffset = 0;
-                } else if (frame < 128) {
-                    vOffset = 0.0625;
-                    uOffset = (0.0625 / 64.f) * (frame - 64);
-                } else if (frame < 192) {
-                    vOffset = 0.0625 - ((0.0625 / 64.f) * (frame - 128));
-                    uOffset = 0.0625;
-                } else {
-                    vOffset = 0;
-                    uOffset = 0.0625 - ((0.0625 / 64.f) * (frame - 192));
-                }
+
+            if (frame < 64) {
+                vOffset = (0.0625 / 64.f) * frame;
+                uOffset = 0;
+            } else if (frame < 128) {
+                vOffset = 0.0625;
+                uOffset = (0.0625 / 64.f) * (frame - 64);
+            } else if (frame < 192) {
+                vOffset = 0.0625 - ((0.0625 / 64.f) * (frame - 128));
+                uOffset = 0.0625;
             } else {
-                if (frame < 64) {
-                    uOffset = (0.0625 / 64.f) * frame;
-                    vOffset = 0;
-                } else if (frame < 128) {
-                    uOffset = 0.0625;
-                    vOffset = (0.0625 / 64.f) * (frame - 64);
-                } else if (frame < 192) {
-                    uOffset = 0.0625 - ((0.0625 / 64.f) * (frame - 128));
-                    vOffset = 0.0625;
-                } else {
-                    uOffset = 0;
-                    vOffset = 0.0625 - ((0.0625 / 64.f) * (frame - 192));
-                }
+                vOffset = 0;
+                uOffset = 0.0625 - ((0.0625 / 64.f) * (frame - 192));
             }
 
-            newUV = fs_UV + vec2(uOffset, vOffset);
+            if (fbm(fs_Pos.xyz) > 0.5) {
+                newUV = fs_UV + vec2(uOffset, vOffset);
+            } else {
+                newUV = fs_UV + vec2(vOffset, uOffset);
+            }
             out_Col = texture(u_TextureSampler, newUV);
         }
     }

@@ -91,6 +91,10 @@ boolean Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) 
         adjBlockType = this->getAdjBlockType(dv.dir, adjBlockPos);
     }
 
+    if (bt == GRASS) {
+        int i = 0;
+    }
+
     // if block is completely enclosed by non-transparent blocks
     if (!isVisible(x, y, z, bt)) {
         return false;
@@ -131,6 +135,7 @@ boolean Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) 
             ((d == ZPOS || d == ZNEG) && (isPartialZ(bt) || isPartialX(adjBlockType) || isPartialY(adjBlockType) || isPartialZ(adjBlockType)))) {
         return true;
     }
+
     return false;
 }
 
@@ -595,9 +600,6 @@ void Chunk::createVBOdata() {
                         }
                     }
                     if (isFullCube(currType)) {
-                        if (currType == WATER) {
-                            std::cout << "something ain't right" << std::endl;
-                        }
                         for (const DirectionVector& dv : directionIter) {
                             glm::ivec3 adjBlockPos = glm::ivec3(x, y, z) + dv.vec;
                             bool inSameChunk = Chunk::isInBounds(adjBlockPos);

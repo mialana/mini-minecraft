@@ -33,7 +33,6 @@ out vec4 fs_Nor;            // The array of normals that has been transformed by
 out vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.
 out vec2 fs_UV;
 flat out int texIdx;
-out vec2 fs_UV_overlay;
 out vec4 fs_LightVec;       // The direction in which our virtual light lies, relative to each vertex. This is implicitly passed to the fragment shader.
 
 const vec4 lightDir = normalize(vec4(0.5, 1, 0.75, 0));  // The direction of our virtual light, which is used to compute the shading of
@@ -44,10 +43,7 @@ void main()
     fs_Pos = vs_Pos;
     fs_Nor = vec4(normalize(vec3(vs_Nor)), vs_Nor.w);
     fs_Col = vs_Col;                         // Pass the vertex colors to the fragment shader for interpolation
-    fs_UV.x = vs_UV.x;
-    fs_UV.y = vs_UV.y;
-    fs_UV_overlay.x = vs_UV.z;
-    fs_UV_overlay.y = vs_UV.w;
+    fs_UV = vs_UV.xy;
     texIdx = int(vs_BT.x);
 
     mat3 invTranspose = mat3(u_ModelInvTr);
