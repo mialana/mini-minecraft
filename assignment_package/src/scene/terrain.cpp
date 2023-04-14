@@ -254,10 +254,18 @@ void Terrain::CreateTestScene()
 
     setBlockAt(9, 100, 11, WATER);
     setBlockAt(9, 100, 12, WATER);
-    setBlockAt(10, 100, 11, WATER);
+    setBlockAt(10, 100, 11, CORAL_1);
     setBlockAt(10, 100, 12, WATER);
+    setBlockAt(9, 101, 11, WATER);
+    setBlockAt(9, 101, 12, WATER);
+    setBlockAt(10, 101, 11, WATER);
+    setBlockAt(10, 101, 12, WATER);
+    setBlockAt(9, 102, 11, WATER);
+    setBlockAt(9, 102, 12, WATER);
+    setBlockAt(10, 102, 11, WATER);
+    setBlockAt(10, 102, 12, WATER);
 
-    setBlockAt(10, 101, 12, LOTUS_2);
+    setBlockAt(10, 103, 12, LOTUS_2);
 
 //    for (int x = 0; x < 5; x++) {
 //        for (int z = 0; z < 5; z++) {
