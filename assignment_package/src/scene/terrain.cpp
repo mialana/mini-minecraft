@@ -248,6 +248,8 @@ void Terrain::CreateTestScene()
     setBlockAt(8, 100, 12, SNOW_8);
     setBlockAt(8, 100, 11, SNOW_8);
 
+    setBlockAt(9, 101, 10, MAPLE_IKEBANA);
+
     setBlockAt(8, 101, 11, BAMBOO_1);
     setBlockAt(8, 102, 11, BAMBOO_2);
     setBlockAt(8, 103, 11, BAMBOO_3);
@@ -266,6 +268,7 @@ void Terrain::CreateTestScene()
     setBlockAt(10, 102, 12, WATER);
 
     setBlockAt(10, 103, 12, LOTUS_2);
+    setBlockAt(10, 103, 13, PAINTING_5);
 
 //    for (int x = 0; x < 5; x++) {
 //        for (int z = 0; z < 5; z++) {
