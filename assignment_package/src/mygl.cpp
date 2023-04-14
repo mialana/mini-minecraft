@@ -53,6 +53,8 @@ void MyGL::initializeGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_CULL_FACE);
+//    glCullFace(GL_FRONT);
     // Set the color with which the screen is filled at the start of each render call.
     glClearColor(0.37f, 0.74f, 1.0f, 1);
 
@@ -157,8 +159,6 @@ void MyGL::paintGL() {
     m_progFlat.draw(m_worldAxes);
     glEnable(GL_DEPTH_TEST);
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
 
     m_progInstanced.setModelMatrix(glm::mat4());
 

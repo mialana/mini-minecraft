@@ -26,7 +26,7 @@ notes:
 - have chunk store a vec4 biomes that contains weighting of each biome at that xz coord, and in vertex struct, push back the correct interpolated color in the color variable for water and grass
 - bilinear interp: end of 4/11 lec
 
-- neg faces are dark (normals are wrong??)
+- neg faces are dark (create ambient light term in frag shader)
 - shared transparent faces are being drawn when they shouldn't be
 
 - think about how to check if you're underwater (not just if the BlockType at this position == WATER)

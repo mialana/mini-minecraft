@@ -203,6 +203,7 @@ void main()
 
     // Compute final shaded color
     out_Col = vec4(out_Col.rgb * lightIntensity, alpha);
+//    out_Col = vec4(0,1,0,1);
     if (out_Col.a == 0.f) {
         discard;
     }
