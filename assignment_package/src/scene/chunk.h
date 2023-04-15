@@ -1025,11 +1025,12 @@ struct Vertex {
     glm::vec4 color;
     glm::vec4 uvCoords; // contains a second set of uv coords when overlaying another texture
     glm::vec4 blockType; // texture flag
-    // glm::vec4 biomes; // contains biome weightings at this xz coord
+    glm::vec4 biomeWts; // contains biome weightings at this xz coord
 
-    Vertex(glm::vec4 p, glm::ivec3 n, BlockType b, Direction d, glm::vec2 uv) {
+    Vertex(glm::vec4 p, glm::ivec3 n, BlockType b, Direction d, glm::vec2 uv, glm::vec4 bWts) {
         position = p;
         normal = glm::vec4(n, 1);
+        biomeWts = bWts;
         if (btToUV.find(std::make_pair(b, d)) != btToUV.end()) {
             blockType = glm::vec4(btToUV.at(std::make_pair(b, d)).first, 0, 0, 0);
 
@@ -1076,7 +1077,7 @@ private:
     BlockType getAdjBlockType(Direction, glm::ivec3);
 
     // coords given in block space
-    static void createFaceVBOData(std::vector<Vertex>&, float, float, float, DirectionVector, BlockType);
+    static void createFaceVBOData(std::vector<Vertex>&, float, float, float, DirectionVector, BlockType, glm::vec4);
 
     void redistributeVertexData(std::vector<glm::vec4>, std::vector<GLuint>, std::vector<glm::vec4>, std::vector<GLuint>);
 

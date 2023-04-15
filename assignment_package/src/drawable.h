@@ -16,6 +16,7 @@ protected:
                    // Instead, we use a uniform vec4 in the shader to set an overall color for the geometry
     GLuint m_oBufUVs;
     GLuint m_oBufBTs;
+    GLuint m_oBufBWts;
     GLuint m_oBufVertData;
 
     bool m_oIdxGenerated; // Set to TRUE by generateIdx(), returned by bindIdx().
@@ -24,6 +25,7 @@ protected:
     bool m_oColGenerated;
     bool m_oUVsGenerated;
     bool m_oBTsGenerated;
+    bool m_oBWtsGenerated;
     bool m_oVertDataGenerated;
 
     int m_tCount;
@@ -34,6 +36,7 @@ protected:
     GLuint m_tBufCol;
     GLuint m_tBufUVs;
     GLuint m_tBufBTs;
+    GLuint m_tBufBWts;
     GLuint m_tBufVertData;
 
     bool m_tIdxGenerated; // Set to TRUE by generateIdx(), returned by bindIdx().
@@ -42,6 +45,7 @@ protected:
     bool m_tColGenerated;
     bool m_tUVsGenerated;
     bool m_tBTsGenerated;
+    bool m_tBWtsGenerated;
     bool m_tVertDataGenerated;
 
     OpenGLContext* mp_context; // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
@@ -68,9 +72,10 @@ public:
     void generateOPos();
     void generateONor();
     void generateOCol();
-    void generateOVertData();
     void generateOUVs();
     void generateOBTs();
+    void generateOBWts();
+    void generateOVertData();
 
     bool bindOIdx();
     bool bindOPos();
@@ -78,6 +83,7 @@ public:
     bool bindOCol();
     bool bindOUVs();
     bool bindOBTs();
+    bool bindOBWts();
     bool bindOVertData();
 
     // transparent
@@ -85,9 +91,10 @@ public:
     void generateTPos();
     void generateTNor();
     void generateTCol();
-    void generateTVertData();
     void generateTUVs();
     void generateTBTs();
+    void generateTBWts();
+    void generateTVertData();    
 
     bool bindTIdx();
     bool bindTPos();
@@ -95,6 +102,7 @@ public:
     bool bindTCol();
     bool bindTUVs();
     bool bindTBTs();
+    bool bindTBWts();
     bool bindTVertData();
 };
 

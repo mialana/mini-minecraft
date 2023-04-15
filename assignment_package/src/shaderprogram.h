@@ -20,6 +20,7 @@ public:
     int attrCol; // A handle for the "in" vec4 representing vertex color in the vertex shader
     int attrUV;
     int attrBT;
+    int attrBWts;
     int attrPosOffset; // A handle for a vec3 used only in the instanced rendering shader
 
     int unifModel; // A handle for the "uniform" mat4 representing model matrix in the vertex shader

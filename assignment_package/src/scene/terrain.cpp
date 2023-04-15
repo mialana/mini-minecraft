@@ -250,27 +250,29 @@ void Terrain::CreateTestScene()
             float h = hb.first;
             Biome b = hb.second;
 
+
+
             int numDirtBlocks = 10 * fbm(glm::vec2(x, z));
             if (b == MOUNTAINS) {
-                if (h <= 100) {
+                if (h <= 120) {
                     for (int y = 0; y < h - numDirtBlocks; ++y) {
                         setBlockAt(x, y, z, STONE);
                     }
                     for (int y = h - numDirtBlocks; y < h; ++y) {
                         setBlockAt(x, y, z, DIRT);
                     }
-                    for (int y = h; y < 100; ++y) {
+                    for (int y = h; y < 120; ++y) {
                         setBlockAt(x, y, z, WATER);
                     }
                 } else {
                     for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
                         setBlockAt(x, y, z, STONE);
                     }
-                    for (int y = h - numDirtBlocks - 1; y < h - 2; ++y) {
+                    for (int y = h - numDirtBlocks - 1; y < h - 1; ++y) {
                         setBlockAt(x, y, z, DIRT);
                     }
-                    setBlockAt(x, h - 2, z, GRASS);
-                    setBlockAt(x, h - 1, z, SNOW_1);
+                    setBlockAt(x, h - 1, z, GRASS);
+                    setBlockAt(x, h, z, SNOW_1);
                 }
             } else if (b == HILLS) {
                 for (int y = 0; y < h - 3 - numDirtBlocks; ++y) {
@@ -281,7 +283,9 @@ void Terrain::CreateTestScene()
                 }
 
                 if (h < 123) {
-                    for (int y = h - 1; y < 123; ++y) {
+                    setBlockAt(x, h - 1, z, DIRT);
+
+                    for (int y = h; y < 123; ++y) {
                         setBlockAt(x, y, z, WATER);
                     }
                 } else {
@@ -296,14 +300,19 @@ void Terrain::CreateTestScene()
                 }
 
                 if (h < 125) {
-                    for (int y = h - 1; y < 125; ++y) {
+                    setBlockAt(x, h - 1, z, DIRT);
+
+                    for (int y = h; y < 125; ++y) {
                         setBlockAt(x, y, z, WATER);
                     }
                 } else {
                     setBlockAt(x, h - 1, z, GRASS);
                 }
             } else if (b == ISLANDS) {
-                for (int y = 0; y < h; ++y) {
+                for (int y = 0; y < 80; ++y) {
+                    setBlockAt(x, y, z, STONE);
+                }
+                for (int y = 80; y < h; ++y) {
                     setBlockAt(x, y, z, SAND);
                 }
                 if (h < 120) {
@@ -311,6 +320,24 @@ void Terrain::CreateTestScene()
                         setBlockAt(x, y, z, WATER);
                     }
                 }
+            }
+
+            // assets
+            float plant = noise1D(glm::vec2(x, z));
+            if (getBlockAt(x, h, z) == EMPTY) {
+
+                // TALL_GRASS
+                if ((b == MOUNTAINS && plant < 0.35) ||
+                    (b == HILLS && plant < 0.75) ||
+                    (b == FOREST && plant < 0.25) ||
+                    (b == ISLANDS && plant < 0.1)) {
+
+                    setBlockAt(x, h, z, TALL_GRASS);
+                }
+
+                // bamboo, trees
+            } else if (getBlockAt(x, h, z) == WATER) {
+                // lotuses, coral, sea grass, kelp, lanterns
             }
         }
     }
