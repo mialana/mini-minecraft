@@ -71,7 +71,7 @@ float Biome::worley(glm::vec2 uv) {
     } return minDist;
 }
 
-float Biome::surflet(glm::vec2 P, glm::vec2 gridPoint) {
+float Biome::surflet1(glm::vec2 P, glm::vec2 gridPoint) {
     // Compute falloff function by converting linear distance to a polynomial
     float distX = abs(P.x - gridPoint.x);
     float distY = abs(P.y - gridPoint.y);
@@ -87,6 +87,41 @@ float Biome::surflet(glm::vec2 P, glm::vec2 gridPoint) {
     return height * tX * tY;
 }
 
+float Biome::surflet2(glm::vec2 P, glm::vec2 gridPoint) {
+    // Compute falloff function by converting linear distance to a polynomial
+    float distX = abs(P.x - gridPoint.x);
+    float distY = abs(P.y - gridPoint.y);
+    float tX = 1 - 3 * pow(distX, 4.f) + 14 * pow(distX, 3.f) - 12 * pow(distX, 4.f);
+    float tY = 1 - 3 * pow(distY, 4.f) + 14 * pow(distY, 3.f) - 12 * pow(distY, 4.f);
+    // Get the random vector for the grid point
+    glm::vec2 gradient = 2.f * noise2D(gridPoint) - glm::vec2(1.f);
+    // Get the vector from the grid point to P
+    glm::vec2 diff = P - gridPoint;
+    // Get the value of our height field by dotting grid->P with our gradient
+    float height = glm::dot(diff, gradient);
+    // Scale our height field (i.e. reduce it) by our polynomial falloff function
+    return height * tX * tY;
+}
+
+float Biome::perlin1(glm::vec2 uv) {
+    float surfletSum = 0.f;
+    // Iterate over the four integer corners surrounding uv
+    for(int dx = 0; dx <= 1; ++dx) {
+        for(int dy = 0; dy <= 1; ++dy) {
+            surfletSum += surflet1(uv, glm::floor(uv) + glm::vec2(dx, dy));
+        }
+    } return surfletSum;
+}
+
+float Biome::perlin2(glm::vec2 uv) {
+    float surfletSum = 0.f;
+    // Iterate over the four integer corners surrounding uv
+    for(int dx = 0; dx <= 1; ++dx) {
+            for(int dy = 0; dy <= 1; ++dy) {
+                surfletSum += surflet2(uv, glm::floor(uv) + glm::vec2(dx, dy));
+            }
+    } return surfletSum;
+}
 float Biome::surflet3D(glm::vec3 P, glm::vec3 gridPoint) {
     glm::vec3 dist = glm::abs(P - gridPoint);
     glm::vec3 t = glm::vec3(1.f) - 6.f * glm::vec3(pow(dist.x, 5.f), pow(dist.y, 5.f), pow(dist.z, 5.f))
@@ -96,16 +131,6 @@ float Biome::surflet3D(glm::vec3 P, glm::vec3 gridPoint) {
     glm::vec3 diff = P - gridPoint;
     float height = glm::dot(diff, gradient);
     return height * t.x * t.y * t.z;
-}
-
-float Biome::perlin(glm::vec2 uv) {
-    float surfletSum = 0.f;
-    // Iterate over the four integer corners surrounding uv
-    for(int dx = 0; dx <= 1; ++dx) {
-            for(int dy = 0; dy <= 1; ++dy) {
-                surfletSum += surflet(uv, glm::floor(uv) + glm::vec2(dx, dy));
-            }
-    } return surfletSum;
 }
 
 float Biome::perlin3D(glm::vec3 p) {
@@ -127,7 +152,7 @@ float Biome::hills(glm::vec2 xz) {
     float dF = 0.5;
 
     for (int i = 0; i < 4; ++i) {
-        h += perlin(xz / freq);
+        h += perlin1(xz / freq);
         freq *= dF;
     }
 
@@ -154,7 +179,7 @@ float Biome::mountains(glm::vec2 xz) {
     float freq = 175.f;
 
     for (int i = 0; i < 4; ++i) {
-        float h1 = perlin(xz / freq);
+        float h1 = perlin1(xz / freq);
         h1 = 1. - abs(h1);
         h1 = pow(h1, 1.25);
         h += h1 * amp;
@@ -171,7 +196,7 @@ float Biome::forest(glm::vec2 xz) {
     float freq = 90.f;
 
     for (int i = 0; i < 4; ++i) {
-        h += amp * perlin(xz / freq);
+        h += amp * perlin1(xz / freq);
         freq *= 0.5;
         amp *= 0.5;
     } return floor(150.f + h * 20) - 20;
@@ -184,14 +209,14 @@ float Biome::islands(glm::vec2 xz) {
     float freq = 200.f;
 
     for (int i = 0; i < 4; ++i) {
-        h += amp * perlin(xz / freq);
+        h += amp * perlin1(xz / freq);
         freq *= 0.25;
         amp *= 0.25;
     } return floor(35.f + h * 100);
 }
 
 float Biome::blendTerrain(glm::vec2 uv, float h1, float h2) {
-    double p = perlin(uv);
+    double p = perlin1(uv);
     float heightMix = glm::smoothstep(0.25, 0.75, p);
 
     // perform linear interpolation
