@@ -254,7 +254,7 @@ void Terrain::CreateTestScene()
 
             int numDirtBlocks = 10 * Biome::fbm(glm::vec2(x, z));
             if (b == MOUNTAINS) {
-                if (h <= 120) {
+                if (h < 120) {
                     for (int y = 0; y < h - numDirtBlocks; ++y) {
                         setBlockAt(x, y, z, STONE);
                     }
@@ -282,10 +282,10 @@ void Terrain::CreateTestScene()
                     setBlockAt(x, currY, z, DIRT);
                 }
 
-                if (h < 123) {
+                if (h < 120) {
                     setBlockAt(x, h - 1, z, DIRT);
 
-                    for (int y = h; y < 123; ++y) {
+                    for (int y = h; y < 120; ++y) {
                         setBlockAt(x, y, z, WATER);
                     }
                 } else {
@@ -315,8 +315,8 @@ void Terrain::CreateTestScene()
                 for (int y = 80; y < h; ++y) {
                     setBlockAt(x, y, z, SAND);
                 }
-                if (h < 120) {
-                    for (int y = h; y < 120; ++y) {
+                if (h < 115) {
+                    for (int y = h; y < 115; ++y) {
                         setBlockAt(x, y, z, WATER);
                     }
                 }
@@ -374,40 +374,44 @@ void Terrain::loadNewChunks(glm::vec3 currPos) {
 std::pair<float, BiomeEnum> Terrain::blendMultipleBiomes(glm::vec2 xz, float forestH, float mountH, float hillH, float islandH) {
 
     // perform bilinear interpolation
-    BiomeEnum bFM;
-    BiomeEnum bHI;
+
     BiomeEnum b;
     glm::vec4 biomeWts;
 
-    double p1 = (Biome::perlin(xz) + 1.f) / 2.f; // remap perlin noise from (-1, 1) to (0, 1)
-    if (p1 < 0.5) {
-        bFM = FOREST;
-        bHI = HILLS;
-    } else {
-        bFM = MOUNTAINS;
-        bHI = ISLANDS;
-    }
-    float heightMix1 = glm::smoothstep(0.25, 0.75, p1);
-    float hFM = ((1 - heightMix1) * forestH) + (heightMix1 * mountH);
-    float hHI = ((1 - heightMix1) * hillH) + (heightMix1 * islandH);
+    double elev = (Biome::perlin1(xz) + 1.f) / 2.f; // remap perlin noise from (-1, 1) to (0, 1)
+    double temp = (Biome::perlin2(xz) + 1.f) / 2.f;
 
-    double p2 = (Biome::perlin(glm::vec2(xz.y, xz.x)) + 1.f) / 2.f;
-    if (p2 < 0.5) {
-        b = bFM;
-    } else {
-        b = bHI;
-    }
-    biomeWts.x = p1 * (1.f - p2); // mountains
-    biomeWts.y = (1.f - p1) * p2; // hills
-    biomeWts.z = (1.f - p1) * (1.f - p2); // forest
-    biomeWts.w = p1 * p2; // islands
+//    BiomeEnum bFM;
+//    BiomeEnum bHI;
+//    float heightMix1 = glm::smoothstep(0.25, 0.75, p1);
+//    float hFM = ((1 - heightMix1) * forestH) + (heightMix1 * mountH);
+//    float hHI = ((1 - heightMix1) * hillH) + (heightMix1 * islandH);
 
+    if (elev >= 0.5 && temp < 0.5) {
+        b = MOUNTAINS;
+    } else if (elev >= 0.5 && temp >= 0.5) {
+        b = HILLS;
+    } else if (elev < 0.5 && temp < 0.5) {
+        b = FOREST;
+    } else {
+        b = ISLANDS;
+    }
+
+    // set biome weights in m_biomes for each xz coord in this chunk
+    biomeWts.x = elev * (1.f - temp);
+    biomeWts.y = elev * temp;
+    biomeWts.z = (1.f - elev) * (1.f - temp);
+    biomeWts.w = (1.f - elev) * temp;
+    setBiomeAt(xz.x, xz.y, biomeWts);
+
+//    std::cout<<"("<<biomeWts.x<<","<<biomeWts.y<<","<<biomeWts.z<<","<<biomeWts.w<<")"<<std::endl;
     if (biomeWts.x + biomeWts.y + biomeWts.z + biomeWts.w != 1) {
         std::cout<< "something is wrong" <<std::endl;
     }
 
-    setBiomeAt(xz.x, xz.y, biomeWts);
-    float heightMix2 = glm::smoothstep(0.25, 0.75, p2);
-    float h = ((1 - heightMix2) * hFM) + (heightMix2 * hHI);
+    float h = (biomeWts.x * mountH) +
+                (biomeWts.y * hillH) +
+                (biomeWts.z * forestH) +
+                (biomeWts.w * islandH);
     return std::pair(h, b);
 }
