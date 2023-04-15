@@ -18,12 +18,17 @@ public:
     int attrPos; // A handle for the "in" vec4 representing vertex position in the vertex shader
     int attrNor; // A handle for the "in" vec4 representing vertex normal in the vertex shader
     int attrCol; // A handle for the "in" vec4 representing vertex color in the vertex shader
+    int attrUV;
+    int attrBT;
+    int attrBWts;
     int attrPosOffset; // A handle for a vec3 used only in the instanced rendering shader
 
     int unifModel; // A handle for the "uniform" mat4 representing model matrix in the vertex shader
     int unifModelInvTr; // A handle for the "uniform" mat4 representing inverse transpose of the model matrix in the vertex shader
     int unifViewProj; // A handle for the "uniform" mat4 representing combined projection and view matrices in the vertex shader
     int unifColor; // A handle for the "uniform" vec4 representing color of geometry in the vertex shader
+    int unifTexture;
+    int unifTime;
 
 public:
     ShaderProgram(OpenGLContext* context);
@@ -37,11 +42,17 @@ public:
     void setViewProjMatrix(const glm::mat4 &vp);
     // Pass the given color to this shader on the GPU
     void setGeometryColor(glm::vec4 color);
+    // Pass the given texture to this shader on the GPU
+    void setTexture();
+    // Pass the current time to this shader on the GPU
+    void setTime(int t);
     // Draw the given object to our screen using this ShaderProgram's shaders
     void draw(Drawable &d);
     // Draw the given object to our screen multiple times using instanced rendering
-    void drawInstanced(InstancedDrawable &d);
-    void drawInterleaved(Drawable &d);
+    void drawInstancedO(InstancedDrawable &d);
+    void drawInstancedT(InstancedDrawable &d);
+    void drawInterleavedO(Drawable &d);
+    void drawInterleavedT(Drawable &d);
     // Utility function used in create()
     char* textFileRead(const char*);
     // Utility function that prints any shader compilation errors to the console

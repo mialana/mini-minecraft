@@ -64,6 +64,24 @@ BlockType Terrain::getBlockAt(int x, int y, int z) const
     }
 }
 
+glm::vec4 Terrain::getBiomeAt(glm::vec2 p) const {
+    return getBiomeAt(p.x, p.y);
+}
+
+glm::vec4 Terrain::getBiomeAt(int x, int z) const
+{
+    if(hasChunkAt(x, z)) {
+        const uPtr<Chunk> &c = getChunkAt(x, z);
+        glm::vec2 chunkOrigin = glm::vec2(floor(x / 16.f) * 16, floor(z / 16.f) * 16);
+        return c->getBiomeAt(static_cast<unsigned int>(x - chunkOrigin.x),
+                             static_cast<unsigned int>(z - chunkOrigin.y));
+    }
+    else {
+        throw std::out_of_range("Coordinates " + std::to_string(x) +
+                                std::to_string(z) + " have no Chunk!");
+    }
+}
+
 BlockType Terrain::getBlockAt(glm::vec3 p) const {
     return getBlockAt(p.x, p.y, p.z);
 }
@@ -112,6 +130,20 @@ void Terrain::setBlockAt(int x, int y, int z, BlockType t)
     }
 }
 
+void Terrain::setBiomeAt(int x, int z, glm::vec4 b) {
+    if(hasChunkAt(x, z)) {
+        uPtr<Chunk> &c = getChunkAt(x, z);
+        glm::vec2 chunkOrigin = glm::vec2(floor(x / 16.f) * 16, floor(z / 16.f) * 16);
+        c->setBiomeAt(static_cast<unsigned int>(x - chunkOrigin.x),
+                      static_cast<unsigned int>(z - chunkOrigin.y),
+                      b);
+    }
+    else {
+        throw std::out_of_range("Coordinates " + std::to_string(x) +
+                                std::to_string(z) + " have no Chunk!");
+    }
+}
+
 Chunk* Terrain::instantiateChunkAt(int x, int z) {
     uPtr<Chunk> chunk = mkU<Chunk>(mp_context);
     Chunk *cPtr = chunk.get();
@@ -143,8 +175,18 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
             const uPtr<Chunk>& currChunk = getChunkAt(x, z);
             currChunk->createVBOdata();
 
-            shaderProgram->setModelMatrix(glm::translate(glm::mat4(1), glm::vec3(x, 0, z)));
-            shaderProgram->drawInterleaved(*currChunk);
+            shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
+            shaderProgram->drawInterleavedO(*currChunk);
+        }
+    }
+
+    for(int x = minX; x < maxX; x += 16) {
+        for(int z = minZ; z < maxZ; z += 16) {
+            const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+            currChunk->createVBOdata();
+
+            shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
+            shaderProgram->drawInterleavedT(*currChunk);
         }
     }
 }
@@ -165,44 +207,137 @@ void Terrain::CreateTestScene()
     // now exists.
     m_generatedTerrain.insert(toKey(0, 0));
 
+
+//    for (int x = 0; x < 48; ++x) {
+//        for (int z = 0; z < 48; ++z) {
+//            int h = mountains(glm::vec2(x, z));
+//            int numDirtBlocks = 10 * fbm(glm::vec2(x, z));
+
+//            if (h <= 100) {
+//                for (int y = 0; y < h - numDirtBlocks; ++y) {
+//                    setBlockAt(x, y, z, STONE);
+//                }
+//                for (int y = h - numDirtBlocks; y < h; ++y) {
+//                    setBlockAt(x, y, z, DIRT);
+//                }
+//                for (int y = h; y < 100; ++y) {
+//                    setBlockAt(x, y, z, WATER);
+//                }
+//            } else {
+//                for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
+//                    setBlockAt(x, y, z, STONE);
+//                }
+//                for (int y = h - numDirtBlocks - 1; y < h - 2; ++y) {
+//                    setBlockAt(x, y, z, DIRT);
+//                }
+//                setBlockAt(x, h - 2, z, GRASS);
+//                setBlockAt(x, h - 1, z, SNOW_1);
+//            }
+
+//            std::cout<< h << std::endl;
+//        }
+//    }
+
     for (int x = 0; x < 48; ++x) {
         for (int z = 0; z < 48; ++z) {
 
-            float h_h = hills(glm::vec2(x, z));
-            float h_m = mountains(glm::vec2(x, z));
-            float h_f = forest(glm::vec2(x, z));
-            float h_i = islands(glm::vec2(x, z));
+            float hM = mountains(glm::vec2(x, z));
+            float hH = hills(glm::vec2(x, z));
+            float hF = forest(glm::vec2(x, z));
+            float hI = islands(glm::vec2(x, z));
 
-            // TODO: add forest and beach biomes
+            std::pair<float, Biome> hb = blendTerrain(glm::vec2(x, z), hM, hF, hH, hI);
+            float h = hb.first;
+            Biome b = hb.second;
 
-            float h = blendTerrain(glm::vec2(x, z), h_h, h_m);
-            float biomeType = blendTerrain(glm::vec2(x, z), 0.f, 1.f);
+
+
             int numDirtBlocks = 10 * fbm(glm::vec2(x, z));
-            if (biomeType >= 0.5) {
-                // hills
+            if (b == MOUNTAINS) {
+                if (h <= 120) {
+                    for (int y = 0; y < h - numDirtBlocks; ++y) {
+                        setBlockAt(x, y, z, STONE);
+                    }
+                    for (int y = h - numDirtBlocks; y < h; ++y) {
+                        setBlockAt(x, y, z, DIRT);
+                    }
+                    for (int y = h; y < 120; ++y) {
+                        setBlockAt(x, y, z, WATER);
+                    }
+                } else {
+                    for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
+                        setBlockAt(x, y, z, STONE);
+                    }
+                    for (int y = h - numDirtBlocks - 1; y < h - 1; ++y) {
+                        setBlockAt(x, y, z, DIRT);
+                    }
+                    setBlockAt(x, h - 1, z, GRASS);
+                    setBlockAt(x, h, z, SNOW_1);
+                }
+            } else if (b == HILLS) {
                 for (int y = 0; y < h - 3 - numDirtBlocks; ++y) {
                     setBlockAt(x, y, z, STONE);
                 }
                 for (int y = h - 3 - numDirtBlocks; y < h - 1; ++y) {
                     setBlockAt(x, y, z, DIRT);
                 }
-                setBlockAt(x, h - 1, z, GRASS);
-            } else {
-                // mountains
-                if (h <= 100) {
-                    for (int y = 0; y < h - 1; ++y) {
-                        setBlockAt(x, y, z, STONE);
+
+                if (h < 123) {
+                    setBlockAt(x, h - 1, z, DIRT);
+
+                    for (int y = h; y < 123; ++y) {
+                        setBlockAt(x, y, z, WATER);
                     }
                 } else {
-                    for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
-                        setBlockAt(x, y, z, STONE);
-                    }
-                    for (int y = h - numDirtBlocks - 1; y < h - 2; ++y) {
-                        setBlockAt(x, y, z, DIRT);
-                    }
-                    setBlockAt(x, h - 2, z, GRASS);
-                    setBlockAt(x, h - 1, z, SNOW);
+                    setBlockAt(x, h - 1, z, GRASS);
                 }
+            } else if (b == FOREST) {
+                for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
+                    setBlockAt(x, y, z, STONE);
+                }
+                for (int y = h - numDirtBlocks - 1; y < h - 1; ++y) {
+                    setBlockAt(x, y, z, DIRT);
+                }
+
+                if (h < 125) {
+                    setBlockAt(x, h - 1, z, DIRT);
+
+                    for (int y = h; y < 125; ++y) {
+                        setBlockAt(x, y, z, WATER);
+                    }
+                } else {
+                    setBlockAt(x, h - 1, z, GRASS);
+                }
+            } else if (b == ISLANDS) {
+                for (int y = 0; y < 80; ++y) {
+                    setBlockAt(x, y, z, STONE);
+                }
+                for (int y = 80; y < h; ++y) {
+                    setBlockAt(x, y, z, SAND);
+                }
+                if (h < 120) {
+                    for (int y = h; y < 120; ++y) {
+                        setBlockAt(x, y, z, WATER);
+                    }
+                }
+            }
+
+            // assets
+            float plant = noise1D(glm::vec2(x, z));
+            if (getBlockAt(x, h, z) == EMPTY) {
+
+                // TALL_GRASS
+                if ((b == MOUNTAINS && plant < 0.35) ||
+                    (b == HILLS && plant < 0.75) ||
+                    (b == FOREST && plant < 0.25) ||
+                    (b == ISLANDS && plant < 0.1)) {
+
+                    setBlockAt(x, h, z, TALL_GRASS);
+                }
+
+                // bamboo, trees
+            } else if (getBlockAt(x, h, z) == WATER) {
+                // lotuses, coral, sea grass, kelp, lanterns
             }
         }
     }
@@ -331,7 +466,7 @@ float Terrain::hills(glm::vec2 xz) {
         h -= min;
         h *= sharpen;
         h += min;
-    } return floor(130.f + (h * 50.f));
+    } return floor(160.f + (h * 50.f));
 }
 
 float Terrain::mountains(glm::vec2 xz) {
@@ -347,7 +482,7 @@ float Terrain::mountains(glm::vec2 xz) {
 
         amp *= 0.5;
         freq *= 0.5;
-    } return floor(100.f + h * 150.f);
+    } return floor(75.f + h * 150.f);
 }
 
 float Terrain::forest(glm::vec2 xz) {
@@ -360,7 +495,7 @@ float Terrain::forest(glm::vec2 xz) {
         h += amp * perlin(xz / freq);
         freq *= 0.5;
         amp *= 0.5;
-    } return floor(150.f + h * 20);
+    } return floor(150.f + h * 20) - 20;
 }
 
 float Terrain::islands(glm::vec2 xz) {
@@ -383,4 +518,45 @@ float Terrain::blendTerrain(glm::vec2 uv, float h1, float h2) {
     // perform linear interpolation
     float height = ((1 - heightMix) * h1) + (heightMix * h2);
     return height;
+}
+
+std::pair<float, Biome> Terrain::blendTerrain(glm::vec2 xz, float forestH, float mountH, float hillH, float islandH) {
+
+    // perform bilinear interpolation
+    Biome bFM;
+    Biome bHI;
+    Biome b;
+    glm::vec4 biomeWts;
+
+    double p1 = (perlin(xz) + 1.f) / 2.f; // remap perlin noise from (-1, 1) to (0, 1)
+    if (p1 < 0.5) {
+        bFM = FOREST;
+        bHI = HILLS;
+    } else {
+        bFM = MOUNTAINS;
+        bHI = ISLANDS;
+    }
+    float heightMix1 = glm::smoothstep(0.25, 0.75, p1);
+    float hFM = ((1 - heightMix1) * forestH) + (heightMix1 * mountH);
+    float hHI = ((1 - heightMix1) * hillH) + (heightMix1 * islandH);
+
+    double p2 = (perlin(glm::vec2(xz.y, xz.x)) + 1.f) / 2.f;
+    if (p2 < 0.5) {
+        b = bFM;
+    } else {
+        b = bHI;
+    }
+    biomeWts.x = p1 * (1.f - p2); // mountains
+    biomeWts.y = (1.f - p1) * p2; // hills
+    biomeWts.z = (1.f - p1) * (1.f - p2); // forest
+    biomeWts.w = p1 * p2; // islands
+
+    if (biomeWts.x + biomeWts.y + biomeWts.z + biomeWts.w != 1) {
+        std::cout<< "something is wrong" <<std::endl;
+    }
+
+    setBiomeAt(xz.x, xz.y, biomeWts);
+    float heightMix2 = glm::smoothstep(0.25, 0.75, p2);
+    float h = ((1 - heightMix2) * hFM) + (heightMix2 * hHI);
+    return std::pair(h, b);
 }

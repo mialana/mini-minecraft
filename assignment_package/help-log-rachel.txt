@@ -1,1 +1,34 @@
+Milestone1:
 https://thebookofshaders.com/glossary/?search=fract
+
+
+Milestone2:
+https://en.cppreference.com/w/cpp/container/unordered_map
+
+https://en.cppreference.com/w/cpp/container/unordered_map/at
+
+https://en.cppreference.com/w/cpp/error/out_of_range
+
+https://stackoverflow.com/questions/10124679/what-happens-if-i-read-a-maps-value-where-the-key-does-not-exist
+
+https://cplusplus.com/doc/tutorial/exceptions/
+
+https://stackoverflow.com/questions/20944784/why-is-conversion-from-string-constant-to-char-valid-in-c-but-invalid-in-c
+
+https://stackoverflow.com/questions/11376163/custom-hash-function-for-pair-of-enum-values-used-as-unordered-map-key
+
+https://registry.khronos.org/OpenGL-Refpages/gl4/html/glVertexAttribDivisor.xhtml
+
+
+
+notes:
+
+- have chunk store a vec4 biomes that contains weighting of each biome at that xz coord, and in vertex struct, push back the correct interpolated color in the color variable for water and grass
+- bilinear interp: end of 4/11 lec
+
+- neg faces are dark (create ambient light term in frag shader)
+- shared transparent faces are being drawn when they shouldn't be
+
+- think about how to check if you're underwater (not just if the BlockType at this position == WATER)
+- maybe travel upwards until you hit either a full/ partial block or a water block?
+
