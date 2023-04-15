@@ -17,9 +17,21 @@ BlockType Chunk::getBlockAt(int x, int y, int z) const {
     return getBlockAt(static_cast<unsigned int>(x), static_cast<unsigned int>(y), static_cast<unsigned int>(z));
 }
 
+glm::vec4 Chunk::getBiomeAt(unsigned int x, unsigned int z) const {
+    return m_biomes.at(x + 16 * z);
+}
+
+glm::vec4 Chunk::getBiomeAt(int x, int z) const {
+    return getBiomeAt(static_cast<unsigned int>(x), static_cast<unsigned int>(z));
+}
+
 // Does bounds checking with at()
 void Chunk::setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t) {
     m_blocks.at(x + 16 * y + 16 * 256 * z) = t;
+}
+
+void Chunk::setBiomeAt(unsigned int x, unsigned int z, glm::vec4 b) {
+    m_biomes.at(x + 16 * z) = b;
 }
 
 void Chunk::linkNeighbor(uPtr<Chunk> &neighbor, Direction dir) {
@@ -107,6 +119,18 @@ boolean Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) 
     if ((bt == WATER || bt == LAVA || bt == ICE) &&
             (bt == adjBlockType ||
             ((isCross4(adjBlockType) || isCross2(adjBlockType)) && d != YPOS))) {
+        return false;
+    }
+
+    if (isPartialX(bt) && !isPartialY(bt) && !isPartialZ(bt) && bt == adjBlockType) {
+        return false;
+    }
+
+    if (isPartialY(bt) && !isPartialX(bt) && !isPartialZ(bt) && bt == adjBlockType) {
+        return false;
+    }
+
+    if (isPartialZ(bt) && !isPartialX(bt) && !isPartialY(bt) && bt == adjBlockType) {
         return false;
     }
 

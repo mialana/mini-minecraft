@@ -40,6 +40,10 @@ enum BlockType : unsigned char
     KELP_1, KELP_2, SEA_GRASS, EMPTY
 };
 
+enum Biome : unsigned char {
+    MOUNTAINS, HILLS, FOREST, ISLANDS, CAVES
+};
+
 // The six cardinal directions in 3D space + diagonals (rotated 45 degrees)
 enum Direction : unsigned char
 {
@@ -1067,6 +1071,7 @@ private:
     // These allow us to properly determine
     std::unordered_map<Direction, Chunk*, EnumHash> m_neighbors;
 
+    std::array<glm::vec4, 256> m_biomes;
     static bool isInBounds(glm::ivec3);
     BlockType getAdjBlockType(Direction, glm::ivec3);
 
@@ -1080,6 +1085,12 @@ public:
     BlockType getBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
     BlockType getBlockAt(int x, int y, int z) const;
     void setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t);
+
+    // mountains = 0, hills = 1, forest = 2, islands = 3, caves = 4
+    glm::vec4 getBiomeAt(unsigned int x, unsigned int z) const;
+    glm::vec4 getBiomeAt(int x, int z) const;
+    void setBiomeAt(unsigned int x, unsigned int z, glm::vec4 b);
+
     void linkNeighbor(uPtr<Chunk>& neighbor, Direction dir);
 
     static boolean isHPlane(BlockType);

@@ -95,15 +95,19 @@ void main()
         // 2 = water (animation + biome color interpolation)
         // 3 = lava animation
 
-
-
         if (texIdx == 0) {
             newUV = fs_UV;
             out_Col = vec4(texture(u_TextureSampler, fs_UV));
         } else if (texIdx == 1) {
+            // hills: vec4(0.15, 0.812, 0, 1);
+            // mountains: vec4(0.3, 0.55, 0.25, 1);
+            // beach: vec4(0.55, 0.75, 0.25, 1);
+            // forest: vec4(0.65, 0.8, 0.5, 1);
+            // caves: (0.5, 0.8, 0.65, 1);
+            vec4 tintCol = vec4(0.15, 0.812, 0, 1);
             newUV = fs_UV;
             out_Col = vec4(texture(u_TextureSampler, fs_UV));
-            out_Col = vec4(tint(out_Col, vec4(0, 1, 0.25, 1)));
+            out_Col = vec4(tint(out_Col, tintCol));
         } else if (texIdx == 2) {
             // water animation
             float uOffset = (0.0625 / 64.f) * float(mod(u_Time, 64));

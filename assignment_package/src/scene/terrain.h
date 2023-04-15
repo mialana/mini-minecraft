@@ -71,6 +71,9 @@ private:
     float islands(glm::vec2 p);
     float blendTerrain(glm::vec2 uv, float h1, float h2);
 
+    // returns a float height and stores an int representing the biome
+    std::pair<float, Biome> blendTerrain(glm::vec2 uv, float h1, float h2, float h3, float h4);
+
 public:
     Terrain(OpenGLContext *context);
     ~Terrain();
@@ -92,13 +95,16 @@ public:
     // values) return the block stored at that point in space.
     BlockType getBlockAt(int x, int y, int z) const;
     BlockType getBlockAt(glm::vec3 p) const;
-//    int getBiomeAt(glm::vec3 p) const;
+
+    // mountains = 0, hills = 1, forest = 2, islands = 3, caves = 4
+    glm::vec4 getBiomeAt(glm::vec2 p) const;
+    glm::vec4 getBiomeAt(int x, int z) const;
 
     // Given a world-space coordinate (which may have negative
     // values) set the block at that point in space to the
     // given type.
     void setBlockAt(int x, int y, int z, BlockType t);
-//    void setBiomeAt(int x, int y, int z, int b);
+    void setBiomeAt(int x, int z, glm::vec4 b);
 
     // Draws every Chunk that falls within the bounding box
     // described by the min and max coords, using the provided
