@@ -61,8 +61,10 @@ private:
     float noise1D(glm::vec2 p);
     float interpNoise(float x, float y);
     float fbm(const glm::vec2 uv); // range 0 to 1
-    float surflet(glm::vec2 P, glm::vec2 gridPoint);
-    float perlin(glm::vec2 uv); // range -1 to 1
+    float surflet1(glm::vec2 P, glm::vec2 gridPoint);
+    float surflet2(glm::vec2 P, glm::vec2 gridPoint);
+    float perlin1(glm::vec2 uv); // range -1 to 1
+    float perlin2(glm::vec2 uv); // range -1 to 1
     float worley(glm::vec2 uv); // range 0 to 1
 
     float hills(glm::vec2 p);

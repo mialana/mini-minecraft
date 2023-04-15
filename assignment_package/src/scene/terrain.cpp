@@ -254,7 +254,7 @@ void Terrain::CreateTestScene()
 
             int numDirtBlocks = 10 * fbm(glm::vec2(x, z));
             if (b == MOUNTAINS) {
-                if (h <= 120) {
+                if (h < 120) {
                     for (int y = 0; y < h - numDirtBlocks; ++y) {
                         setBlockAt(x, y, z, STONE);
                     }
@@ -282,10 +282,10 @@ void Terrain::CreateTestScene()
                     setBlockAt(x, y, z, DIRT);
                 }
 
-                if (h < 123) {
+                if (h < 120) {
                     setBlockAt(x, h - 1, z, DIRT);
 
-                    for (int y = h; y < 123; ++y) {
+                    for (int y = h; y < 120; ++y) {
                         setBlockAt(x, y, z, WATER);
                     }
                 } else {
@@ -315,8 +315,8 @@ void Terrain::CreateTestScene()
                 for (int y = 80; y < h; ++y) {
                     setBlockAt(x, y, z, SAND);
                 }
-                if (h < 120) {
-                    for (int y = h; y < 120; ++y) {
+                if (h < 115) {
+                    for (int y = h; y < 115; ++y) {
                         setBlockAt(x, y, z, WATER);
                     }
                 }
@@ -400,7 +400,7 @@ float Terrain::fbm(const glm::vec2 uv) {
     return total;
 }
 
-float Terrain::surflet(glm::vec2 P, glm::vec2 gridPoint) {
+float Terrain::surflet1(glm::vec2 P, glm::vec2 gridPoint) {
     // Compute falloff function by converting linear distance to a polynomial
     float distX = abs(P.x - gridPoint.x);
     float distY = abs(P.y - gridPoint.y);
@@ -416,12 +416,38 @@ float Terrain::surflet(glm::vec2 P, glm::vec2 gridPoint) {
     return height * tX * tY;
 }
 
-float Terrain::perlin(glm::vec2 uv) {
+float Terrain::surflet2(glm::vec2 P, glm::vec2 gridPoint) {
+    // Compute falloff function by converting linear distance to a polynomial
+    float distX = abs(P.x - gridPoint.x);
+    float distY = abs(P.y - gridPoint.y);
+    float tX = 1 - 3 * pow(distX, 4.f) + 14 * pow(distX, 3.f) - 12 * pow(distX, 4.f);
+    float tY = 1 - 3 * pow(distY, 4.f) + 14 * pow(distY, 3.f) - 12 * pow(distY, 4.f);
+    // Get the random vector for the grid point
+    glm::vec2 gradient = 2.f * noise2D(gridPoint) - glm::vec2(1.f);
+    // Get the vector from the grid point to P
+    glm::vec2 diff = P - gridPoint;
+    // Get the value of our height field by dotting grid->P with our gradient
+    float height = glm::dot(diff, gradient);
+    // Scale our height field (i.e. reduce it) by our polynomial falloff function
+    return height * tX * tY;
+}
+
+float Terrain::perlin1(glm::vec2 uv) {
+    float surfletSum = 0.f;
+    // Iterate over the four integer corners surrounding uv
+    for(int dx = 0; dx <= 1; ++dx) {
+        for(int dy = 0; dy <= 1; ++dy) {
+            surfletSum += surflet1(uv, glm::floor(uv) + glm::vec2(dx, dy));
+        }
+    } return surfletSum;
+}
+
+float Terrain::perlin2(glm::vec2 uv) {
     float surfletSum = 0.f;
     // Iterate over the four integer corners surrounding uv
     for(int dx = 0; dx <= 1; ++dx) {
             for(int dy = 0; dy <= 1; ++dy) {
-                surfletSum += surflet(uv, glm::floor(uv) + glm::vec2(dx, dy));
+                surfletSum += surflet2(uv, glm::floor(uv) + glm::vec2(dx, dy));
             }
     } return surfletSum;
 }
@@ -448,7 +474,7 @@ float Terrain::hills(glm::vec2 xz) {
     float dF = 0.5;
 
     for (int i = 0; i < 4; ++i) {
-        h += perlin(xz / freq);
+        h += perlin1(xz / freq);
         freq *= dF;
     }
 
@@ -475,7 +501,7 @@ float Terrain::mountains(glm::vec2 xz) {
     float freq = 175.f;
 
     for (int i = 0; i < 4; ++i) {
-        float h1 = perlin(xz / freq);
+        float h1 = perlin1(xz / freq);
         h1 = 1. - abs(h1);
         h1 = pow(h1, 1.25);
         h += h1 * amp;
@@ -492,7 +518,7 @@ float Terrain::forest(glm::vec2 xz) {
     float freq = 90.f;
 
     for (int i = 0; i < 4; ++i) {
-        h += amp * perlin(xz / freq);
+        h += amp * perlin1(xz / freq);
         freq *= 0.5;
         amp *= 0.5;
     } return floor(150.f + h * 20) - 20;
@@ -505,14 +531,14 @@ float Terrain::islands(glm::vec2 xz) {
     float freq = 200.f;
 
     for (int i = 0; i < 4; ++i) {
-        h += amp * perlin(xz / freq);
+        h += amp * perlin1(xz / freq);
         freq *= 0.25;
         amp *= 0.25;
     } return floor(35.f + h * 100);
 }
 
 float Terrain::blendTerrain(glm::vec2 uv, float h1, float h2) {
-    double p = perlin(uv);
+    double p = perlin1(uv);
     float heightMix = glm::smoothstep(0.25, 0.75, p);
 
     // perform linear interpolation
@@ -520,43 +546,41 @@ float Terrain::blendTerrain(glm::vec2 uv, float h1, float h2) {
     return height;
 }
 
-std::pair<float, Biome> Terrain::blendTerrain(glm::vec2 xz, float forestH, float mountH, float hillH, float islandH) {
-
+std::pair<float, Biome> Terrain::blendTerrain(glm::vec2 xz, float mountH, float hillH, float forestH, float islandH) {
     // perform bilinear interpolation
-    Biome bFM;
-    Biome bHI;
     Biome b;
     glm::vec4 biomeWts;
 
-    double p1 = (perlin(xz) + 1.f) / 2.f; // remap perlin noise from (-1, 1) to (0, 1)
-    if (p1 < 0.5) {
-        bFM = FOREST;
-        bHI = HILLS;
-    } else {
-        bFM = MOUNTAINS;
-        bHI = ISLANDS;
-    }
-    float heightMix1 = glm::smoothstep(0.25, 0.75, p1);
-    float hFM = ((1 - heightMix1) * forestH) + (heightMix1 * mountH);
-    float hHI = ((1 - heightMix1) * hillH) + (heightMix1 * islandH);
+    float elev = (perlin1(xz) + 1.f) / 2.f; // remap perlin noise from (-1, 1) to (0, 1)
+    float temp = (perlin2(xz) + 1.f) / 2.f;
 
-    double p2 = (perlin(glm::vec2(xz.y, xz.x)) + 1.f) / 2.f;
-    if (p2 < 0.5) {
-        b = bFM;
-    } else {
-        b = bHI;
-    }
-    biomeWts.x = p1 * (1.f - p2); // mountains
-    biomeWts.y = (1.f - p1) * p2; // hills
-    biomeWts.z = (1.f - p1) * (1.f - p2); // forest
-    biomeWts.w = p1 * p2; // islands
+    std::cout<<elev<<","<<temp<<std::endl;
 
+    if (elev >= 0.5 && temp < 0.5) {
+        b = MOUNTAINS;
+    } else if (elev >= 0.5 && temp >= 0.5) {
+        b = HILLS;
+    } else if (elev < 0.5 && temp < 0.5) {
+        b = FOREST;
+    } else {
+        b = ISLANDS;
+    }
+
+    // set biome weights in m_biomes for each xz coord in this chunk
+    biomeWts.x = elev * (1.f - temp);
+    biomeWts.y = elev * temp;
+    biomeWts.z = (1.f - elev) * (1.f - temp);
+    biomeWts.w = (1.f - elev) * temp;
+    setBiomeAt(xz.x, xz.y, biomeWts);
+
+//    std::cout<<"("<<biomeWts.x<<","<<biomeWts.y<<","<<biomeWts.z<<","<<biomeWts.w<<")"<<std::endl;
     if (biomeWts.x + biomeWts.y + biomeWts.z + biomeWts.w != 1) {
         std::cout<< "something is wrong" <<std::endl;
     }
 
-    setBiomeAt(xz.x, xz.y, biomeWts);
-    float heightMix2 = glm::smoothstep(0.25, 0.75, p2);
-    float h = ((1 - heightMix2) * hFM) + (heightMix2 * hHI);
+    float h = (biomeWts.x * mountH) +
+                (biomeWts.y * hillH) +
+                (biomeWts.z * forestH) +
+                (biomeWts.w * islandH);
     return std::pair(h, b);
 }
