@@ -3,6 +3,7 @@ DEPENDPATH += $$PWD
 
 SOURCES += \
     $$PWD/framebuffer.cpp \
+    $$PWD/la.cpp \
     $$PWD/main.cpp \
     $$PWD/mainwindow.cpp \
     $$PWD/mygl.cpp \
@@ -20,10 +21,12 @@ SOURCES += \
     $$PWD/scene/player.cpp \
     $$PWD/scene/camera.cpp \
     $$PWD/playerinfo.cpp \
-    $$PWD/scene/chunk.cpp
+    $$PWD/scene/chunk.cpp \
+    $$PWD/texture.cpp
 
 HEADERS += \
     $$PWD/framebuffer.h \
+    $$PWD/la.h \
     $$PWD/mainwindow.h \
     $$PWD/mygl.h \
     $$PWD/postprocessshader.h \
@@ -42,4 +45,5 @@ HEADERS += \
     $$PWD/scene/player.h \
     $$PWD/scene/camera.h \
     $$PWD/playerinfo.h \
-    $$PWD/scene/chunk.h
+    $$PWD/scene/chunk.h \
+    $$PWD/texture.h

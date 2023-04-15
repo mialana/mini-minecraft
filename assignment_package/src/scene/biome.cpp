@@ -145,7 +145,7 @@ float Biome::hills(glm::vec2 xz) {
         h -= min;
         h *= sharpen;
         h += min;
-    } return floor(150.f + (h * 50.f));
+    } return floor(160.f + (h * 50.f));
 }
 
 float Biome::mountains(glm::vec2 xz) {
@@ -161,9 +161,7 @@ float Biome::mountains(glm::vec2 xz) {
 
         amp *= 0.5;
         freq *= 0.5;
-    }
-
-    return floor(120.f + h * 150.f);
+    } return floor(75.f + h * 150.f);
 }
 
 float Biome::forest(glm::vec2 xz) {
@@ -176,7 +174,7 @@ float Biome::forest(glm::vec2 xz) {
         h += amp * perlin(xz / freq);
         freq *= 0.5;
         amp *= 0.5;
-    } return floor(150.f + h * 20);
+    } return floor(150.f + h * 20) - 20;
 }
 
 float Biome::islands(glm::vec2 xz) {

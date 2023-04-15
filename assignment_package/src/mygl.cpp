@@ -6,6 +6,11 @@
 #include <QKeyEvent>
 #include <QDateTime>
 
+#include <iostream>
+#include <QFile>
+#include <QImage>
+#include <QOpenGLWidget>
+
 
 MyGL::MyGL(QWidget *parent)
     : OpenGLContext(parent),
@@ -23,7 +28,7 @@ MyGL::MyGL(QWidget *parent)
     setFocusPolicy(Qt::ClickFocus);
 
     setMouseTracking(true); // MyGL will track the mouse's movements even if a mouse button is not pressed
-    setCursor(Qt::BlankCursor); // Make the cursor invisible
+    setCursor(Qt::BlankCursor); // Make the cursor invisible    
 }
 
 MyGL::~MyGL() {
@@ -47,7 +52,11 @@ void MyGL::initializeGL()
     // Set a few settings/modes in OpenGL rendering
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_CULL_FACE);
+//    glCullFace(GL_FRONT);
     // Set the color with which the screen is filled at the start of each render call.
     glClearColor(0.37f, 0.74f, 1.0f, 1);
 
@@ -63,8 +72,22 @@ void MyGL::initializeGL()
     m_progLambert.create(":/glsl/lambert.vert.glsl", ":/glsl/lambert.frag.glsl");
     // Create and set up the flat lighting shader
     m_progFlat.create(":/glsl/flat.vert.glsl", ":/glsl/flat.frag.glsl");
-    m_progInstanced.create(":/glsl/instanced.vert.glsl", ":/glsl/lambert.frag.glsl");
     m_progLiquid.create(":/glsl/liquid.vert.glsl", ":/glsl/liquid.frag.glsl");
+    m_progInstanced.create(":/glsl/instanced.vert.glsl", ":/glsl/instanced.frag.glsl");
+
+    m_texture = std::make_shared<Texture>(this);
+    m_texture->create(":/textures/custom_minecraft_textures.png");
+
+
+    // Set a color with which to draw geometry.
+    // This will ultimately not be used when you change
+    // your program to render Chunks with vertex colors
+    // and UV coordinates
+    m_progLambert.setGeometryColor(glm::vec4(0,1,0,1));
+
+    m_texture->load(0);
+    m_texture->bind(0);
+    m_progLambert.setTexture();
 
     // We have to have a VAO bound in OpenGL 3.2 Core. But if we're not
     // using multiple VAOs, we can just bind one once.
@@ -120,6 +143,7 @@ void MyGL::tick() {
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
     m_terrain.loadNewChunks(m_player.mcr_position);
+    m_time++;
 }
 
 void MyGL::sendPlayerDataToGUI() const {
@@ -149,9 +173,11 @@ void MyGL::paintGL() {
 
     renderTerrain();
 
+    m_texture->bind(0);
+    m_progLambert.setTexture();
+
     glDisable(GL_DEPTH_TEST);
     m_progFlat.setModelMatrix(glm::mat4());
-    m_progFlat.setViewProjMatrix(m_player.mcr_camera.getViewProj());
     m_progFlat.draw(m_worldAxes);
 
     glEnable(GL_DEPTH_TEST);
@@ -164,6 +190,12 @@ void MyGL::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_progLiquid.draw(m_screenQuad);
+
+    m_progInstanced.setModelMatrix(glm::mat4());
+
+    m_progLambert.setModelMatrix(glm::mat4());
+
+    m_progLambert.setTime(m_time);
 }
 
 // TODO: Change this so it renders the nine zones of generated

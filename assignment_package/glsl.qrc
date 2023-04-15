@@ -7,5 +7,6 @@
         <file>glsl/instanced.vert.glsl</file>
         <file>glsl/liquid.vert.glsl</file>
         <file>glsl/liquid.frag.glsl</file>
+        <file>glsl/instanced.frag.glsl</file>
     </qresource>
 </RCC>
