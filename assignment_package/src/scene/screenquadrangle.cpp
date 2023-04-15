@@ -16,17 +16,17 @@ void ScreenQuadrangle::createVBOdata()
                                 glm::vec4(1.f, 1.f, 0.f, 1.f),
                                 glm::vec4(0.f, 1.f, 0.f, 1.f)};
 
-    m_count = 6;
+    m_oCount = 6;
 
-    generateIdx();
-    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_bufIdx);
+    generateOIdx();
+    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
     mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
 
-    generatePos();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_bufPos);
+    generateOPos();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
     mp_context->glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(glm::vec4), positions.data(), GL_STATIC_DRAW);
 
-    generateCol();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_bufCol);
+    generateOCol();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
     mp_context->glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(glm::vec4), colors.data(), GL_STATIC_DRAW);
 }

@@ -149,6 +149,8 @@ void ShaderProgram::setSampler2D(GLuint slot) {
 
     if (unifSampler2D != -1) {
             context->glUniform1i(unifSampler2D, slot);
+    }
+}
             
 void ShaderProgram::setTexture() {
     useMe();

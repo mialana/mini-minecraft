@@ -4,7 +4,6 @@
 #include "openglcontext.h"
 #include "scene/screenquadrangle.h"
 #include "shaderprogram.h"
-#include "postprocessshader.h"
 #include "scene/worldaxes.h"
 #include "scene/camera.h"
 #include "scene/terrain.h"

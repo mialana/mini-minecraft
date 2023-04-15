@@ -7,7 +7,6 @@ SOURCES += \
     $$PWD/main.cpp \
     $$PWD/mainwindow.cpp \
     $$PWD/mygl.cpp \
-    $$PWD/postprocessshader.cpp \
     $$PWD/scene/biome.cpp \
     $$PWD/scene/screenquadrangle.cpp \
     $$PWD/shaderprogram.cpp \
@@ -29,7 +28,6 @@ HEADERS += \
     $$PWD/la.h \
     $$PWD/mainwindow.h \
     $$PWD/mygl.h \
-    $$PWD/postprocessshader.h \
     $$PWD/scene/biome.h \
     $$PWD/scene/screenquadrangle.h \
     $$PWD/shaderprogram.h \
