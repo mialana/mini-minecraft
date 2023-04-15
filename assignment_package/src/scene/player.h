@@ -3,6 +3,10 @@
 #include "camera.h"
 #include "terrain.h"
 
+const static std::vector<float> playerDimensions = {
+    0.125f, 0.875f, 0.25f, 0.75f, 0.f, 1.9f
+};
+
 class Player : public Entity {
 private:
     glm::vec3 m_velocity, m_acceleration;
@@ -11,8 +15,8 @@ private:
 
     int infAxis;
 
-    void processInputs(const Terrain& terrain, InputBundle &inputs);
-    void computePhysics(float dT, const Terrain &terrain, InputBundle& inputs);
+    void processInputs(InputBundle &inputs);
+    void computePhysics(float dT, InputBundle& inputs);
 
 public:
     // Readonly public reference to our camera
@@ -26,12 +30,13 @@ public:
 
     void tick(float dT, InputBundle &input) override;
 
-    bool isOnGround(const Terrain& terrain, InputBundle& input);
-    void detectCollision(glm::vec3* direction, const Terrain& terrain);
+    void isInLiquid(InputBundle& input);
+    void isUnderLiquid(InputBundle& input);
+    void isOnGround(InputBundle& input);
+    void detectCollision(glm::vec3* direction);
 
     bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection,
-                   const Terrain& terrain, float *out_dist,
-                   glm::ivec3* out_blockHit);
+                   float *out_dist, glm::ivec3* out_blockHit);
 
     BlockType placeBlock(Terrain* terrain, BlockType currBlock);
     BlockType removeBlock(Terrain* terrain);
