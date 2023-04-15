@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "shaderprogram.h"
+#include "biome.h"
 
 //using namespace std;
 
@@ -57,23 +58,6 @@ private:
 
     OpenGLContext* mp_context;
 
-    glm::vec2 noise2D(glm::vec2 p);
-    float noise1D(glm::vec2 p);
-    float interpNoise(float x, float y);
-    float fbm(const glm::vec2 uv); // range 0 to 1
-    float surflet(glm::vec2 P, glm::vec2 gridPoint);
-    float perlin(glm::vec2 uv); // range -1 to 1
-    float worley(glm::vec2 uv); // range 0 to 1
-
-    float hills(glm::vec2 p);
-    float mountains(glm::vec2 p);
-    float forest(glm::vec2 p);
-    float islands(glm::vec2 p);
-    float blendTerrain(glm::vec2 uv, float h1, float h2);
-
-    // returns a float height and stores an int representing the biome
-    std::pair<float, Biome> blendTerrain(glm::vec2 uv, float h1, float h2, float h3, float h4);
-
 public:
     Terrain(OpenGLContext *context);
     ~Terrain();
@@ -116,4 +100,6 @@ public:
     void CreateTestScene();
 
     void loadNewChunks(glm::vec3);
+
+    std::pair<float, BiomeEnum> blendMultipleBiomes(glm::vec2 xz, float forestH, float mountH, float hillH, float islandH);
 };

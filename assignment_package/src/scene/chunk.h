@@ -40,7 +40,7 @@ enum BlockType : unsigned char
     KELP_1, KELP_2, SEA_GRASS, EMPTY
 };
 
-enum Biome : unsigned char {
+enum BiomeEnum : unsigned char {
     MOUNTAINS, HILLS, FOREST, ISLANDS, CAVES
 };
 
@@ -1094,17 +1094,17 @@ public:
 
     void linkNeighbor(uPtr<Chunk>& neighbor, Direction dir);
 
-    static boolean isHPlane(BlockType);
-    static boolean isCross2(BlockType);
-    static boolean isCross4(BlockType);
-    static boolean isPartialX(BlockType);
-    static boolean isPartialY(BlockType);
-    static boolean isPartialZ(BlockType);
-    static boolean isFullCube(BlockType);
-    static boolean isTransparent(BlockType);
+    static bool isHPlane(BlockType);
+    static bool isCross2(BlockType);
+    static bool isCross4(BlockType);
+    static bool isPartialX(BlockType);
+    static bool isPartialY(BlockType);
+    static bool isPartialZ(BlockType);
+    static bool isFullCube(BlockType);
+    static bool isTransparent(BlockType);
 
-    boolean isVisible(int x, int y, int z, BlockType bt); // checks whether block is enclosed on all sides
-    boolean isVisible(int x, int y, int z, DirectionVector dv, BlockType bt); // checks whether a x/y/z face is visible
+    bool isVisible(int x, int y, int z, BlockType bt); // checks whether block is enclosed on all sides
+    bool isVisible(int x, int y, int z, DirectionVector dv, BlockType bt); // checks whether a x/y/z face is visible
 
     void createVBOdata() override;
     GLenum drawMode() override {

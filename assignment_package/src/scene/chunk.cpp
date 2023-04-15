@@ -47,31 +47,31 @@ bool Chunk::isInBounds(glm::ivec3 pos) {
             pos.z >= 0 && pos.z < 16);
 }
 
-boolean Chunk::isHPlane(BlockType bt) {
+bool Chunk::isHPlane(BlockType bt) {
     return hPlane.find(bt) != hPlane.end();
 }
-boolean Chunk::isCross2(BlockType bt) {
+bool Chunk::isCross2(BlockType bt) {
     return cross2.find(bt) != cross2.end();
 }
-boolean Chunk::isCross4(BlockType bt) {
+bool Chunk::isCross4(BlockType bt) {
     return cross4.find(bt) != cross4.end();
 }
-boolean Chunk::isPartialX(BlockType bt) {
+bool Chunk::isPartialX(BlockType bt) {
     return partialX.find(bt) != partialX.end();
 }
-boolean Chunk::isPartialY(BlockType bt) {
+bool Chunk::isPartialY(BlockType bt) {
     return partialY.find(bt) != partialY.end();
 }
-boolean Chunk::isPartialZ(BlockType bt) {
+bool Chunk::isPartialZ(BlockType bt) {
     return partialZ.find(bt) != partialZ.end();
 }
-boolean Chunk::isFullCube(BlockType bt) {
+bool Chunk::isFullCube(BlockType bt) {
     return fullCube.find(bt) != fullCube.end();
 }
-boolean Chunk::isTransparent(BlockType bt) {
+bool Chunk::isTransparent(BlockType bt) {
     return transparent.find(bt) != transparent.end();
 }
-boolean Chunk::isVisible(int x, int y, int z, BlockType bt) {
+bool Chunk::isVisible(int x, int y, int z, BlockType bt) {
     for (const DirectionVector& dv : directionIter) {
         glm::ivec3 adjBlockPos = glm::ivec3(x, y, z) + dv.vec;
         bool inSameChunk = Chunk::isInBounds(adjBlockPos);
@@ -89,7 +89,7 @@ boolean Chunk::isVisible(int x, int y, int z, BlockType bt) {
     }
     return false;
 }
-boolean Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
+bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
     glm::ivec3 adjBlockPos = glm::ivec3(x, y, z) + dv.vec;
     bool inSameChunk = Chunk::isInBounds(adjBlockPos);
     Direction d = dv.dir;
@@ -189,7 +189,7 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
     float offsetZPOS = 1.f;
     float offsetZNEG = 0.f;
     float offsetDiag = (std::sqrt(0.5) - 0.5) / std::sqrt(2);
-    boolean keepEdges = false; // keep portions of face outside intersection ex: wheat vs lantern
+    bool keepEdges = false; // keep portions of face outside intersection ex: wheat vs lantern
 
     float x1 = currX;
     float x2 = currX;
