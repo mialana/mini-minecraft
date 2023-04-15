@@ -36,11 +36,7 @@ void FrameBuffer::create() {
 
     // Initialize our depth buffer
     mp_context->glBindRenderbuffer(GL_RENDERBUFFER, m_depthRenderBuffer);
-    if (QSysInfo().productType() == "macos") {
-        mp_context->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_width * 4, m_height * 4);
-    } else {
-        mp_context->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_width, m_height);
-    }
+    mp_context->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_width * 4, m_height * 4);
 
     mp_context->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthRenderBuffer);
 
