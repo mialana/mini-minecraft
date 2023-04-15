@@ -112,7 +112,7 @@ void Chunk::createVBOdata() {
                             adjBlockType = this->getAdjBlockType(dv.dir, adjBlockPos);
                         }
 
-                        if (adjBlockType == EMPTY) {
+                        if (adjBlockType == EMPTY || (currType != WATER && adjBlockType == WATER) || (currType != LAVA && adjBlockType == LAVA)) {
                             std::vector<Vertex> faceVerts;
                             Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType);
 

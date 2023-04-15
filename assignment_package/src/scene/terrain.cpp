@@ -240,6 +240,14 @@ void Terrain::CreateTestScene()
             }
         }
     }
+    for (int i = 0; i < 8; i++) {
+        for (int j = 48; j < 56; j++) {
+            setBlockAt(i, 120, j, DIRT);
+            if (j >= 52) {
+                setBlockAt(i, 121, j, DIRT);
+            }
+        }
+    }
 }
 
 void Terrain::loadNewChunks(glm::vec3 currPos) {

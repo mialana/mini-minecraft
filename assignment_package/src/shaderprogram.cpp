@@ -3,14 +3,15 @@
 #include <QStringBuilder>
 #include <QTextStream>
 #include <QDebug>
+#include <iostream>
 #include <stdexcept>
 
 
 ShaderProgram::ShaderProgram(OpenGLContext *context)
     : vertShader(), fragShader(), prog(),
       attrPos(-1), attrNor(-1), attrCol(-1),
-      unifModel(-1), unifModelInvTr(-1), unifViewProj(-1), unifColor(-1),
-      context(context)
+      unifModel(-1), unifModelInvTr(-1), unifViewProj(-1),
+      unifColor(-1), unifSampler2D(-1), context(context)
 {}
 
 void ShaderProgram::create(const char *vertfile, const char *fragfile)
@@ -71,6 +72,7 @@ void ShaderProgram::create(const char *vertfile, const char *fragfile)
     unifModelInvTr = context->glGetUniformLocation(prog, "u_ModelInvTr");
     unifViewProj   = context->glGetUniformLocation(prog, "u_ViewProj");
     unifColor      = context->glGetUniformLocation(prog, "u_Color");
+    unifSampler2D  = context->glGetUniformLocation(prog, "u_Texture");
 }
 
 void ShaderProgram::useMe()
@@ -133,6 +135,14 @@ void ShaderProgram::setGeometryColor(glm::vec4 color)
     if(unifColor != -1)
     {
         context->glUniform4fv(unifColor, 1, &color[0]);
+    }
+}
+
+void ShaderProgram::setSampler2D(GLuint slot) {
+    useMe();
+
+    if (unifSampler2D != -1) {
+            context->glUniform1i(unifSampler2D, slot);
     }
 }
 

@@ -12,7 +12,9 @@ MyGL::MyGL(QWidget *parent)
       m_worldAxes(this),
       m_progLambert(this), m_progFlat(this), m_progInstanced(this),
       m_terrain(this), m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain),
-      m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f)
+      m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f),
+      m_frameBuffer(this, this->width(), this->height(), this->devicePixelRatio()),
+      m_screenQuad(this), m_progLiquid(this)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
@@ -62,21 +64,25 @@ void MyGL::initializeGL()
     // Create and set up the flat lighting shader
     m_progFlat.create(":/glsl/flat.vert.glsl", ":/glsl/flat.frag.glsl");
     m_progInstanced.create(":/glsl/instanced.vert.glsl", ":/glsl/lambert.frag.glsl");
-
-    // Set a color with which to draw geometry.
-    // This will ultimately not be used when you change
-    // your program to render Chunks with vertex colors
-    // and UV coordinates
-    m_progLambert.setGeometryColor(glm::vec4(0,1,0,1));
+    m_progLiquid.create(":/glsl/liquid.vert.glsl", ":/glsl/liquid.frag.glsl");
 
     // We have to have a VAO bound in OpenGL 3.2 Core. But if we're not
     // using multiple VAOs, we can just bind one once.
     glBindVertexArray(vao);
 
     m_terrain.CreateTestScene();
+
+    m_frameBuffer.create();
+    m_screenQuad.createVBOdata();
+
+    m_frameBuffer.bindFrameBuffer();
 }
 
 void MyGL::resizeGL(int w, int h) {
+
+    m_frameBuffer.resize(w, h, this->devicePixelRatio());
+    m_frameBuffer.create();
+
     //This code sets the concatenated view and perspective projection matrices used for
     //our scene's camera view.
     m_player.setCameraWidthHeight(static_cast<unsigned int>(w), static_cast<unsigned int>(h));
@@ -102,6 +108,14 @@ void MyGL::tick() {
     m_player.tick(dT, m_inputs);
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
+    if (m_inputs.underWater) {
+        m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
+    } else if (m_inputs.underLava) {
+        m_progLiquid.setGeometryColor(glm::vec4(1.f, 0.f, 0.f, 1.f));
+    } else {
+        m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
+    }
+
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
@@ -124,7 +138,9 @@ void MyGL::sendPlayerDataToGUI() const {
 // MyGL's constructor links update() to a timer that fires 60 times per second,
 // so paintGL() called at a rate of 60 frames per second.
 void MyGL::paintGL() {
+    m_frameBuffer.bindFrameBuffer();
     // Clear the screen so that we only see newly drawn images
+    glViewport(0, 0, this->width() * this->devicePixelRatio(), this->height() * this->devicePixelRatio());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_progFlat.setViewProjMatrix(m_player.mcr_camera.getViewProj());
@@ -137,7 +153,17 @@ void MyGL::paintGL() {
     m_progFlat.setModelMatrix(glm::mat4());
     m_progFlat.setViewProjMatrix(m_player.mcr_camera.getViewProj());
     m_progFlat.draw(m_worldAxes);
+
     glEnable(GL_DEPTH_TEST);
+
+    m_frameBuffer.bindToTextureSlot(1);
+    m_progLiquid.setSampler2D(m_frameBuffer.getTextureSlot());
+
+    glBindFramebuffer(GL_FRAMEBUFFER, this->defaultFramebufferObject());
+    glViewport(0, 0, this->width() * this->devicePixelRatio(), this->height() * this->devicePixelRatio());
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    m_progLiquid.draw(m_screenQuad);
 }
 
 // TODO: Change this so it renders the nine zones of generated
@@ -155,16 +181,16 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
     }
     if (QSysInfo().productType() == "macos") {
         if (e->key() == Qt::Key_Right) {
-            m_player.rotateOnUpGlobal(-amount);
+            m_player.rotateOnUpGlobal(3 * -amount);
         }
         if (e->key() == Qt::Key_Left) {
-            m_player.rotateOnUpGlobal(amount);
+            m_player.rotateOnUpGlobal(3 * amount);
         }
         if (e->key() == Qt::Key_Up) {
-            m_player.rotateOnRightLocal(amount);
+            m_player.rotateOnRightLocal(3 * amount);
         }
         if (e->key() == Qt::Key_Down) {
-            m_player.rotateOnRightLocal(-amount);
+            m_player.rotateOnRightLocal(3 * -amount);
         }
     }
     if (e->key() == Qt::Key_Escape) {
