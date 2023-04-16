@@ -207,37 +207,6 @@ void Terrain::CreateTestScene()
     // now exists.
     m_generatedTerrain.insert(toKey(0, 0));
 
-
-//    for (int x = 0; x < 48; ++x) {
-//        for (int z = 0; z < 48; ++z) {
-//            int h = mountains(glm::vec2(x, z));
-//            int numDirtBlocks = 10 * fbm(glm::vec2(x, z));
-
-//            if (h <= 100) {
-//                for (int y = 0; y < h - numDirtBlocks; ++y) {
-//                    setBlockAt(x, y, z, STONE);
-//                }
-//                for (int y = h - numDirtBlocks; y < h; ++y) {
-//                    setBlockAt(x, y, z, DIRT);
-//                }
-//                for (int y = h; y < 100; ++y) {
-//                    setBlockAt(x, y, z, WATER);
-//                }
-//            } else {
-//                for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
-//                    setBlockAt(x, y, z, STONE);
-//                }
-//                for (int y = h - numDirtBlocks - 1; y < h - 2; ++y) {
-//                    setBlockAt(x, y, z, DIRT);
-//                }
-//                setBlockAt(x, h - 2, z, GRASS);
-//                setBlockAt(x, h - 1, z, SNOW_1);
-//            }
-
-//            std::cout<< h << std::endl;
-//        }
-//    }
-
     for (int x = 0; x < 48; ++x) {
         for (int z = 0; z < 48; ++z) {
 
@@ -249,8 +218,6 @@ void Terrain::CreateTestScene()
             std::pair<float, BiomeEnum> hb = blendMultipleBiomes(glm::vec2(x, z), hM, hF, hH, hI);
             float h = hb.first;
             BiomeEnum b = hb.second;
-
-
 
             int numDirtBlocks = 10 * Biome::fbm(glm::vec2(x, z));
             if (b == MOUNTAINS) {
@@ -315,22 +282,24 @@ void Terrain::CreateTestScene()
                 for (int y = 80; y < h; ++y) {
                     setBlockAt(x, y, z, SAND);
                 }
-                if (h < 115) {
-                    for (int y = h; y < 115; ++y) {
+                if (h < 125) {
+                    for (int y = h; y < 125; ++y) {
                         setBlockAt(x, y, z, WATER);
                     }
                 }
             }
 
             // assets
-            float plant = Biome::noise1D(glm::vec2(x, z));
+            float p1 = Biome::noise1D(glm::vec2(x, z));
+            float p2 = Biome::worley(glm::vec2(x, z));
+
             if (getBlockAt(x, h, z) == EMPTY) {
 
                 // TALL_GRASS
-                if ((b == MOUNTAINS && plant < 0.35) ||
-                    (b == HILLS && plant < 0.75) ||
-                    (b == FOREST && plant < 0.25) ||
-                    (b == ISLANDS && plant < 0.1)) {
+                if ((b == MOUNTAINS && p1 < 0.15) ||
+                    (b == HILLS && p1 < 0.35) ||
+                    (b == FOREST && p1 < 0.15) ||
+                    (b == ISLANDS && p1 < 0.1)) {
 
                     setBlockAt(x, h, z, TALL_GRASS);
                 }
@@ -338,6 +307,33 @@ void Terrain::CreateTestScene()
                 // bamboo, trees
             } else if (getBlockAt(x, h, z) == WATER) {
                 // lotuses, coral, sea grass, kelp, lanterns
+
+                if (b == MOUNTAINS) {
+
+                } else if (b == HILLS) {
+
+                } if (b == ISLANDS && p2 < 0.3 && h < 124) {
+                    if (p1 < 0.1) {
+                        setBlockAt(x, h, z, SEA_GRASS);
+                    } else if (p1 < 0.105) {
+                        setBlockAt(x, h, z, CORAL_1);
+                    } else if (p1 < 0.11) {
+                        setBlockAt(x, h, z, CORAL_2);
+                    } else if (p1 < 0.115) {
+                        setBlockAt(x, h, z, CORAL_3);
+                    } else if (p1 < 0.12) {
+                        setBlockAt(x, h, z, CORAL_4);
+                    } else if (p1 < 0.35) {
+                        int y = h;
+                        bool addHeight = true;
+                        while (y < 123 && addHeight) {
+                            setBlockAt(x, y, z, KELP_1);
+                            y++;
+                            addHeight = (Biome::noise1D(glm::vec3(x, y, z)) < 0.75);
+                        }
+                        setBlockAt(x, y, z, KELP_2);
+                    }
+                }
             }
 
             for (int currY = 1; currY <= 106; currY++) {
@@ -350,7 +346,14 @@ void Terrain::CreateTestScene()
                     } else {
                         setBlockAt(x, currY, z, EMPTY);
                     }
+                }
+            }
 
+            if (getBlockAt(x, h, z) == WATER) {
+                int y = h - 1;
+                while (!Chunk::isFullCube(getBlockAt(x, y, z)) && y > 0) {
+                    setBlockAt(x, y, z, WATER);
+                    y--;
                 }
             }
             setBlockAt(x, 0, z, BEDROCK);
@@ -378,14 +381,9 @@ std::pair<float, BiomeEnum> Terrain::blendMultipleBiomes(glm::vec2 xz, float for
     BiomeEnum b;
     glm::vec4 biomeWts;
 
-    double elev = (Biome::perlin1(xz) + 1.f) / 2.f; // remap perlin noise from (-1, 1) to (0, 1)
-    double temp = (Biome::perlin2(xz) + 1.f) / 2.f;
-
-//    BiomeEnum bFM;
-//    BiomeEnum bHI;
-//    float heightMix1 = glm::smoothstep(0.25, 0.75, p1);
-//    float hFM = ((1 - heightMix1) * forestH) + (heightMix1 * mountH);
-//    float hHI = ((1 - heightMix1) * hillH) + (heightMix1 * islandH);
+    double elev = (Biome::perlin1(xz / 297.f) + 1.f) / 2.f; // remap perlin noise from (-1, 1) to (0, 1)
+    double temp = (Biome::perlin2(xz / 308.f) + 1.f) / 2.f;
+//    std::cout<<elev<<","<<temp<<std::endl;
 
     if (elev >= 0.5 && temp < 0.5) {
         b = MOUNTAINS;
