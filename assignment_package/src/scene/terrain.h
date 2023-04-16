@@ -5,8 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "shaderprogram.h"
-#include <mutex>
-#include <thread>
+#include "biome.h"
 
 //using namespace std;
 
@@ -27,24 +26,12 @@ glm::ivec2 toCoords(int64_t k);
 // expands.
 class Terrain {
 private:
-
-    std::unordered_map<int64_t, uPtr<Chunk>> newChunks;
-
-    std::unordered_map<int64_t, uPtr<Chunk>> chunksWithBlockData;
-    std::mutex chunksWithBlockDataMutex;
-
-    std::unordered_map<int64_t, uPtr<Chunk>> chunksWithVBOData;
-    std::mutex chunksWithVBODataMutex;
-
-
-
     // Stores every Chunk according to the location of its lower-left corner
     // in world space.
     // We combine the X and Z coordinates of the Chunk's corner into one 64-bit int
     // so that we can use them as a key for the map, as objects like std::pairs or
     // glm::ivec2s are not hashable by default, so they cannot be used as keys.
     std::unordered_map<int64_t, uPtr<Chunk>> m_chunks;
-    std::mutex chunksMutex;
 
     // We will designate every 64 x 64 area of the world's x-z plane
     // as one "terrain generation zone". Every time the player moves
@@ -71,47 +58,9 @@ private:
 
     OpenGLContext* mp_context;
 
-    std::vector<std::thread> blockWorkerThreads;
-    std::vector<std::thread> vboWorkerThreads;
-
-    bool firstTick = true;
-
-    glm::vec2 noise2D(glm::vec2 p);
-    float noise1D(glm::vec2 p);
-    float interpNoise(float x, float y);
-    float fbm(const glm::vec2 uv); // range 0 to 1
-    float surflet(glm::vec2 P, glm::vec2 gridPoint);
-    float perlin(glm::vec2 uv); // range -1 to 1
-    float worley(glm::vec2 uv); // range 0 to 1
-
-    float hills(glm::vec2 p);
-    float mountains(glm::vec2 p);
-    float forest(glm::vec2 p);
-    float islands(glm::vec2 p);
-    float blendTerrain(glm::vec2 uv, float h1, float h2);
-
 public:
     Terrain(OpenGLContext *context);
     ~Terrain();
-
-    //new multithreading functions
-
-    void multithreadedWork(glm::vec3, glm::vec3);
-    void tryExpansion(glm::vec3, glm::vec3);
-    void checkThreadResults();
-
-    uPtr<Chunk> instantiateNewChunkAt(int x, int z);
-
-    bool hasTerrainGenerationZoneAt(glm::ivec2);
-
-    void blockWorker(uPtr<Chunk>);
-    void VBOWorker(uPtr<Chunk>);
-
-    bool hasNewChunkAt(int x, int z) const;
-    uPtr<Chunk>& getNewChunkAt(int x, int z);
-    const uPtr<Chunk>& getNewChunkAt(int x, int z) const;
-
-    BlockType generateBlockTypeByHeight(int, bool);
 
     // Instantiates a new Chunk and stores it in
     // our chunk map at the given coordinates.
@@ -130,10 +79,16 @@ public:
     // values) return the block stored at that point in space.
     BlockType getBlockAt(int x, int y, int z) const;
     BlockType getBlockAt(glm::vec3 p) const;
+
+    // mountains = 0, hills = 1, forest = 2, islands = 3, caves = 4
+    glm::vec4 getBiomeAt(glm::vec2 p) const;
+    glm::vec4 getBiomeAt(int x, int z) const;
+
     // Given a world-space coordinate (which may have negative
     // values) set the block at that point in space to the
     // given type.
     void setBlockAt(int x, int y, int z, BlockType t);
+    void setBiomeAt(int x, int z, glm::vec4 b);
 
     // Draws every Chunk that falls within the bounding box
     // described by the min and max coords, using the provided
@@ -145,4 +100,6 @@ public:
     void CreateTestScene();
 
     void loadNewChunks(glm::vec3);
+
+    std::pair<float, BiomeEnum> blendMultipleBiomes(glm::vec2 xz, float forestH, float mountH, float hillH, float islandH);
 };

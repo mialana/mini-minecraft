@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>textures/custom_minecraft_textures.png</file>
+    </qresource>
+</RCC>

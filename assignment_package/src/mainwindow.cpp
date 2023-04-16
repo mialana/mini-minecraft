@@ -21,7 +21,11 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::~MainWindow()
-{
+{// params are:
+    // each elem in VBO is 4 floats, so vs_Pos is a vec4
+    // elems should not be normalized
+    // gap space btwn elems = 0
+    // begin reading VBO w/ offset of 0 bytes
     delete ui;
 }
 

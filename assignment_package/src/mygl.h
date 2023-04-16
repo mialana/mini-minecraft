@@ -2,12 +2,16 @@
 #define MYGL_H
 
 #include "openglcontext.h"
+#include "scene/screenquadrangle.h"
 #include "shaderprogram.h"
 #include "scene/worldaxes.h"
 #include "scene/camera.h"
 #include "scene/terrain.h"
 #include "scene/player.h"
+#include "framebuffer.h"
+#include "texture.h"
 
+#include <memory>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
 #include <smartpointerhelp.h>
@@ -41,6 +45,13 @@ private:
 
     int m_time; //not sure what this does
 
+    // for post-process shading when in water or lava
+    FrameBuffer m_frameBuffer;
+    ScreenQuadrangle m_screenQuad;
+    ShaderProgram m_progLiquid;
+
+
+    std::shared_ptr<Texture> m_texture;
 
 public:
     explicit MyGL(QWidget *parent = nullptr);
@@ -56,10 +67,12 @@ public:
     // Called whenever MyGL::update() is called.
     // In the base code, update() is called from tick().
     void paintGL() override;
+    void createRenderBuffers();
 
     // Called from paintGL().
     // Calls Terrain::draw().
     void renderTerrain();
+
 
 protected:
     // Automatically invoked when the user

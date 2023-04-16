@@ -6,13 +6,20 @@
 #include <QKeyEvent>
 #include <QDateTime>
 
+#include <iostream>
+#include <QFile>
+#include <QImage>
+#include <QOpenGLWidget>
+
 
 MyGL::MyGL(QWidget *parent)
     : OpenGLContext(parent),
       m_worldAxes(this),
       m_progLambert(this), m_progFlat(this), m_progInstanced(this),
       m_terrain(this), m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain),
-      m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f)
+      m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f),
+      m_frameBuffer(this, this->width(), this->height(), this->devicePixelRatio()),
+      m_screenQuad(this), m_progLiquid(this)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
@@ -21,7 +28,7 @@ MyGL::MyGL(QWidget *parent)
     setFocusPolicy(Qt::ClickFocus);
 
     setMouseTracking(true); // MyGL will track the mouse's movements even if a mouse button is not pressed
-    setCursor(Qt::BlankCursor); // Make the cursor invisible
+    setCursor(Qt::BlankCursor); // Make the cursor invisible    
 }
 
 MyGL::~MyGL() {
@@ -45,7 +52,11 @@ void MyGL::initializeGL()
     // Set a few settings/modes in OpenGL rendering
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_CULL_FACE);
+//    glCullFace(GL_FRONT);
     // Set the color with which the screen is filled at the start of each render call.
     glClearColor(0.37f, 0.74f, 1.0f, 1);
 
@@ -61,7 +72,12 @@ void MyGL::initializeGL()
     m_progLambert.create(":/glsl/lambert.vert.glsl", ":/glsl/lambert.frag.glsl");
     // Create and set up the flat lighting shader
     m_progFlat.create(":/glsl/flat.vert.glsl", ":/glsl/flat.frag.glsl");
-    m_progInstanced.create(":/glsl/instanced.vert.glsl", ":/glsl/lambert.frag.glsl");
+    m_progLiquid.create(":/glsl/liquid.vert.glsl", ":/glsl/liquid.frag.glsl");
+    m_progInstanced.create(":/glsl/instanced.vert.glsl", ":/glsl/instanced.frag.glsl");
+
+    m_texture = std::make_shared<Texture>(this);
+    m_texture->create(":/textures/custom_minecraft_textures.png");
+
 
     // Set a color with which to draw geometry.
     // This will ultimately not be used when you change
@@ -69,14 +85,27 @@ void MyGL::initializeGL()
     // and UV coordinates
     m_progLambert.setGeometryColor(glm::vec4(0,1,0,1));
 
+    m_texture->load(0);
+    m_texture->bind(0);
+    m_progLambert.setTexture();
+
     // We have to have a VAO bound in OpenGL 3.2 Core. But if we're not
     // using multiple VAOs, we can just bind one once.
     glBindVertexArray(vao);
 
     m_terrain.CreateTestScene();
+
+    m_frameBuffer.create();
+    m_screenQuad.createVBOdata();
+
+    m_frameBuffer.bindFrameBuffer();
 }
 
 void MyGL::resizeGL(int w, int h) {
+
+    m_frameBuffer.resize(w, h, this->devicePixelRatio());
+    m_frameBuffer.create();
+
     //This code sets the concatenated view and perspective projection matrices used for
     //our scene's camera view.
     m_player.setCameraWidthHeight(static_cast<unsigned int>(w), static_cast<unsigned int>(h));
@@ -102,12 +131,19 @@ void MyGL::tick() {
     m_player.tick(dT, m_inputs);
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
-    m_terrain.multithreadedWork(m_player.mcr_position, prevPlayerPos);
+    if (m_inputs.underWater) {
+        m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
+    } else if (m_inputs.underLava) {
+        m_progLiquid.setGeometryColor(glm::vec4(1.f, 0.f, 0.f, 1.f));
+    } else {
+        m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
+    }
 
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
-    //m_terrain.loadNewChunks(m_player.mcr_position);
+    m_terrain.loadNewChunks(m_player.mcr_position);
+    m_time++;
 }
 
 void MyGL::sendPlayerDataToGUI() const {
@@ -126,7 +162,9 @@ void MyGL::sendPlayerDataToGUI() const {
 // MyGL's constructor links update() to a timer that fires 60 times per second,
 // so paintGL() called at a rate of 60 frames per second.
 void MyGL::paintGL() {
+    m_frameBuffer.bindFrameBuffer();
     // Clear the screen so that we only see newly drawn images
+    glViewport(0, 0, this->width() * this->devicePixelRatio(), this->height() * this->devicePixelRatio());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_progFlat.setViewProjMatrix(m_player.mcr_camera.getViewProj());
@@ -135,18 +173,36 @@ void MyGL::paintGL() {
 
     renderTerrain();
 
+    m_texture->bind(0);
+    m_progLambert.setTexture();
+
     glDisable(GL_DEPTH_TEST);
     m_progFlat.setModelMatrix(glm::mat4());
-    m_progFlat.setViewProjMatrix(m_player.mcr_camera.getViewProj());
     m_progFlat.draw(m_worldAxes);
+
     glEnable(GL_DEPTH_TEST);
+
+    m_frameBuffer.bindToTextureSlot(1);
+    m_progLiquid.setSampler2D(m_frameBuffer.getTextureSlot());
+
+    glBindFramebuffer(GL_FRAMEBUFFER, this->defaultFramebufferObject());
+    glViewport(0, 0, this->width() * this->devicePixelRatio(), this->height() * this->devicePixelRatio());
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    m_progLiquid.draw(m_screenQuad);
+
+    m_progInstanced.setModelMatrix(glm::mat4());
+
+    m_progLambert.setModelMatrix(glm::mat4());
+
+    m_progLambert.setTime(m_time);
 }
 
 // TODO: Change this so it renders the nine zones of generated
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
 void MyGL::renderTerrain() {
-    m_terrain.draw(0, 48, 0, 48, &m_progLambert);
+    m_terrain.draw(0, 96, 0, 96, &m_progLambert);
 }
 
 
@@ -155,11 +211,20 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
     if(e->modifiers() & Qt::ShiftModifier){
         amount = 10.0f;
     }
-    // http://doc.qt.io/qt-5/qt.html#Key-enum
-    // This could all be much more efficient if a switch
-    // statement were used, but I really dislike their
-    // syntax so I chose to be lazy and use a long
-    // chain of if statements instead
+    if (QSysInfo().productType() == "macos") {
+        if (e->key() == Qt::Key_Right) {
+            m_player.rotateOnUpGlobal(3 * -amount);
+        }
+        if (e->key() == Qt::Key_Left) {
+            m_player.rotateOnUpGlobal(3 * amount);
+        }
+        if (e->key() == Qt::Key_Up) {
+            m_player.rotateOnRightLocal(3 * amount);
+        }
+        if (e->key() == Qt::Key_Down) {
+            m_player.rotateOnRightLocal(3 * -amount);
+        }
+    }
     if (e->key() == Qt::Key_Escape) {
         QApplication::quit();
     }
@@ -219,18 +284,19 @@ void MyGL::keyReleaseEvent(QKeyEvent *e) {
     }
 }
 
-void MyGL::mouseMoveEvent(QMouseEvent *e) {
-    // TODO
-    const float SENSITIVITY = 50.0;
-    float dx = this->width() * 0.5 - e->pos().x();
-    if (dx != 0) {
-        m_player.rotateOnUpGlobal(dx/width() * SENSITIVITY);
+void MyGL::mouseMoveEvent(QMouseEvent *e) {  
+    if (QSysInfo().productType() != "macos") {
+        const float SENSITIVITY = 50.0;
+        float dx = this->width() * 0.5 - e->pos().x();
+        if (dx != 0) {
+            m_player.rotateOnUpGlobal(dx/width() * SENSITIVITY);
+        }
+        float dy = this->height() * 0.5 - e->pos().y() - 0.5;
+        if (dy != 0) {
+            m_player.rotateOnRightLocal(dy/height() * SENSITIVITY);
+        }
+        moveMouseToCenter();
     }
-    float dy = this->height() * 0.5 - e->pos().y() - 0.5;
-    if (dy != 0) {
-        m_player.rotateOnRightLocal(dy/height() * SENSITIVITY);
-    }
-    moveMouseToCenter();
 }
 
 void MyGL::mousePressEvent(QMouseEvent *e) {
