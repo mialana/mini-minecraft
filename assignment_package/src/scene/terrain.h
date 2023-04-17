@@ -63,7 +63,7 @@ private:
 
     // rot = 0 if door faces XPOS dir; 1 if faces XNEG; 2 if faces ZPOS; 3 if faces ZNEG
     void createHut(int x, int y, int z); // hills
-    void createCottage(int x, int y, int z, int rot); // mountains
+    void createCottage1(int x, int y, int z, int rot); // mountains
     void createTeaHouse(int x, int y, int z, int rot); // forest
 
 public:
