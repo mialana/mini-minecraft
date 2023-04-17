@@ -213,7 +213,10 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetZNEG = 0.25f;
             keepEdges = true;
             break;
-        case SNOW_1: case TATAMI:
+        case TATAMI_X: case TATAMI_Z:
+            offsetYPOS = 0.0625;
+            break;
+        case SNOW_1:
             offsetYPOS = 0.125;
             break;
         case SNOW_2:
@@ -237,9 +240,13 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
         case SNOW_7:
             offsetYPOS = 0.875;
             break;
-        case CEDAR_WINDOW: case TEAK_WINDOW: case CHERRY_WINDOW: case MAPLE_WINDOW: case PINE_WINDOW: case WISTERIA_WINDOW:
+        case CEDAR_WINDOW_X: case TEAK_WINDOW_X: case CHERRY_WINDOW_X: case MAPLE_WINDOW_X: case PINE_WINDOW_X: case WISTERIA_WINDOW_X:
             offsetXPOS = 0.5625; // may be offsetX or offsetZ
             offsetXNEG = 0.4375;
+            break;
+        case CEDAR_WINDOW_Z: case TEAK_WINDOW_Z: case CHERRY_WINDOW_Z: case MAPLE_WINDOW_Z: case PINE_WINDOW_Z: case WISTERIA_WINDOW_Z:
+            offsetZPOS = 0.5625;
+            offsetZNEG = 0.4375;
             break;
         case TILLED_DIRT: case PATH:
             offsetYPOS = 0.9375;
@@ -263,16 +270,21 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetZPOS = 0.9375;
             offsetZNEG = 0.0625;
             break;
-        case PAINTING_1: case PAINTING_2: case PAINTING_3: case PAINTING_4: case PAINTING_5:
-        case PAINTING_7T: case PAINTING_7B: case PAINTING_6L: case PAINTING_6R:
+        case PAINTING_1_XP: case PAINTING_2_XP: case PAINTING_3_XP: case PAINTING_4_XP: case PAINTING_5_XP:
+        case PAINTING_7T_XP: case PAINTING_7B_XP: case PAINTING_6L_XP: case PAINTING_6R_XP:
             offsetXPOS = 0.0625;
-
-//            // or
-//            offsetYPOS = 0.0625;
-//            // or
-//            offsetXNEG = 0.9375;
-//            // or
-//            offsetYNEG = 0.9375;
+            break;
+        case PAINTING_1_XN: case PAINTING_2_XN: case PAINTING_3_XN: case PAINTING_4_XN: case PAINTING_5_XN:
+        case PAINTING_7T_XN: case PAINTING_7B_XN: case PAINTING_6L_XN: case PAINTING_6R_XN:
+            offsetXNEG = 0.9375;
+            break;
+        case PAINTING_1_ZP: case PAINTING_2_ZP: case PAINTING_3_ZP: case PAINTING_4_ZP: case PAINTING_5_ZP:
+        case PAINTING_7T_ZP: case PAINTING_7B_ZP: case PAINTING_6L_ZP: case PAINTING_6R_ZP:
+            offsetZPOS = 0.0625;
+            break;
+        case PAINTING_1_ZN: case PAINTING_2_ZN: case PAINTING_3_ZN: case PAINTING_4_ZN: case PAINTING_5_ZN:
+        case PAINTING_7T_ZN: case PAINTING_7B_ZN: case PAINTING_6L_ZN: case PAINTING_6R_ZN:
+            offsetZNEG = 0.9375;
             break;
         case BONSAI_TREE: case MAGNOLIA_IKEBANA: case LOTUS_IKEBANA:
             offsetXPOS = 0.9375;
