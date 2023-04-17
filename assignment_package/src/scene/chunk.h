@@ -27,7 +27,7 @@ enum BlockType : unsigned char
     CEDAR_WINDOW, TEAK_WINDOW, CHERRY_WINDOW, MAPLE_WINDOW, PINE_WINDOW, WISTERIA_WINDOW,
     LILY_PAD, LOTUS_1, LOTUS_2, TILLED_DIRT, PATH,
     WHEAT_1, WHEAT_2, WHEAT_3, WHEAT_4, WHEAT_5, WHEAT_6, WHEAT_7, WHEAT_8,
-    RICE_1, RICE_2, RICE_3, RICE_4, RICE_5, RICE_6,
+    RICE_1, RICE_2, RICE_3, RICE_4, RICE_5, RICE_6, RICE_01, RICE_02,
     BAMBOO_1, BAMBOO_2, BAMBOO_3,
     TATAMI, PAPER_LANTERN, WOOD_LANTERN,
     PAINTING_1, PAINTING_2, PAINTING_3, PAINTING_4, PAINTING_5, PAINTING_6L, PAINTING_6R, PAINTING_7T, PAINTING_7B,
@@ -592,6 +592,18 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
     {std::make_pair(RICE_6, XNEG_ZPOS), std::make_pair(0, glm::vec2(5, 6))},
     {std::make_pair(RICE_6, XNEG_ZNEG), std::make_pair(0, glm::vec2(5, 6))},
 
+    {std::make_pair(RICE_01, XPOS_ZPOS), std::make_pair(0, glm::vec2(6, 6))},
+    {std::make_pair(RICE_01, XPOS_ZNEG), std::make_pair(0, glm::vec2(6, 6))},
+    {std::make_pair(RICE_01, XNEG_ZPOS), std::make_pair(0, glm::vec2(6, 6))},
+    {std::make_pair(RICE_01, XNEG_ZNEG), std::make_pair(0, glm::vec2(6, 6))},
+    {std::make_pair(RICE_01, YPOS), std::make_pair(2, glm::vec2(13, 3))},
+
+    {std::make_pair(RICE_02, XPOS_ZPOS), std::make_pair(0, glm::vec2(7, 6))},
+    {std::make_pair(RICE_02, XPOS_ZNEG), std::make_pair(0, glm::vec2(7, 6))},
+    {std::make_pair(RICE_02, XNEG_ZPOS), std::make_pair(0, glm::vec2(7, 6))},
+    {std::make_pair(RICE_02, XNEG_ZNEG), std::make_pair(0, glm::vec2(7, 6))},
+    {std::make_pair(RICE_02, YPOS), std::make_pair(2, glm::vec2(13, 3))},
+
     {std::make_pair(BAMBOO_1, XPOS), std::make_pair(0, glm::vec2(12, 13))},
     {std::make_pair(BAMBOO_1, XNEG), std::make_pair(0, glm::vec2(12, 13))},
     {std::make_pair(BAMBOO_1, ZPOS), std::make_pair(0, glm::vec2(12, 13))},
@@ -940,12 +952,12 @@ const static std::vector<DirectionVector> cross4DirIter = {
 };
 
 const static std::unordered_set<BlockType, EnumHash> hPlane = {
-    LILY_PAD, LOTUS_1, LOTUS_2
+    LILY_PAD, LOTUS_1, LOTUS_2, RICE_01, RICE_02
 };
 
 const static std::unordered_set<BlockType, EnumHash> cross2 = {
     TALL_GRASS, LOTUS_1, LOTUS_2,
-    RICE_1, RICE_2, RICE_3, RICE_4, RICE_5, RICE_6,
+    RICE_1, RICE_2, RICE_3, RICE_4, RICE_5, RICE_6, RICE_01, RICE_02,
     BAMBOO_2, BAMBOO_3,
     BONSAI_TREE, MAGNOLIA_IKEBANA, LOTUS_IKEBANA, GREEN_HYDRANGEA_IKEBANA, CHRYSANTHEMUM_IKEBANA,
     CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, DAFFODIL_IKEBANA,

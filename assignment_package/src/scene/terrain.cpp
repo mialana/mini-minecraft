@@ -317,15 +317,15 @@ void Terrain::CreateTestScene()
                 } if (b == ISLANDS && p2 < 0.3 && h < 124) {
                     if (p1 < 0.1) {
                         setBlockAt(x, h, z, SEA_GRASS);
-                    } else if (p1 < 0.105) {
-                        setBlockAt(x, h, z, CORAL_1);
                     } else if (p1 < 0.11) {
-                        setBlockAt(x, h, z, CORAL_2);
-                    } else if (p1 < 0.115) {
-                        setBlockAt(x, h, z, CORAL_3);
+                        setBlockAt(x, h, z, CORAL_1);
                     } else if (p1 < 0.12) {
+                        setBlockAt(x, h, z, CORAL_2);
+                    } else if (p1 < 0.13) {
+                        setBlockAt(x, h, z, CORAL_3);
+                    } else if (p1 < 0.14) {
                         setBlockAt(x, h, z, CORAL_4);
-                    } else if (p1 < 0.35) {
+                    } else if (p1 < 0.4) {
                         int y = h;
                         bool addHeight = true;
                         while (y < 123 && addHeight) {
@@ -361,7 +361,6 @@ void Terrain::CreateTestScene()
             setBlockAt(x, 0, z, BEDROCK);
         }
     }
-    createToriiGate(20, 108, 20, false);
 }
 
 void Terrain::loadNewChunks(glm::vec3 currPos) {

@@ -118,6 +118,10 @@ bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
         return false;
     }
 
+    if (bt == WATER && (adjBlockType == RICE_01 || adjBlockType == RICE_02)) {
+        return false;
+    }
+
     if (isPartialX(bt) && !isPartialY(bt) && !isPartialZ(bt) && bt == adjBlockType) {
         return false;
     }
