@@ -83,7 +83,7 @@ float mod(float a, float b) {
 vec4 tint(vec4 origCol, vec4 tintCol) {
     float grayscaleCol = (0.21 * origCol.r) + (0.72 * origCol.g) + (0.07 * origCol.b);
     vec4 finalCol = tintCol * grayscaleCol;
-    finalCol.a = origCol.a;
+    finalCol.a = tintCol.a;
     return finalCol;
 }
 
@@ -109,21 +109,35 @@ void main()
 
             vec4 tintCol;
 
-            if (fs_Pos.z < 50) {
+            if (fs_Pos.y < 50) {
                 tintCol = cCol;
             } else {
                 tintCol = mCol + hCol + fCol + iCol;
             }
             newUV = fs_UV;
             out_Col = vec4(texture(u_TextureSampler, fs_UV));
-            out_Col = vec4(tint(out_Col, tintCol));
+            out_Col = tint(out_Col, tintCol);
         } else if (fs_TexIdx == 2) {
             // water animation
             float uOffset = (0.0625 / 64.f) * float(mod(u_Time, 64));
             newUV = vec2(fs_UV.x + uOffset, fs_UV.y);
             out_Col = vec4(texture(u_TextureSampler, newUV));
 
-            // TODO: biome color interpolation (water)
+            // biome color interpolation (water)
+            vec4 mCol = vec4(0, 0.431, 0.9, 0.25) * fs_BiomeWts.x;
+            vec4 hCol = vec4(0, 0.75, 1, 0.125) * fs_BiomeWts.y;
+            vec4 fCol = vec4(0, 0.196, 0.8235, 0.125) * fs_BiomeWts.z;
+            vec4 iCol = vec4(0, 0.75, 0.75, 0.125) * fs_BiomeWts.w;
+            vec4 cCol = vec4(0.212, 0.07, 0.714, 0.25);
+
+            vec4 tintCol;
+            if (fs_Pos.y < 50) {
+                tintCol = cCol;
+            } else {
+                tintCol = mCol + hCol + fCol + iCol;
+            }
+            out_Col = tint(out_Col, tintCol);
+
         } else if (fs_TexIdx == 3) {
             // lava animation
             float frame = mod(u_Time, 256);
