@@ -361,7 +361,7 @@ void Terrain::CreateTestScene()
 //            setBlockAt(x, 0, z, BEDROCK);
 //        }
 //    }
-    createHut(10, 120, 10, 0);
+    createHut(10, 120, 10);
 //    createToriiGate(10, 108, 10, 0);
 }
 
@@ -468,7 +468,7 @@ void Terrain::createToriiGate(int x, int y, int z, int rot) {
     }
 }
 
-void Terrain::createHut(int x, int y, int z, int rot) {
+void Terrain::createHut(int x, int y, int z) {
     for (int y1 = y; y1 <= y + 3; y1++) {
         setBlockAt(x, y1, z, CHERRY_WOOD_Y);
         setBlockAt(x + 8, y1, z, CHERRY_WOOD_Y);
@@ -492,6 +492,48 @@ void Terrain::createHut(int x, int y, int z, int rot) {
     setBlockAt(x + 11, y + 4, z + 10, CHERRY_WOOD_X);
 
 
+    for (int y2 = y + 5; y2 <= y + 10; y2++) {
+        for (int x2 = x; x2 <= x + 8; x2++) {
+            setBlockAt(x2, y2, z, CHERRY_WOOD_Y);
+            setBlockAt(x2, y2, z + 8, CHERRY_WOOD_Y);
+        }
+        for (int z2 = z + 1; z2 <= z + 7; z2++) {
+            setBlockAt(x, y2, z2, CHERRY_WOOD_Y);
+            setBlockAt(x + 8, y2, z2, CHERRY_WOOD_Y);
+        }
+    }
+    for (int x2 = x + 2; x2 <= x + 6; x2++) {
+        setBlockAt(x2, y + 11, z, CHERRY_WOOD_Y);
+        setBlockAt(x2, y + 11, z + 8, CHERRY_WOOD_Y);
+    }
+    setBlockAt(x + 4, y + 12, z, CHERRY_WOOD_Y);
+    setBlockAt(x + 4, y + 12, z + 8, CHERRY_WOOD_Y);
+
+
+    for (int z3 = z - 1; z3 <= z + 9; z3++) {
+        int dx = -2;
+        for (int y3 = y + 10; y3 <= y + 12; y3++) {
+            setBlockAt(x + dx, y3, z3, STRAW_1);
+            setBlockAt(x + 8 - dx, y3, z3, STRAW_1);
+            dx++;
+            setBlockAt(x + dx, y3, z3, STRAW);
+            setBlockAt(x + 8 - dx, y3, z3, STRAW);
+            dx++;
+        }
+        setBlockAt(x + 4, y + 13, z3, STRAW_1);
+    }
+
+    setBlockAt(x + 4, y + 5, z, EMPTY);
+    setBlockAt(x + 4, y + 6, z, EMPTY);
+
+//    setBlockAt(x + 4, y + 5, z + 8, EMPTY);
+//    setBlockAt(x + 4, y + 6, z + 8, EMPTY);
+
+//    setBlockAt(x, y + 5, z + 4, EMPTY);
+//    setBlockAt(x, y + 6, z + 4, EMPTY);
+
+    setBlockAt(x + 8, y + 5, z + 4, EMPTY);
+    setBlockAt(x + 8, y + 6, z + 4, EMPTY);
 }
 
 void Terrain::createCottage(int x, int y, int z, int rot) {
