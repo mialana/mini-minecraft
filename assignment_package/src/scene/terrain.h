@@ -58,8 +58,13 @@ private:
 
     OpenGLContext* mp_context;
 
-    // rot = true if placed along x dir; false if placed along z dir
-    void createToriiGate(int x, int y, int z, bool rot);
+    // rot = 0 if placed along x dir; 1 if placed along z dir
+    void createToriiGate(int x, int y, int z, int rot);
+
+    // rot = 0 if door faces XPOS dir; 1 if faces XNEG; 2 if faces ZPOS; 3 if faces ZNEG
+    void createHut(int x, int y, int z, int rot); // hills
+    void createCottage(int x, int y, int z, int rot); // mountains
+    void createTeaHouse(int x, int y, int z, int rot); // forest
 
 public:
     Terrain(OpenGLContext *context);
