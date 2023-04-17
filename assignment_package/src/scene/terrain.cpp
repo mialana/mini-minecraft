@@ -289,6 +289,8 @@ void Terrain::CreateTestScene()
                 }
             }
 
+
+
             // assets
             float p1 = Biome::noise1D(glm::vec2(x, z));
             float p2 = Biome::worley(glm::vec2(x, z));
@@ -351,7 +353,7 @@ void Terrain::CreateTestScene()
 
             if (getBlockAt(x, h, z) == WATER) {
                 int y = h - 1;
-                while (!Chunk::isFullCube(getBlockAt(x, y, z)) && y > 0) {
+                while (getBlockAt(x, y, z) == EMPTY && y > 0) {
                     setBlockAt(x, y, z, WATER);
                     y--;
                 }
@@ -359,6 +361,7 @@ void Terrain::CreateTestScene()
             setBlockAt(x, 0, z, BEDROCK);
         }
     }
+    createToriiGate(20, 108, 20, false);
 }
 
 void Terrain::loadNewChunks(glm::vec3 currPos) {
@@ -385,24 +388,30 @@ std::pair<float, BiomeEnum> Terrain::blendMultipleBiomes(glm::vec2 xz, float for
     double temp = (Biome::perlin2(xz / 308.f) + 1.f) / 2.f;
 //    std::cout<<elev<<","<<temp<<std::endl;
 
-    if (elev >= 0.5 && temp < 0.5) {
-        b = MOUNTAINS;
-    } else if (elev >= 0.5 && temp >= 0.5) {
-        b = HILLS;
-    } else if (elev < 0.5 && temp < 0.5) {
-        b = FOREST;
-    } else {
-        b = ISLANDS;
-    }
+    float uLim = 0.5;
+    float lLim = 0.5;
 
-    // set biome weights in m_biomes for each xz coord in this chunk
-    biomeWts.x = elev * (1.f - temp);
-    biomeWts.y = elev * temp;
-    biomeWts.z = (1.f - elev) * (1.f - temp);
-    biomeWts.w = (1.f - elev) * temp;
+    if (elev >= uLim && temp < lLim) {
+        b = MOUNTAINS;
+//        biomeWts = glm::vec4(1, 0, 0, 0);
+    } else if (elev >= uLim && temp >= uLim) {
+        b = HILLS;
+//        biomeWts = glm::vec4(0, 1, 0, 0);
+    } else if (elev < lLim && temp < lLim) {
+        b = FOREST;
+//        biomeWts = glm::vec4(0, 0, 1, 0);
+    } else if (elev < lLim && temp >= uLim) {
+        b = ISLANDS;
+//        biomeWts = glm::vec4(0, 0, 0, 1);
+    } /*else {*/
+        // set biome weights in m_biomes for each xz coord in this chunk
+        biomeWts.x = elev * (1.f - temp);
+        biomeWts.y = elev * temp;
+        biomeWts.z = (1.f - elev) * (1.f - temp);
+        biomeWts.w = (1.f - elev) * temp;
+//    }
     setBiomeAt(xz.x, xz.y, biomeWts);
 
-//    std::cout<<"("<<biomeWts.x<<","<<biomeWts.y<<","<<biomeWts.z<<","<<biomeWts.w<<")"<<std::endl;
     if (biomeWts.x + biomeWts.y + biomeWts.z + biomeWts.w != 1) {
         std::cout<< "something is wrong" <<std::endl;
     }
@@ -412,4 +421,48 @@ std::pair<float, BiomeEnum> Terrain::blendMultipleBiomes(glm::vec2 xz, float for
                 (biomeWts.z * forestH) +
                 (biomeWts.w * islandH);
     return std::pair(h, b);
+}
+
+void Terrain::createToriiGate(int x, int y, int z, bool rot) {
+    if (rot) {
+        setBlockAt(x, y, z, BLACK_PAINTED_WOOD);
+        setBlockAt(x + 6, y, z, BLACK_PAINTED_WOOD);
+
+        for (int y1 = y + 1; y1 <= y + 5; y1++) {
+            setBlockAt(x, y1, z, RED_PAINTED_WOOD);
+            setBlockAt(x + 6, y1, z, RED_PAINTED_WOOD);
+        }
+
+        for (int x1 = x - 1; x1 <= x + 7; x1++) {
+            setBlockAt(x1, y + 6, z, RED_PAINTED_WOOD);
+            setBlockAt(x1, y + 8, z, RED_PAINTED_WOOD);
+        }
+        setBlockAt(x, y + 7, z, RED_PAINTED_WOOD);
+        setBlockAt(x + 3, y + 7, z, RED_PAINTED_WOOD);
+        setBlockAt(x + 6, y + 7, z, RED_PAINTED_WOOD);
+
+        for (int x2 = x - 2; x2 <= x + 8; x2++) {
+            setBlockAt(x2, y + 9, z, ROOF_TILES_1);
+        }
+    } else {
+        setBlockAt(x, y, z, BLACK_PAINTED_WOOD);
+        setBlockAt(x, y, z + 6, BLACK_PAINTED_WOOD);
+
+        for (int y1 = y + 1; y1 <= y + 5; y1++) {
+            setBlockAt(x, y1, z, RED_PAINTED_WOOD);
+            setBlockAt(x, y1, z + 6, RED_PAINTED_WOOD);
+        }
+
+        for (int z1 = z - 1; z1 <= z + 7; z1++) {
+            setBlockAt(x, y + 6, z1, RED_PAINTED_WOOD);
+            setBlockAt(x, y + 8, z1, RED_PAINTED_WOOD);
+        }
+        setBlockAt(x, y + 7, z, RED_PAINTED_WOOD);
+        setBlockAt(x, y + 7, z + 3, RED_PAINTED_WOOD);
+        setBlockAt(x, y + 7, z + 6, RED_PAINTED_WOOD);
+
+        for (int z2 = z - 2; z2 <= z + 8; z2++) {
+            setBlockAt(x, y + 9, z2, ROOF_TILES_1);
+        }
+    }
 }

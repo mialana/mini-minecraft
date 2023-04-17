@@ -124,19 +124,19 @@ void main()
             out_Col = vec4(texture(u_TextureSampler, newUV));
 
             // biome color interpolation (water)
-            vec4 mCol = vec4(0, 0.431, 0.9, 0.25) * fs_BiomeWts.x;
-            vec4 hCol = vec4(0, 0.75, 1, 0.125) * fs_BiomeWts.y;
-            vec4 fCol = vec4(0, 0.196, 0.8235, 0.125) * fs_BiomeWts.z;
-            vec4 iCol = vec4(0, 0.75, 0.75, 0.125) * fs_BiomeWts.w;
-            vec4 cCol = vec4(0.212, 0.07, 0.714, 0.25);
+            vec3 mCol = vec3(0, 0.431, 0.9) * fs_BiomeWts.x;
+            vec3 hCol = vec3(0, 0.75, 1) * fs_BiomeWts.y;
+            vec3 fCol = vec3(0, 0.196, 0.8235) * fs_BiomeWts.z;
+            vec3 iCol = vec3(0, 0.9, 1) * fs_BiomeWts.w;
+            vec3 cCol = vec3(0.212, 0.07, 0.714);
 
-            vec4 tintCol;
+            vec3 tintCol;
             if (fs_Pos.y < 50) {
                 tintCol = cCol;
             } else {
                 tintCol = mCol + hCol + fCol + iCol;
             }
-            out_Col = tint(out_Col, tintCol);
+            out_Col = tint(out_Col, vec4(tintCol, 0.25));
 
         } else if (fs_TexIdx == 3) {
             // lava animation
@@ -184,7 +184,6 @@ void main()
 
     // Compute final shaded color
     out_Col = vec4(out_Col.rgb * lightIntensity, alpha);
-//    out_Col = vec4(0,1,0,1);
     if (out_Col.a == 0.f) {
         discard;
     }

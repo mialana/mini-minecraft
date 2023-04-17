@@ -58,6 +58,9 @@ private:
 
     OpenGLContext* mp_context;
 
+    // rot = true if placed along x dir; false if placed along z dir
+    void createToriiGate(int x, int y, int z, bool rot);
+
 public:
     Terrain(OpenGLContext *context);
     ~Terrain();
