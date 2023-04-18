@@ -131,6 +131,8 @@ void MyGL::tick() {
     m_player.tick(dT, m_inputs);
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
+    m_terrain.multithreadedWork(m_player.mcr_position, prevPlayerPos);
+
     if (m_inputs.underWater) {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
     } else if (m_inputs.underLava) {
@@ -142,7 +144,7 @@ void MyGL::tick() {
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
-    m_terrain.loadNewChunks(m_player.mcr_position);
+    //m_terrain.loadNewChunks(m_player.mcr_position);
     m_time++;
 }
 

@@ -1054,6 +1054,18 @@ struct Vertex {
     }
 };
 
+class Chunk;
+
+struct ChunkVBOData {
+    Chunk* chunk;
+    std::vector<glm::vec4> m_OVertData;
+    std::vector<glm::vec4> m_TVertData;
+    std::vector<GLuint> m_OIndexeData;
+    std::vector<GLuint> m_TIndexData;
+
+};
+
+
 // One Chunk is a 16 x 256 x 16 section of the world,
 // containing all the Minecraft blocks in that area.
 // We divide the world into Chunks in order to make
@@ -1063,7 +1075,7 @@ struct Vertex {
 
 // TODO have Chunk inherit from Drawable
 class Chunk : public Drawable {
-private:
+public:
     // All of the blocks contained within this Chunk
     std::array<BlockType, 65536> m_blocks;
     // This Chunk's four neighbors to the north, south, east, and west
@@ -1071,6 +1083,9 @@ private:
     // a key for this map.
     // These allow us to properly determine
     std::unordered_map<Direction, Chunk*, EnumHash> m_neighbors;
+
+    int worldPos_x;
+    int worldPos_z;
 
     std::array<glm::vec4, 256> m_biomes;
     static bool isInBounds(glm::ivec3);
@@ -1082,6 +1097,7 @@ private:
     void redistributeVertexData(std::vector<glm::vec4>, std::vector<GLuint>, std::vector<glm::vec4>, std::vector<GLuint>);
 
 public:
+    ChunkVBOData chunkVBOData;
     Chunk(OpenGLContext* context);
     BlockType getBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
     BlockType getBlockAt(int x, int y, int z) const;
@@ -1103,10 +1119,20 @@ public:
     static bool isFullCube(BlockType);
     static bool isTransparent(BlockType);
 
+    void setWorldPos(int x, int z);
+    glm::ivec2 getWorldPos();
+
     bool isVisible(int x, int y, int z, BlockType bt); // checks whether block is enclosed on all sides
     bool isVisible(int x, int y, int z, DirectionVector dv, BlockType bt); // checks whether a x/y/z face is visible
 
     void createVBOdata() override;
+
+    void generateVBOData();
+
+    void loadVBO();
+
+    void virtual create();
+
     GLenum drawMode() override {
         return GL_TRIANGLES;
     }

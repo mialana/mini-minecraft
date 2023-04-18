@@ -107,13 +107,11 @@ bool Terrain::hasNewChunkAt(int x, int z) const {
     return newChunks.find(toKey(16 * xFloor, 16 * zFloor)) != newChunks.end();
 }
 
-
 uPtr<Chunk>& Terrain::getChunkAt(int x, int z) {
     int xFloor = static_cast<int>(glm::floor(x / 16.f));
     int zFloor = static_cast<int>(glm::floor(z / 16.f));
     return m_chunks[toKey(16 * xFloor, 16 * zFloor)];
 }
-
 
 const uPtr<Chunk>& Terrain::getChunkAt(int x, int z) const {
     int xFloor = static_cast<int>(glm::floor(x / 16.f));
@@ -260,11 +258,11 @@ BlockType Terrain::generateBlockTypeByHeight(int height, bool isTop) {
 }
 
 void Terrain::blockWorker(uPtr<Chunk> chunk) {
+    chunksWithBlockDataMutex.lock();
     glm::ivec2 chunkWorldPos = chunk->getWorldPos();
 
     for (int x = 0; x < 16; x++) {
         for (int z = 0; z < 16; z++) {
-            //int height = ProcGen::getHeight(chunkWorldPos.x + x, chunkWorldPos.y + z);
             int height = std::rand() % 250;
             for (int k = 0; k <= height; k++) {
                 chunk->setBlockAt(x, k, z, generateBlockTypeByHeight(height, k == height));
@@ -272,7 +270,7 @@ void Terrain::blockWorker(uPtr<Chunk> chunk) {
         }
     }
 
-    chunksWithBlockDataMutex.lock();
+
     chunksWithBlockData[toKey(chunk->getWorldPos().x, chunk->getWorldPos().y)] = move(chunk);
     chunksWithBlockDataMutex.unlock();
 }
@@ -287,7 +285,7 @@ void Terrain::checkThreadResults() {
 
     chunksWithVBODataMutex.lock();
     for (auto & [ key, chunk ] : chunksWithVBOData) {
-        chunk->create();
+        chunk->loadVBO();
         m_chunks[key] = move(chunk);
     }
     chunksWithVBOData.clear();
@@ -295,9 +293,10 @@ void Terrain::checkThreadResults() {
 }
 
 void Terrain::VBOWorker(uPtr<Chunk> chunk) {
-    chunk->createVBOdata();
-
     chunksWithVBODataMutex.lock();
+    chunk->generateVBOData();
+
+
     chunksWithVBOData[toKey(chunk->getWorldPos().x, chunk->getWorldPos().y)] = move(chunk);
     chunksWithVBODataMutex.unlock();
 }
@@ -360,26 +359,49 @@ Chunk* Terrain::instantiateChunkAt(int x, int z) {
 
 void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shaderProgram) {
     chunksWithBlockDataMutex.lock();
+    chunksWithVBODataMutex.lock();
     for(int x = minX; x < maxX; x += 16) {
         for(int z = minZ; z < maxZ; z += 16) {
-            const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-            currChunk->createVBOdata();
 
+/*
+            const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+            currChunk->generateVBOData();
+            currChunk->loadVBO();
             shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
             shaderProgram->drawInterleavedO(*currChunk);
+*/
+
+            if (hasChunkAt(x, z)) {
+                const uPtr<Chunk> &currChunk = getChunkAt(x, z);
+                //currChunk->loadVBO();
+                std::cout << currChunk->m_oCount << std::endl;
+                shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
+                shaderProgram->drawInterleavedO(*currChunk);
+            }
         }
     }
 
     for(int x = minX; x < maxX; x += 16) {
         for(int z = minZ; z < maxZ; z += 16) {
-            const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-            currChunk->createVBOdata();
 
+/*
+            const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+            currChunk->generateVBOData();
+            currChunk->loadVBO();
             shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
-            shaderProgram->drawInterleavedT(*currChunk);
+            shaderProgram->drawInterleavedO(*currChunk);
+*/
+
+            if(hasChunkAt(x, z)) {
+                const uPtr<Chunk> &currChunk = getChunkAt(x, z);
+                //currChunk->loadVBO();
+                shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
+                shaderProgram->drawInterleavedT(*currChunk);
+            }
         }
     }
     chunksWithBlockDataMutex.unlock();
+    chunksWithVBODataMutex.unlock();
 }
 
 void Terrain::CreateTestScene()
@@ -387,11 +409,13 @@ void Terrain::CreateTestScene()
     // Create the Chunks that will
     // store the blocks for our
     // initial world space
+
+    /*
     for(int x = 0; x < 256; x += 16) {
         for(int z = 0; z < 256; z += 16) {
             instantiateChunkAt(x, z);
         }
-    }
+    }*/
 
     // Tell our existing terrain set that
     // the "generated terrain zone" at (0,0)
@@ -428,7 +452,7 @@ void Terrain::CreateTestScene()
 //            std::cout<< h << std::endl;
 //        }
 //    }
-
+/*
     for (int x = 0; x < 48; ++x) {
         for (int z = 0; z < 48; ++z) {
 
@@ -546,7 +570,7 @@ void Terrain::CreateTestScene()
             }
             setBlockAt(x, 0, z, BEDROCK);
         }
-    }
+    }*/
 }
 
 void Terrain::loadNewChunks(glm::vec3 currPos) {

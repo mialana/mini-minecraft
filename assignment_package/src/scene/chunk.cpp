@@ -777,3 +777,258 @@ void Chunk::redistributeVertexData(std::vector<glm::vec4> ovd, std::vector<GLuin
     mp_context->glBufferData(GL_ARRAY_BUFFER, t_bWts.size() * sizeof(glm::vec4), t_bWts.data(), GL_STATIC_DRAW);
 
 }
+
+void Chunk::create() {
+    loadVBO();
+}
+
+void Chunk::loadVBO() {
+
+    // opaque
+    std::vector<GLuint> oIndices = chunkVBOData.m_OIndexeData;
+    std::vector<glm::vec4> oVertData = chunkVBOData.m_OVertData;
+    // transparent
+    std::vector<GLuint> tIndices = chunkVBOData.m_TIndexData;
+    std::vector<glm::vec4> tVertData = chunkVBOData.m_TVertData;
+
+    m_oCount = oIndices.size();
+
+    generateOIdx();
+    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
+    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, oIndices.size() * sizeof(GLuint), oIndices.data(), GL_STATIC_DRAW);
+
+    generateOVertData();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufVertData);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, oVertData.size() * sizeof(glm::vec4), oVertData.data(), GL_STATIC_DRAW);
+
+    m_tCount = tIndices.size();
+
+    generateTIdx();
+    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
+    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndices.size() * sizeof(GLuint), tIndices.data(), GL_STATIC_DRAW);
+
+    generateTVertData();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufVertData);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, tVertData.size() * sizeof(glm::vec4), tVertData.data(), GL_STATIC_DRAW);
+}
+
+void Chunk::generateVBOData() {
+    // opaque
+    std::vector<GLuint> oIndices = std::vector<GLuint>();
+    std::vector<glm::vec4> oVertData = std::vector<glm::vec4>();
+    // transparent
+    std::vector<GLuint> tIndices = std::vector<GLuint>();
+    std::vector<glm::vec4> tVertData = std::vector<glm::vec4>();
+
+    int oVertCount = 0;
+    int tVertCount = 0;
+
+    for (int x = 0; x < 16; x++) {
+        for (int y = 0; y < 256; y++) {
+            for (int z = 0; z < 16; z++) {
+                BlockType currType = this->getBlockAt(x, y, z);
+                glm::vec4 biomeWts = this->getBiomeAt(x, z);
+
+                if (currType != EMPTY) {
+                    if (isHPlane(currType)) {
+                        if (isVisible(x, y, z, currType)) {
+                            for (const DirectionVector& dv : planeDirIter) {
+                                std::vector<Vertex> faceVerts;
+                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+
+                                for (const Vertex& v : faceVerts) {
+                                    tVertData.push_back(v.position);
+                                    tVertData.push_back(v.normal);
+                                    tVertData.push_back(v.color);
+                                    tVertData.push_back(v.uvCoords);
+                                    tVertData.push_back(v.blockType);
+                                    tVertData.push_back(v.biomeWts);
+                                }
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 1);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount + 3);
+
+                                tVertCount += 4;
+                            }
+                        }
+                    }
+                    if (isCross2(currType)) {
+                        // check if the block is exposed to air
+                        if (isVisible(x, y, z, currType)) {
+                            for (const DirectionVector& dv : cross2DirIter) {
+                                std::vector<Vertex> faceVerts;
+                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+
+                                for (const Vertex& v : faceVerts) {
+                                    tVertData.push_back(v.position);
+                                    tVertData.push_back(v.normal);
+                                    tVertData.push_back(v.color);
+                                    tVertData.push_back(v.uvCoords);
+                                    tVertData.push_back(v.blockType);
+                                    tVertData.push_back(v.biomeWts);
+                                }
+
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 1);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount + 3);
+
+                                tVertCount += 4;
+                            }
+                        }
+                    }
+                    if (isCross4(currType)) {
+                        // check if the block is exposed to air
+                        if (isVisible(x, y, z, currType)) {
+                            for (const DirectionVector& dv : cross4DirIter) {
+
+                                std::vector<Vertex> faceVerts;
+                                Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+
+                                for (const Vertex& v : faceVerts) {
+                                    tVertData.push_back(v.position);
+                                    tVertData.push_back(v.normal);
+                                    tVertData.push_back(v.color);
+                                    tVertData.push_back(v.uvCoords);
+                                    tVertData.push_back(v.blockType);
+                                    tVertData.push_back(v.biomeWts);
+                                }
+
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 1);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount);
+                                tIndices.push_back(tVertCount + 2);
+                                tIndices.push_back(tVertCount + 3);
+
+                                tIndices.push_back(tVertCount + 4);
+                                tIndices.push_back(tVertCount + 5);
+                                tIndices.push_back(tVertCount + 6);
+                                tIndices.push_back(tVertCount + 4);
+                                tIndices.push_back(tVertCount + 6);
+                                tIndices.push_back(tVertCount + 7);
+
+                                tVertCount += 8;
+                            }
+                        }
+                    }
+                    if (isPartialX(currType) || isPartialY(currType) || isPartialZ(currType)) {
+                        for (const DirectionVector& dv : directionIter) {
+                            if (isVisible(x, y, z, dv, currType)) {
+                                if (!isTransparent(currType)) {
+                                    std::vector<Vertex> faceVerts;
+                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+
+                                    for (const Vertex& v : faceVerts) {
+                                        oVertData.push_back(v.position);
+                                        oVertData.push_back(v.normal);
+                                        oVertData.push_back(v.color);
+                                        oVertData.push_back(v.uvCoords);
+                                        oVertData.push_back(v.blockType);
+                                        oVertData.push_back(v.biomeWts);
+                                    }
+                                    oIndices.push_back(oVertCount);
+                                    oIndices.push_back(oVertCount + 1);
+                                    oIndices.push_back(oVertCount + 2);
+                                    oIndices.push_back(oVertCount);
+                                    oIndices.push_back(oVertCount + 2);
+                                    oIndices.push_back(oVertCount + 3);
+
+                                    oVertCount += 4;
+                                } else {
+                                    std::vector<Vertex> faceVerts;
+                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+
+                                    for (const Vertex& v : faceVerts) {
+                                        tVertData.push_back(v.position);
+                                        tVertData.push_back(v.normal);
+                                        tVertData.push_back(v.color);
+                                        tVertData.push_back(v.uvCoords);
+                                        tVertData.push_back(v.blockType);
+                                        tVertData.push_back(v.biomeWts);
+                                    }
+                                    tIndices.push_back(tVertCount);
+                                    tIndices.push_back(tVertCount + 1);
+                                    tIndices.push_back(tVertCount + 2);
+                                    tIndices.push_back(tVertCount);
+                                    tIndices.push_back(tVertCount + 2);
+                                    tIndices.push_back(tVertCount + 3);
+
+                                    tVertCount += 4;
+                                }
+                            }
+                        }
+                    }
+                    if (isFullCube(currType)) {
+                        for (const DirectionVector& dv : directionIter) {
+                            if (isVisible(x, y, z, dv, currType)) {
+                                if (!isTransparent(currType)) {
+                                    std::vector<Vertex> faceVerts;
+                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+
+                                    for (const Vertex& v : faceVerts) {
+                                        oVertData.push_back(v.position);
+                                        oVertData.push_back(v.normal);
+                                        oVertData.push_back(v.color);
+                                        oVertData.push_back(v.uvCoords);
+                                        oVertData.push_back(v.blockType);
+                                        oVertData.push_back(v.biomeWts);
+                                    }
+                                    oIndices.push_back(oVertCount);
+                                    oIndices.push_back(oVertCount + 1);
+                                    oIndices.push_back(oVertCount + 2);
+                                    oIndices.push_back(oVertCount);
+                                    oIndices.push_back(oVertCount + 2);
+                                    oIndices.push_back(oVertCount + 3);
+
+                                    oVertCount += 4;
+                                } else {
+                                    std::vector<Vertex> faceVerts;
+                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+                                    for (const Vertex& v : faceVerts) {
+                                        tVertData.push_back(v.position);
+                                        tVertData.push_back(v.normal);
+                                        tVertData.push_back(v.color);
+                                        tVertData.push_back(v.uvCoords);
+                                        tVertData.push_back(v.blockType);
+                                        tVertData.push_back(v.biomeWts);
+                                    }
+                                    tIndices.push_back(tVertCount);
+                                    tIndices.push_back(tVertCount + 1);
+                                    tIndices.push_back(tVertCount + 2);
+                                    tIndices.push_back(tVertCount);
+                                    tIndices.push_back(tVertCount + 2);
+                                    tIndices.push_back(tVertCount + 3);
+                                    tVertCount += 4;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    chunkVBOData.m_OIndexeData = oIndices;
+    chunkVBOData.m_OVertData = oVertData;
+
+    chunkVBOData.m_TIndexData = tIndices;
+    chunkVBOData.m_TVertData = tVertData;
+}
+
+void Chunk::setWorldPos(int x, int z) {
+    int x_floor = static_cast<int>(glm::floor(x / 16.f));
+    int z_floor = static_cast<int>(glm::floor(z / 16.f));
+    worldPos_x = 16 * x_floor;
+    worldPos_z = 16 * z_floor;
+}
+
+glm::ivec2 Chunk::getWorldPos() {
+    return glm::ivec2(worldPos_x, worldPos_z);
+}

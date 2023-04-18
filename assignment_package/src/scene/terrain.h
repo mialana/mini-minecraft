@@ -6,6 +6,8 @@
 #include <unordered_set>
 #include "shaderprogram.h"
 #include "biome.h"
+#include <mutex>
+#include <thread>
 
 //using namespace std;
 
@@ -26,6 +28,16 @@ glm::ivec2 toCoords(int64_t k);
 // expands.
 class Terrain {
 private:
+
+    std::unordered_map<int64_t, uPtr<Chunk>> newChunks;
+
+    std::unordered_map<int64_t, uPtr<Chunk>> chunksWithBlockData;
+    std::mutex chunksWithBlockDataMutex;
+
+    std::unordered_map<int64_t, uPtr<Chunk>> chunksWithVBOData;
+    std::mutex chunksWithVBODataMutex;
+
+
     // Stores every Chunk according to the location of its lower-left corner
     // in world space.
     // We combine the X and Z coordinates of the Chunk's corner into one 64-bit int
@@ -56,11 +68,39 @@ private:
     // inefficient, and will cause your game to run very slowly until
     // milestone 1's Chunk VBO setup is completed.
 
+    std::vector<std::thread> blockWorkerThreads;
+    std::vector<std::thread> vboWorkerThreads;
+
+    bool firstTick = true;
+
     OpenGLContext* mp_context;
 
 public:
     Terrain(OpenGLContext *context);
     ~Terrain();
+
+    //multithreading functions
+
+    bool hasTerrainGenerationZoneAt(glm::ivec2);
+
+    bool hasNewChunkAt(int x, int z) const;
+
+    uPtr<Chunk>& getNewChunkAt(int x, int z);
+    const uPtr<Chunk>& getNewChunkAt(int x, int z) const;
+
+    void multithreadedWork(glm::vec3, glm::vec3);
+
+    void tryExpansion(glm::vec3, glm::vec3);
+    void checkThreadResults();
+
+    void blockWorker(uPtr<Chunk>);
+    void VBOWorker(uPtr<Chunk>);
+
+    uPtr<Chunk> instantiateNewChunkAt(int x, int z);
+
+    void setNewBlockAt(int x, int y, int z, BlockType t);
+
+    BlockType generateBlockTypeByHeight(int, bool);
 
     // Instantiates a new Chunk and stores it in
     // our chunk map at the given coordinates.
