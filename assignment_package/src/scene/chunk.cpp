@@ -226,16 +226,16 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
         case TATAMI_X: case TATAMI_Z:
             offsetYPOS = 0.0625;
             break;
-        case SNOW_1:
+        case SNOW_1: case COTTON_1:
             offsetYPOS = 0.125;
             break;
-        case SNOW_2:
+        case SNOW_2: case COTTON_2:
             offsetYPOS = 0.25;
             break;
-        case SNOW_3:
+        case SNOW_3: case COTTON_3:
             offsetYPOS = 0.375;
             break;
-        case SNOW_4: case ROOF_TILES_1: case STRAW_1:
+        case SNOW_4: case ROOF_TILES_1: case STRAW_1: case COTTON_4:
         case CEDAR_PLANKS_1: case TEAK_PLANKS_1: case CHERRY_PLANKS_1: case MAPLE_PLANKS_1: case PINE_PLANKS_1: case WISTERIA_PLANKS_1:
             offsetYPOS = 0.5;
             break;
@@ -243,13 +243,13 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
         case CEDAR_PLANKS_2: case TEAK_PLANKS_2: case CHERRY_PLANKS_2: case MAPLE_PLANKS_2: case PINE_PLANKS_2: case WISTERIA_PLANKS_2:
             offsetYNEG = 0.5;
             break;
-        case SNOW_5:
+        case SNOW_5: case COTTON_5:
             offsetYPOS = 0.625;
             break;
-        case SNOW_6:
+        case SNOW_6: case COTTON_6:
             offsetYPOS = 0.75;
             break;
-        case SNOW_7:
+        case SNOW_7: case COTTON_7:
             offsetYPOS = 0.875;
             break;
         case CEDAR_WINDOW_X: case TEAK_WINDOW_X: case CHERRY_WINDOW_X: case MAPLE_WINDOW_X: case PINE_WINDOW_X: case WISTERIA_WINDOW_X:

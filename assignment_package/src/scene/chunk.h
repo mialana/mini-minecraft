@@ -35,6 +35,7 @@ enum BlockType : unsigned char
     RICE_1, RICE_2, RICE_3, RICE_4, RICE_5, RICE_6, RICE_01, RICE_02,
     BAMBOO_1, BAMBOO_2, BAMBOO_3,
     TATAMI_X, TATAMI_Z, PAPER_LANTERN, WOOD_LANTERN,
+    COTTON_1, COTTON_2, COTTON_3, COTTON_4, COTTON_5, COTTON_6, COTTON_7, COTTON_8,
     PAINTING_1_XP, PAINTING_2_XP, PAINTING_3_XP, PAINTING_4_XP, PAINTING_5_XP, PAINTING_6L_XP, PAINTING_6R_XP, PAINTING_7T_XP, PAINTING_7B_XP,
     PAINTING_1_XN, PAINTING_2_XN, PAINTING_3_XN, PAINTING_4_XN, PAINTING_5_XN, PAINTING_6L_XN, PAINTING_6R_XN, PAINTING_7T_XN, PAINTING_7B_XN,
     PAINTING_1_ZP, PAINTING_2_ZP, PAINTING_3_ZP, PAINTING_4_ZP, PAINTING_5_ZP, PAINTING_6L_ZP, PAINTING_6R_ZP, PAINTING_7T_ZP, PAINTING_7B_ZP,
@@ -865,6 +866,62 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
     {std::make_pair(TATAMI_Z, YPOS), std::make_pair(0, glm::vec2(12, 11))},
     {std::make_pair(TATAMI_Z, YNEG), std::make_pair(0, glm::vec2(12, 11))},
 
+    {std::make_pair(COTTON_1, XPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_1, XNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_1, ZPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_1, ZNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_1, YPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_1, YNEG), std::make_pair(0, glm::vec2(12, 10))},
+
+    {std::make_pair(COTTON_2, XPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_2, XNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_2, ZPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_2, ZNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_2, YPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_2, YNEG), std::make_pair(0, glm::vec2(12, 10))},
+
+    {std::make_pair(COTTON_3, XPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_3, XNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_3, ZPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_3, ZNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_3, YPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_3, YNEG), std::make_pair(0, glm::vec2(12, 10))},
+
+    {std::make_pair(COTTON_4, XPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_4, XNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_4, ZPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_4, ZNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_4, YPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_4, YNEG), std::make_pair(0, glm::vec2(12, 10))},
+
+    {std::make_pair(COTTON_5, XPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_5, XNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_5, ZPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_5, ZNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_5, YPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_5, YNEG), std::make_pair(0, glm::vec2(12, 10))},
+
+    {std::make_pair(COTTON_6, XPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_6, XNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_6, ZPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_6, ZNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_6, YPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_6, YNEG), std::make_pair(0, glm::vec2(12, 10))},
+
+    {std::make_pair(COTTON_7, XPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_7, XNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_7, ZPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_7, ZNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_7, YPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_7, YNEG), std::make_pair(0, glm::vec2(12, 10))},
+
+    {std::make_pair(COTTON_8, XPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_8, XNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_8, ZPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_8, ZNEG), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_8, YPOS), std::make_pair(0, glm::vec2(12, 10))},
+    {std::make_pair(COTTON_8, YNEG), std::make_pair(0, glm::vec2(12, 10))},
+
     {std::make_pair(PAPER_LANTERN, XPOS), std::make_pair(0, glm::vec2(13, 15))},
     {std::make_pair(PAPER_LANTERN, XNEG), std::make_pair(0, glm::vec2(13, 15))},
     {std::make_pair(PAPER_LANTERN, ZPOS), std::make_pair(0, glm::vec2(13, 15))},
@@ -1408,7 +1465,8 @@ const static std::unordered_set<BlockType, EnumHash> partialY = {
     PAPER_LANTERN,
     BONSAI_TREE, MAGNOLIA_IKEBANA, LOTUS_IKEBANA, GREEN_HYDRANGEA_IKEBANA, CHRYSANTHEMUM_IKEBANA,
     CHERRY_BLOSSOM_IKEBANA, BLUE_HYDRANGEA_IKEBANA, TULIP_IKEBANA, DAFFODIL_IKEBANA,
-    PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA, ONCIDIUM_IKEBANA
+    PLUM_BLOSSOM_IKEBANA, MAGNOLIA_BUD_IKEBANA, POPPY_IKEBANA, MAPLE_IKEBANA, ONCIDIUM_IKEBANA,
+    COTTON_1, COTTON_2, COTTON_3, COTTON_4, COTTON_5, COTTON_6, COTTON_7
 };
 
 const static std::unordered_set<BlockType, EnumHash> partialZ = {
@@ -1433,7 +1491,7 @@ const static std::unordered_set<BlockType, EnumHash> fullCube = {
     PINE_LEAVES,
     WISTERIA_BLOSSOMS_1, WISTERIA_BLOSSOMS_2, WISTERIA_BLOSSOMS_3,
     CEDAR_PLANKS, TEAK_PLANKS, CHERRY_PLANKS, MAPLE_PLANKS, PINE_PLANKS, WISTERIA_PLANKS,
-    RED_PAINTED_WOOD, BLACK_PAINTED_WOOD, PLASTER, ROOF_TILES, STRAW
+    RED_PAINTED_WOOD, BLACK_PAINTED_WOOD, PLASTER, ROOF_TILES, STRAW, COTTON_8
 };
 
 const static std::unordered_set<BlockType, EnumHash> transparent = {

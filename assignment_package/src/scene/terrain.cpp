@@ -362,6 +362,7 @@ void Terrain::CreateTestScene()
 //        }
 //    }
     createCottage1(15, 120, 15);
+    createCottage2(25, 120, 25);
 //    createHut(10, 120, 10);
 //    createToriiGate(10, 108, 10, 0);
 }
@@ -597,7 +598,7 @@ void Terrain::createCottage1(int x, int y, int z) {
     // floor
     for (int x2 = x; x2 <= x + 10; x2++) {
         for (int z2 = z; z2 <= z + 7; z2++) {
-            setBlockAt(x2, y - 1, z2, CHERRY_PLANKS);
+            setBlockAt(x2, y - 1, z2, PINE_PLANKS);
             setBlockAt(x2, y + 3, z2, CHERRY_PLANKS);
         }
     }
@@ -641,6 +642,164 @@ void Terrain::createCottage1(int x, int y, int z) {
     setBlockAt(x + 6, y + 3, z + 2, EMPTY);
     setBlockAt(x + 7, y + 3, z + 1, EMPTY);
     setBlockAt(x + 7, y + 3, z + 2, EMPTY);
+}
+
+void Terrain::createCottage2(int x, int y, int z) {
+    // platform
+    for (int x1 = x - 2; x1 <= x + 12; x1++) {
+        for (int z1 = z - 2; z1 <= z + 11; z1++) {
+            setBlockAt(x1, y, z1, PINE_PLANKS_1);
+        }
+    }
+    for (int y1 = y - 1; y1 >= y - 4; y1--) {
+        setBlockAt(x - 2, y1, z - 2, MAPLE_WOOD_Y);
+        setBlockAt(x + 12, y1, z - 2, MAPLE_WOOD_Y);
+        setBlockAt(x - 2, y1, z + 11, MAPLE_WOOD_Y);
+        setBlockAt(x + 12, y1, z + 11, MAPLE_WOOD_Y);
+    }
+
+    // floor
+    for (int x1 = x; x1 <= x + 10; x1++) {
+        for (int z1 = z; z1 <= z + 9; z1++) {
+            setBlockAt(x1, y, z1, PINE_WOOD_X);
+        }
+    }
+    for (int z1 = z; z1 <= z + 9; z1++) {
+        setBlockAt(x, y, z1, PINE_WOOD_Z);
+        setBlockAt(x + 10, y, z1, PINE_WOOD_Z);
+    }
+
+
+    // walls
+    for (int y1 = y + 1; y1 <= y + 7; y1++) {
+        for (int x1 = x; x1 <= x + 10; x1++) {
+            setBlockAt(x1, y1, z, PLASTER);
+            setBlockAt(x1, y1, z + 9, PLASTER);
+        }
+        for (int z1 = z; z1 <= z + 9; z1++) {
+            setBlockAt(x, y1, z1, PLASTER);
+            setBlockAt(x + 10, y1, z1, PLASTER);
+        }
+    }
+
+    setBlockAt(x, y + 8, z + 4, PLASTER);
+    setBlockAt(x + 10, y + 8, z + 4, PLASTER);
+    setBlockAt(x, y + 8, z + 5, PLASTER);
+    setBlockAt(x + 10, y + 8, z + 5, PLASTER);
+
+    for (int y1 = y + 1; y1 <= y + 2; y1++) {
+        for (int z1 = z + 1; z1 <= z + 8; z1++) {
+            setBlockAt(x, y1, z1, MAPLE_PLANKS);
+            setBlockAt(x + 10, y1, z1, MAPLE_PLANKS);
+        }
+    }
+    setBlockAt(x + 1, y + 1, z, MAPLE_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 9, MAPLE_PLANKS);
+    setBlockAt(x + 2, y + 1, z, MAPLE_PLANKS);
+    setBlockAt(x + 2, y + 1, z + 9, MAPLE_PLANKS);
+    setBlockAt(x + 8, y + 1, z, MAPLE_PLANKS);
+    setBlockAt(x + 8, y + 1, z + 9, MAPLE_PLANKS);
+    setBlockAt(x + 9, y + 1, z, MAPLE_PLANKS);
+    setBlockAt(x + 9, y + 1, z + 9, MAPLE_PLANKS);
+
+    setBlockAt(x + 1, y + 2, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 1, y + 3, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 2, y + 2, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 2, y + 3, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 8, y + 2, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 8, y + 3, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 9, y + 2, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 9, y + 3, z, MAPLE_WINDOW_Z);
+
+    setBlockAt(x + 1, y + 2, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 1, y + 3, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 2, y + 2, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 2, y + 3, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 8, y + 2, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 8, y + 3, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 9, y + 2, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 9, y + 3, z + 9, MAPLE_WINDOW_Z);
+
+    for (int y1 = y; y1 <= y + 7; y1++) {
+        setBlockAt(x, y1, z, WISTERIA_WOOD_Y);
+        setBlockAt(x + 10, y1, z, WISTERIA_WOOD_Y);
+        setBlockAt(x, y1, z + 9, WISTERIA_WOOD_Y);
+        setBlockAt(x + 10, y1, z + 9, WISTERIA_WOOD_Y);
+
+        setBlockAt(x, y1, z + 3, WISTERIA_WOOD_Y);
+        setBlockAt(x, y1, z + 6, WISTERIA_WOOD_Y);
+        setBlockAt(x + 10, y1, z + 3, WISTERIA_WOOD_Y);
+        setBlockAt(x + 10, y1, z + 6, WISTERIA_WOOD_Y);
+
+        setBlockAt(x + 3, y1, z, WISTERIA_WOOD_Y);
+        setBlockAt(x + 7, y1, z, WISTERIA_WOOD_Y);
+        setBlockAt(x + 3, y1, z + 9, WISTERIA_WOOD_Y);
+        setBlockAt(x + 7, y1, z + 9, WISTERIA_WOOD_Y);
+    }
+    for (int x1 = x + 1; x1 <= x + 9; x1++) {
+        setBlockAt(x1, y + 4, z, WISTERIA_WOOD_X);
+        setBlockAt(x1, y + 4, z + 9, WISTERIA_WOOD_X);
+        setBlockAt(x1, y + 6, z, WISTERIA_WOOD_X);
+        setBlockAt(x1, y + 6, z + 9, WISTERIA_WOOD_X);
+    }
+    for (int z1 = z + 1; z1 <= z + 8; z1++) {
+        setBlockAt(x, y + 4, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x + 10, y + 4, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x, y + 6, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x + 10, y + 6, z1, WISTERIA_WOOD_Z);
+    }
+    setBlockAt(x + 10, y + 1, z + 1, EMPTY);
+    setBlockAt(x + 10, y + 2, z + 1, EMPTY);
+    setBlockAt(x + 10, y + 1, z + 2, WISTERIA_WINDOW_X);
+    setBlockAt(x + 10, y + 2, z + 2, WISTERIA_WINDOW_X);
+
+    // roof
+    for (int x3 = x - 1; x3 <= z + 11; x3++) {
+        int dx = -2;
+        for (int y3 = y + 6; y3 <= y + 9; y3++) {
+            setBlockAt(x3, y3, z + dx, ROOF_TILES_1);
+            setBlockAt(x3, y3, z + 9 - dx, ROOF_TILES_1);
+            dx++;
+            setBlockAt(x3, y3, z + dx, ROOF_TILES);
+            setBlockAt(x3, y3, z + 9 - dx, ROOF_TILES);
+            dx++;
+        }
+    }
+
+    // bed
+    for (int x1 = x + 1; x1 <= x + 5; x1++) {
+        for (int z1 = z + 1; z1 <= z + 6; z1++) {
+            setBlockAt(x1, y + 1, z1, WISTERIA_PLANKS_1);
+        }
+    }
+    setBlockAt(x + 1, y + 1, z + 1, WISTERIA_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 2, WISTERIA_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 3, WISTERIA_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 4, WISTERIA_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 5, WISTERIA_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 6, WISTERIA_PLANKS);
+
+    setBlockAt(x + 1, y + 2, z + 4, WISTERIA_PLANKS_1);
+    setBlockAt(x + 1, y + 2, z + 5, WISTERIA_PLANKS_1);
+    setBlockAt(x + 1, y + 2, z + 6, WISTERIA_PLANKS_1);
+    setBlockAt(x + 1, y + 2, z + 7, WISTERIA_PLANKS_1);
+    setBlockAt(x + 1, y + 2, z + 8, WISTERIA_PLANKS_1);
+
+    setBlockAt(x + 2, y + 1, z + 4, COTTON_8);
+    setBlockAt(x + 2, y + 1, z + 5, COTTON_8);
+    setBlockAt(x + 2, y + 2, z + 4, COTTON_1);
+    setBlockAt(x + 2, y + 2, z + 5, COTTON_1);
+    setBlockAt(x + 3, y + 1, z + 4, COTTON_8);
+    setBlockAt(x + 3, y + 1, z + 5, COTTON_8);
+    setBlockAt(x + 4, y + 1, z + 4, COTTON_8);
+    setBlockAt(x + 4, y + 1, z + 5, COTTON_8);
+
+    setBlockAt(x + 1, y + 2, z + 1, PLUM_BLOSSOM_IKEBANA);
+    setBlockAt(x + 1, y + 3, z + 4, PAINTING_6R_XP);
+    setBlockAt(x + 1, y + 3, z + 5, PAINTING_6L_XP);
+    setBlockAt(x + 1, y + 2, z + 3, PAPER_LANTERN);
+
+    setBlockAt(x + 9, y + 1, z + 8, WOOD_LANTERN);
 }
 
 void Terrain::createTeaHouse(int x, int y, int z) {
