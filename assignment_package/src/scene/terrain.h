@@ -63,8 +63,9 @@ private:
 
     // rot = 0 if door faces XPOS dir; 1 if faces XNEG; 2 if faces ZPOS; 3 if faces ZNEG
     void createHut(int x, int y, int z); // hills
-    void createCottage1(int x, int y, int z, int rot); // mountains
-    void createTeaHouse(int x, int y, int z, int rot); // forest
+    void createCottage1(int x, int y, int z); // mountains
+    void createCottage2(int x, int y, int z); // mountains
+    void createTeaHouse(int x, int y, int z); // forest
 
 public:
     Terrain(OpenGLContext *context);

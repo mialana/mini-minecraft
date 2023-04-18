@@ -103,12 +103,15 @@ bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
         adjBlockType = this->getAdjBlockType(dv.dir, adjBlockPos);
     }
 
+    if (adjBlockType == EMPTY) {
+        return true;
+    }
     // if block is completely enclosed by non-transparent blocks
     if (!isVisible(x, y, z, bt)) {
         return false;
     }
 
-    if (isFullCube(adjBlockType) && !isTransparent(adjBlockType)) {
+    if (isFullCube(bt) && isFullCube(adjBlockType) && !isTransparent(adjBlockType)) {
         return false;
     }
 
@@ -122,22 +125,17 @@ bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
         return false;
     }
 
-    if (isPartialX(bt) && !isPartialY(bt) && !isPartialZ(bt) && bt == adjBlockType) {
+    if ((d == XPOS || d == XNEG) && isPartialX(bt) && !isPartialY(bt) && !isPartialZ(bt) && bt == adjBlockType) {
         return false;
     }
 
-    if (isPartialY(bt) && !isPartialX(bt) && !isPartialZ(bt) && bt == adjBlockType) {
+    if ((d == YPOS || d == YNEG) && isPartialY(bt) && !isPartialX(bt) && !isPartialZ(bt) && bt == adjBlockType) {
         return false;
     }
 
-    if (isPartialZ(bt) && !isPartialX(bt) && !isPartialY(bt) && bt == adjBlockType) {
+    if ((d == ZPOS || d == ZNEG) && isPartialZ(bt) && !isPartialX(bt) && !isPartialY(bt) && bt == adjBlockType) {
         return false;
     }
-
-    if (adjBlockType == EMPTY) {
-        return true;
-    }
-
     // if the block adjacent to this face is EMPTY or transparent and is of a different type
     if (isTransparent(adjBlockType) && adjBlockType != bt) {
         return true;
@@ -157,6 +155,18 @@ bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
             ((d == YPOS) && (isPartialY(bt) || isPartialX(adjBlockType) || isPartialZ(adjBlockType))) ||
             ((d == YNEG) && (isPartialX(adjBlockType) || isPartialY(adjBlockType) || isPartialZ(adjBlockType))) ||
             ((d == ZPOS || d == ZNEG) && (isPartialZ(bt) || isPartialX(adjBlockType) || isPartialY(adjBlockType) || isPartialZ(adjBlockType)))) {
+        return true;
+    }
+
+    if (d == YNEG && (bt == CEDAR_PLANKS_2 || bt == TEAK_PLANKS_2 || bt == CHERRY_PLANKS_2 ||
+                      bt == MAPLE_PLANKS_2 || bt == PINE_PLANKS_2 || bt == WISTERIA_PLANKS_2 ||
+                      bt == ROOF_TILES_2 || bt == STRAW_2)) {
+        return true;
+    }
+
+    if (d == YPOS && (adjBlockType == CEDAR_PLANKS_2 || adjBlockType == TEAK_PLANKS_2 || adjBlockType == CHERRY_PLANKS_2 ||
+                      adjBlockType == MAPLE_PLANKS_2 || adjBlockType == PINE_PLANKS_2 || adjBlockType == WISTERIA_PLANKS_2 ||
+                      adjBlockType == ROOF_TILES_2 || adjBlockType == STRAW_2)) {
         return true;
     }
 
@@ -226,9 +236,11 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetYPOS = 0.375;
             break;
         case SNOW_4: case ROOF_TILES_1: case STRAW_1:
+        case CEDAR_PLANKS_1: case TEAK_PLANKS_1: case CHERRY_PLANKS_1: case MAPLE_PLANKS_1: case PINE_PLANKS_1: case WISTERIA_PLANKS_1:
             offsetYPOS = 0.5;
             break;
         case ROOF_TILES_2: case STRAW_2:
+        case CEDAR_PLANKS_2: case TEAK_PLANKS_2: case CHERRY_PLANKS_2: case MAPLE_PLANKS_2: case PINE_PLANKS_2: case WISTERIA_PLANKS_2:
             offsetYNEG = 0.5;
             break;
         case SNOW_5:
@@ -258,10 +270,10 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetZNEG = 0.4375;
             break;
         case PAPER_LANTERN:
-            offsetXPOS = 0.8125;
-            offsetXNEG = 0.1875;
-            offsetZPOS = 0.8125;
-            offsetZNEG = 0.1875;
+            offsetXPOS = 0.75;
+            offsetXNEG = 0.25;
+            offsetZPOS = 0.75;
+            offsetZNEG = 0.25;
             offsetYPOS = 0.75;
             break;
         case WOOD_LANTERN:

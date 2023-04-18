@@ -207,160 +207,161 @@ void Terrain::CreateTestScene()
     // now exists.
     m_generatedTerrain.insert(toKey(0, 0));
 
-    for (int x = 0; x < 48; ++x) {
-        for (int z = 0; z < 48; ++z) {
+//    for (int x = 0; x < 48; ++x) {
+//        for (int z = 0; z < 48; ++z) {
 
-            float hM = Biome::mountains(glm::vec2(x, z));
-            float hH = Biome::hills(glm::vec2(x, z));
-            float hF = Biome::forest(glm::vec2(x, z));
-            float hI = Biome::islands(glm::vec2(x, z));
+//            float hM = Biome::mountains(glm::vec2(x, z));
+//            float hH = Biome::hills(glm::vec2(x, z));
+//            float hF = Biome::forest(glm::vec2(x, z));
+//            float hI = Biome::islands(glm::vec2(x, z));
 
-            std::pair<float, BiomeEnum> hb = blendMultipleBiomes(glm::vec2(x, z), hM, hF, hH, hI);
-            float h = hb.first;
-            BiomeEnum b = hb.second;
+//            std::pair<float, BiomeEnum> hb = blendMultipleBiomes(glm::vec2(x, z), hM, hF, hH, hI);
+//            float h = hb.first;
+//            BiomeEnum b = hb.second;
 
-            int numDirtBlocks = 10 * Biome::fbm(glm::vec2(x, z));
-            if (b == MOUNTAINS) {
-                if (h < 120) {
-                    for (int y = 0; y < h - numDirtBlocks; ++y) {
-                        setBlockAt(x, y, z, STONE);
-                    }
-                    for (int y = h - numDirtBlocks; y < h; ++y) {
-                        setBlockAt(x, y, z, DIRT);
-                    }
-                    for (int y = h; y < 120; ++y) {
-                        setBlockAt(x, y, z, WATER);
-                    }
-                } else {
-                    for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
-                        setBlockAt(x, y, z, STONE);
-                    }
-                    for (int y = h - numDirtBlocks - 1; y < h - 1; ++y) {
-                        setBlockAt(x, y, z, DIRT);
-                    }
-                    setBlockAt(x, h - 1, z, GRASS);
-                    setBlockAt(x, h, z, SNOW_1);
-                }
-            } else if (b == HILLS) {
-                for (int y = 0; y < h - 3 - numDirtBlocks; ++y) {
-                    setBlockAt(x, y, z, STONE);
-                }
-                for (int currY = h - 3 - numDirtBlocks; currY < h - 1; ++currY) {
-                    setBlockAt(x, currY, z, DIRT);
-                }
+//            int numDirtBlocks = 10 * Biome::fbm(glm::vec2(x, z));
+//            if (b == MOUNTAINS) {
+//                if (h < 120) {
+//                    for (int y = 0; y < h - numDirtBlocks; ++y) {
+//                        setBlockAt(x, y, z, STONE);
+//                    }
+//                    for (int y = h - numDirtBlocks; y < h; ++y) {
+//                        setBlockAt(x, y, z, DIRT);
+//                    }
+//                    for (int y = h; y < 120; ++y) {
+//                        setBlockAt(x, y, z, WATER);
+//                    }
+//                } else {
+//                    for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
+//                        setBlockAt(x, y, z, STONE);
+//                    }
+//                    for (int y = h - numDirtBlocks - 1; y < h - 1; ++y) {
+//                        setBlockAt(x, y, z, DIRT);
+//                    }
+//                    setBlockAt(x, h - 1, z, GRASS);
+//                    setBlockAt(x, h, z, SNOW_1);
+//                }
+//            } else if (b == HILLS) {
+//                for (int y = 0; y < h - 3 - numDirtBlocks; ++y) {
+//                    setBlockAt(x, y, z, STONE);
+//                }
+//                for (int currY = h - 3 - numDirtBlocks; currY < h - 1; ++currY) {
+//                    setBlockAt(x, currY, z, DIRT);
+//                }
 
-                if (h < 120) {
-                    setBlockAt(x, h - 1, z, DIRT);
+//                if (h < 120) {
+//                    setBlockAt(x, h - 1, z, DIRT);
 
-                    for (int y = h; y < 120; ++y) {
-                        setBlockAt(x, y, z, WATER);
-                    }
-                } else {
-                    setBlockAt(x, h - 1, z, GRASS);
-                }
-            } else if (b == FOREST) {
-                for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
-                    setBlockAt(x, y, z, STONE);
-                }
-                for (int y = h - numDirtBlocks - 1; y < h - 1; ++y) {
-                    setBlockAt(x, y, z, DIRT);
-                }
+//                    for (int y = h; y < 120; ++y) {
+//                        setBlockAt(x, y, z, WATER);
+//                    }
+//                } else {
+//                    setBlockAt(x, h - 1, z, GRASS);
+//                }
+//            } else if (b == FOREST) {
+//                for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
+//                    setBlockAt(x, y, z, STONE);
+//                }
+//                for (int y = h - numDirtBlocks - 1; y < h - 1; ++y) {
+//                    setBlockAt(x, y, z, DIRT);
+//                }
 
-                if (h < 120) {
-                    setBlockAt(x, h - 1, z, DIRT);
+//                if (h < 120) {
+//                    setBlockAt(x, h - 1, z, DIRT);
 
-                    for (int y = h; y < 120; ++y) {
-                        setBlockAt(x, y, z, WATER);
-                    }
-                } else {
-                    setBlockAt(x, h - 1, z, GRASS);
-                }
-            } else if (b == ISLANDS) {
-                for (int y = 0; y < 80; ++y) {
-                    setBlockAt(x, y, z, STONE);
-                }
-                for (int y = 80; y < h; ++y) {
-                    setBlockAt(x, y, z, SAND);
-                }
-                if (h < 120) {
-                    for (int y = h; y < 120; ++y) {
-                        setBlockAt(x, y, z, WATER);
-                    }
-                }
-            }
+//                    for (int y = h; y < 120; ++y) {
+//                        setBlockAt(x, y, z, WATER);
+//                    }
+//                } else {
+//                    setBlockAt(x, h - 1, z, GRASS);
+//                }
+//            } else if (b == ISLANDS) {
+//                for (int y = 0; y < 80; ++y) {
+//                    setBlockAt(x, y, z, STONE);
+//                }
+//                for (int y = 80; y < h; ++y) {
+//                    setBlockAt(x, y, z, SAND);
+//                }
+//                if (h < 120) {
+//                    for (int y = h; y < 120; ++y) {
+//                        setBlockAt(x, y, z, WATER);
+//                    }
+//                }
+//            }
 
 
 
-            // assets
-            float p1 = Biome::noise1D(glm::vec2(x, z));
-            float p2 = Biome::worley(glm::vec2(x, z));
+//            // assets
+//            float p1 = Biome::noise1D(glm::vec2(x, z));
+//            float p2 = Biome::worley(glm::vec2(x, z));
 
-            if (getBlockAt(x, h, z) == EMPTY) {
+//            if (getBlockAt(x, h, z) == EMPTY) {
 
-                // TALL_GRASS
-                if ((b == MOUNTAINS && p1 < 0.15) ||
-                    (b == HILLS && p1 < 0.35) ||
-                    (b == FOREST && p1 < 0.15) ||
-                    (b == ISLANDS && p1 < 0.1)) {
+//                // TALL_GRASS
+//                if ((b == MOUNTAINS && p1 < 0.15) ||
+//                    (b == HILLS && p1 < 0.35) ||
+//                    (b == FOREST && p1 < 0.15) ||
+//                    (b == ISLANDS && p1 < 0.1)) {
 
-                    setBlockAt(x, h, z, TALL_GRASS);
-                }
+//                    setBlockAt(x, h, z, TALL_GRASS);
+//                }
 
-                // bamboo, trees
-            } else if (getBlockAt(x, h, z) == WATER) {
-                // lotuses, coral, sea grass, kelp, lanterns
+//                // bamboo, trees
+//            } else if (getBlockAt(x, h, z) == WATER) {
+//                // lotuses, coral, sea grass, kelp, lanterns
 
-                if (b == MOUNTAINS) {
+//                if (b == MOUNTAINS) {
 
-                } else if (b == HILLS) {
+//                } else if (b == HILLS) {
 
-                } if (b == ISLANDS && p2 < 0.3 && h < 124) {
-                    if (p1 < 0.1) {
-                        setBlockAt(x, h, z, SEA_GRASS);
-                    } else if (p1 < 0.11) {
-                        setBlockAt(x, h, z, CORAL_1);
-                    } else if (p1 < 0.12) {
-                        setBlockAt(x, h, z, CORAL_2);
-                    } else if (p1 < 0.13) {
-                        setBlockAt(x, h, z, CORAL_3);
-                    } else if (p1 < 0.14) {
-                        setBlockAt(x, h, z, CORAL_4);
-                    } else if (p1 < 0.4) {
-                        int y = h;
-                        bool addHeight = true;
-                        while (y < 123 && addHeight) {
-                            setBlockAt(x, y, z, KELP_1);
-                            y++;
-                            addHeight = (Biome::noise1D(glm::vec3(x, y, z)) < 0.75);
-                        }
-                        setBlockAt(x, y, z, KELP_2);
-                    }
-                }
-            }
+//                } if (b == ISLANDS && p2 < 0.3 && h < 124) {
+//                    if (p1 < 0.1) {
+//                        setBlockAt(x, h, z, SEA_GRASS);
+//                    } else if (p1 < 0.11) {
+//                        setBlockAt(x, h, z, CORAL_1);
+//                    } else if (p1 < 0.12) {
+//                        setBlockAt(x, h, z, CORAL_2);
+//                    } else if (p1 < 0.13) {
+//                        setBlockAt(x, h, z, CORAL_3);
+//                    } else if (p1 < 0.14) {
+//                        setBlockAt(x, h, z, CORAL_4);
+//                    } else if (p1 < 0.4) {
+//                        int y = h;
+//                        bool addHeight = true;
+//                        while (y < 123 && addHeight) {
+//                            setBlockAt(x, y, z, KELP_1);
+//                            y++;
+//                            addHeight = (Biome::noise1D(glm::vec3(x, y, z)) < 0.75);
+//                        }
+//                        setBlockAt(x, y, z, KELP_2);
+//                    }
+//                }
+//            }
 
-            for (int currY = 1; currY <= 106; currY++) {
-                float cavePerlin3D = Biome::perlin3D(glm::vec3(x, currY, z) * 0.06f);
-                float cavePerlin3DTwo = Biome::perlin3D(glm::vec3(x, currY, glm::mix(x, z, 0.35f)) * 0.06f);
+//            for (int currY = 1; currY <= 106; currY++) {
+//                float cavePerlin3D = Biome::perlin3D(glm::vec3(x, currY, z) * 0.06f);
+//                float cavePerlin3DTwo = Biome::perlin3D(glm::vec3(x, currY, glm::mix(x, z, 0.35f)) * 0.06f);
 
-                if (cavePerlin3D + cavePerlin3DTwo < -0.15f) {
-                    if (currY < 25) {
-                        setBlockAt(x, currY, z, LAVA);
-                    } else {
-                        setBlockAt(x, currY, z, EMPTY);
-                    }
-                }
-            }
+//                if (cavePerlin3D + cavePerlin3DTwo < -0.15f) {
+//                    if (currY < 25) {
+//                        setBlockAt(x, currY, z, LAVA);
+//                    } else {
+//                        setBlockAt(x, currY, z, EMPTY);
+//                    }
+//                }
+//            }
 
-            if (getBlockAt(x, h, z) == WATER) {
-                int y = h - 1;
-                while (getBlockAt(x, y, z) == EMPTY && y > 0) {
-                    setBlockAt(x, y, z, WATER);
-                    y--;
-                }
-            }
-            setBlockAt(x, 0, z, BEDROCK);
-        }
-    }
+//            if (getBlockAt(x, h, z) == WATER) {
+//                int y = h - 1;
+//                while (getBlockAt(x, y, z) == EMPTY && y > 0) {
+//                    setBlockAt(x, y, z, WATER);
+//                    y--;
+//                }
+//            }
+//            setBlockAt(x, 0, z, BEDROCK);
+//        }
+//    }
+    createCottage1(15, 120, 15);
 //    createHut(10, 120, 10);
 //    createToriiGate(10, 108, 10, 0);
 }
@@ -510,7 +511,7 @@ void Terrain::createHut(int x, int y, int z) {
     setBlockAt(x + 4, y + 12, z, CHERRY_WOOD_Y);
     setBlockAt(x + 4, y + 12, z + 8, CHERRY_WOOD_Y);
 
-
+    // roof
     for (int z3 = z - 1; z3 <= z + 9; z3++) {
         int dx = -2;
         for (int y3 = y + 10; y3 <= y + 12; y3++) {
@@ -537,10 +538,111 @@ void Terrain::createHut(int x, int y, int z) {
     setBlockAt(x + 8, y + 6, z + 4, EMPTY);
 }
 
-void Terrain::createCottage1(int x, int y, int z, int rot) {
+void Terrain::createCottage1(int x, int y, int z) {
+    // floor 1 walls
+    for (int y1 = y; y1 <= y + 3; y1++) {
+        for (int x1 = x; x1 <= x + 10; x1++) {
+            setBlockAt(x1, y1, z, CHERRY_PLANKS);
+            setBlockAt(x1, y1, z + 7, CHERRY_PLANKS);
+        }
+        for (int z1 = z; z1 <= z + 7; z1++) {
+            setBlockAt(x, y1, z1, CHERRY_PLANKS);
+            setBlockAt(x + 10, y1, z1, CHERRY_PLANKS);
+        }
+    }
+    for (int x1 = x; x1 <= x + 4; x1++) {
+        for (int y1 = y; y1 <= y + 2; y1++) {
+            setBlockAt(x1, y1, z + 7, EMPTY);
+            setBlockAt(x1, y1, z + 6, CHERRY_PLANKS);
+        }
+    }
 
+    // decor
+    for (int x1 = x + 1; x1 < x + 10; x1 += 2) {
+        setBlockAt(x1, y + 6, z - 1, PAPER_LANTERN);
+        setBlockAt(x1, y + 6, z + 8, PAPER_LANTERN);
+    }
+    setBlockAt(x + 2, y, z + 6, CHERRY_WINDOW_Z);
+    setBlockAt(x + 2, y + 1, z + 6, CHERRY_WINDOW_Z);
+    setBlockAt(x + 3, y, z + 6, EMPTY);
+    setBlockAt(x + 3, y + 1, z + 6, EMPTY);
+    setBlockAt(x + 4, y + 2, z + 7, PAPER_LANTERN);
+    setBlockAt(x + 2, y, z + 5, WOOD_LANTERN);
+    setBlockAt(x + 2, y + 1, z + 5, MAPLE_IKEBANA);
+    setBlockAt(x + 3, y + 1, z + 1, PAINTING_4_ZP);
+
+    setBlockAt(x + 9, y + 4, z + 6, WOOD_LANTERN);
+    setBlockAt(x + 9, y + 5, z + 6, CHRYSANTHEMUM_IKEBANA);
+
+    setBlockAt(x + 10, y, z + 3, EMPTY);
+    setBlockAt(x + 10, y + 1, z + 3, EMPTY);
+    setBlockAt(x + 10, y, z + 4, CHERRY_WINDOW_X);
+    setBlockAt(x + 10, y + 1, z + 4, CHERRY_WINDOW_X);
+
+    // floor 2 walls
+    for (int y2 = y + 4; y2 <= y + 7; y2++) {
+        for (int x1 = x; x1 <= x + 10; x1++) {
+            setBlockAt(x1, y2, z, PINE_PLANKS);
+            setBlockAt(x1, y2, z + 7, PINE_PLANKS);
+        }
+        for (int z2 = z; z2 <= z + 7; z2++) {
+            setBlockAt(x, y2, z2, PINE_PLANKS);
+            setBlockAt(x + 10, y2, z2, PINE_PLANKS);
+        }
+    }
+    for (int z2 = z + 2; z2 <= z + 5; z2++) {
+        setBlockAt(x, y + 8, z2, PINE_PLANKS);
+        setBlockAt(x + 10, y + 8, z2, PINE_PLANKS);
+    }
+    // floor
+    for (int x2 = x; x2 <= x + 10; x2++) {
+        for (int z2 = z; z2 <= z + 7; z2++) {
+            setBlockAt(x2, y - 1, z2, CHERRY_PLANKS);
+            setBlockAt(x2, y + 3, z2, CHERRY_PLANKS);
+        }
+    }
+
+    // balcony
+    for (int x3 = x - 1; x3 <= x + 11; x3++) {
+        setBlockAt(x3, y + 3, z + 8, ROOF_TILES);
+        setBlockAt(x3, y + 3, z + 9, ROOF_TILES_1);
+        setBlockAt(x3, y + 3, z - 1, ROOF_TILES_2);
+        setBlockAt(x3, y + 3, z - 2, ROOF_TILES_2);
+    }
+    for (int z3 = z; z3 <= z + 7; z3++) {
+        setBlockAt(x - 1, y + 3, z3, ROOF_TILES_2);
+        setBlockAt(x + 11, y + 3, z3, ROOF_TILES_2);
+    }
+
+    // roof
+    for (int x3 = x - 1; x3 <= z + 12; x3++) {
+        int dx = -2;
+        for (int y3 = y + 7; y3 <= y + 9; y3++) {
+            setBlockAt(x3, y3, z + dx, ROOF_TILES_1);
+            setBlockAt(x3, y3, z + 7 - dx, ROOF_TILES_1);
+            dx++;
+            setBlockAt(x3, y3, z + dx, ROOF_TILES);
+            setBlockAt(x3, y3, z + 7 - dx, ROOF_TILES);
+            dx++;
+        }
+    }
+
+    // stairs
+    setBlockAt(x + 5, y, z + 1, CHERRY_PLANKS_2);
+    setBlockAt(x + 5, y, z + 2, CHERRY_PLANKS_2);
+    setBlockAt(x + 6, y + 1, z + 1, CHERRY_PLANKS_2);
+    setBlockAt(x + 6, y + 1, z + 2, CHERRY_PLANKS_2);
+    setBlockAt(x + 7, y + 2, z + 1, CHERRY_PLANKS_2);
+    setBlockAt(x + 7, y + 2, z + 2, CHERRY_PLANKS_2);
+
+    setBlockAt(x + 5, y + 3, z + 1, EMPTY);
+    setBlockAt(x + 5, y + 3, z + 2, EMPTY);
+    setBlockAt(x + 6, y + 3, z + 1, EMPTY);
+    setBlockAt(x + 6, y + 3, z + 2, EMPTY);
+    setBlockAt(x + 7, y + 3, z + 1, EMPTY);
+    setBlockAt(x + 7, y + 3, z + 2, EMPTY);
 }
 
-void Terrain::createTeaHouse(int x, int y, int z, int rot) {
+void Terrain::createTeaHouse(int x, int y, int z) {
 
 }
