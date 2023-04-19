@@ -95,6 +95,9 @@ void MyGL::initializeGL()
 
     m_terrain.CreateTestScene();
 
+    //m_terrain.instantiateChunkAt(47, 47)->createVBOdata();
+    //m_terrain.instantiateChunkAt(48, 48)->createVBOdata();
+
     m_frameBuffer.create();
     m_screenQuad.createVBOdata();
 
@@ -131,7 +134,7 @@ void MyGL::tick() {
     m_player.tick(dT, m_inputs);
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
-    m_terrain.multithreadedWork(m_player.mcr_position, prevPlayerPos);
+    //m_terrain.multithreadedWork(m_player.mcr_position, prevPlayerPos);
 
     if (m_inputs.underWater) {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
