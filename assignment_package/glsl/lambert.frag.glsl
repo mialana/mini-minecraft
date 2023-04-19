@@ -80,14 +80,19 @@ float mod(float a, float b) {
     return a - (div * b);
 }
 
-vec4 tint(vec4 origCol, vec4 tintCol) {
-//    float grayscaleCol = (0.21 * origCol.r) + (0.72 * origCol.g) + (0.07 * origCol.b);
-//    vec4 finalCol = tintCol * grayscaleCol;
-    vec4 finalCol = origCol * 0.25 + tintCol * 0.75;
+vec4 tint(vec4 origCol, vec4 tintCol, float tintWt) {
+
+    vec4 finalCol = origCol * (1 - tintWt) + tintCol * tintWt;
     finalCol.a = tintCol.a;
     return finalCol;
 }
-
+vec4 color(vec4 origCol, vec4 newCol, float newWt) {
+    float grayscaleCol = (0.21 * origCol.r) + (0.72 * origCol.g) + (0.07 * origCol.b);
+    vec4 finalCol = newCol * newWt + (grayscaleCol * (1 - newWt) * grayscaleCol);
+    finalCol.a = newCol.a;
+//    vec4 finalCol = newCol * grayscaleCol;
+    return finalCol;
+}
 void main()
 {
     vec2 newUV;
@@ -102,11 +107,11 @@ void main()
             out_Col = vec4(texture(u_TextureSampler, fs_UV));
         } else if (fs_TexIdx == 1) {
             // mountains = 0, hills = 1, forest = 2, islands = 3
-            vec4 mCol = vec4(0.3, 0.55, 0.25, 1) * fs_BiomeWts.x;
-            vec4 hCol = vec4(0.15, 0.812, 0, 1) * fs_BiomeWts.y;
-            vec4 fCol = vec4(0.65, 0.8, 0.5, 1) * fs_BiomeWts.z;
-            vec4 iCol = vec4(0.55, 0.75, 0.25, 1) * fs_BiomeWts.w;
-            vec4 cCol = vec4(0.5, 0.8, 0.65, 1);
+            vec4 mCol = vec4(0, 0.27, 0.235, 1) * fs_BiomeWts.x;
+            vec4 hCol = vec4(0.08, 0.35, 0, 1) * fs_BiomeWts.y;
+            vec4 fCol = vec4(0.04, 0.3, 0.3, 1) * fs_BiomeWts.z;
+            vec4 iCol = vec4(0.157, 0.55, 0.235, 1) * fs_BiomeWts.w;
+            vec4 cCol = vec4(0.03, 0.208, 0.28, 1);
 
             vec4 tintCol;
 
@@ -117,7 +122,7 @@ void main()
             }
             newUV = fs_UV;
             out_Col = vec4(texture(u_TextureSampler, fs_UV));
-            out_Col = tint(out_Col, tintCol);
+            out_Col = color(out_Col, tintCol, 0.6);
         } else if (fs_TexIdx == 2) {
             // water animation
             float uOffset = (0.0625 / 64.f) * float(mod(u_Time, 64));
@@ -137,7 +142,7 @@ void main()
             } else {
                 tintCol = mCol + hCol + fCol + iCol;
             }
-            out_Col = tint(out_Col, vec4(tintCol, 0.25));
+            out_Col = color(out_Col, vec4(tintCol, 1), 0.9);
 
         } else if (fs_TexIdx == 3) {
             // lava animation
@@ -177,7 +182,7 @@ void main()
                 // Avoid negative lighting values
     diffuseTerm = clamp(diffuseTerm, 0, 1);
 
-    float ambientTerm = 0.2;
+    float ambientTerm = 0.3;
 
     float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
                                                         //to simulate ambient lighting. This ensures that faces that are not
