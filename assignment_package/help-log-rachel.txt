@@ -25,8 +25,8 @@ notes:
 
 - bilinear interp: end of 4/11 lec
 
-- think about how to check if you're underwater (not just if the BlockType at this position == WATER)
-- maybe travel upwards until you hit either a full/ partial block or a water block?
+- underwater if the BlockType at this position == WATER or underwater plant
 
-- water is too dark
-- improve bilinear interp fn to be more of a piecewise fn
+- inside setBlockAt(), check if the block emits light. If it does, add it to a set for calculation later
+
+- pass additional vec4 lightIntensity characteristic to vtx shader: 0 = sunlight, 1 = lava, 2 = lantern light, 3 = cave plants

@@ -96,7 +96,6 @@ bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
 
     BlockType adjBlockType;
 
-
     if (inSameChunk) {
         adjBlockType = this->getBlockAt(adjBlockPos.x, adjBlockPos.y, adjBlockPos.z);
     } else {
@@ -141,6 +140,14 @@ bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
         return true;
     }
 
+    if ((bt == CEDAR_LEAVES || bt == TEAK_LEAVES ||
+        bt == CHERRY_BLOSSOMS_1 || bt == CHERRY_BLOSSOMS_2 || bt == CHERRY_BLOSSOMS_3 || bt == CHERRY_BLOSSOMS_4 ||
+        bt == MAPLE_LEAVES_1 || bt == MAPLE_LEAVES_2 || bt == MAPLE_LEAVES_3 ||
+        bt == PINE_LEAVES ||
+        bt == WISTERIA_BLOSSOMS_1 || bt == WISTERIA_BLOSSOMS_2 || bt == WISTERIA_BLOSSOMS_3) && bt == adjBlockType) {
+        return true;
+    }
+
     if (isHPlane(adjBlockType) || isCross2(adjBlockType) || isCross4(adjBlockType)) {
         return true;
     }
@@ -169,6 +176,8 @@ bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
                       adjBlockType == ROOF_TILES_2 || adjBlockType == STRAW_2)) {
         return true;
     }
+
+
 
     return false;
 }

@@ -1217,6 +1217,8 @@ const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, 
     {std::make_pair(BONSAI_TREE, YNEG), std::make_pair(0, glm::vec2(0, 3))},
     {std::make_pair(BONSAI_TREE, XPOS_ZPOS), std::make_pair(0, glm::vec2(0, 5))},
     {std::make_pair(BONSAI_TREE, XPOS_ZNEG), std::make_pair(0, glm::vec2(0, 5))},
+    {std::make_pair(BONSAI_TREE, XNEG_ZPOS), std::make_pair(0, glm::vec2(0, 5))},
+    {std::make_pair(BONSAI_TREE, XNEG_ZNEG), std::make_pair(0, glm::vec2(0, 5))},
 
     {std::make_pair(MAGNOLIA_IKEBANA, XPOS), std::make_pair(0, glm::vec2(0, 1))},
     {std::make_pair(MAGNOLIA_IKEBANA, XNEG), std::make_pair(0, glm::vec2(0, 1))},
