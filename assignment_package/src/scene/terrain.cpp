@@ -361,10 +361,11 @@ void Terrain::CreateTestScene()
 //            setBlockAt(x, 0, z, BEDROCK);
 //        }
 //    }
-    createCottage1(15, 120, 15);
-    createCottage2(25, 120, 25);
+//    createCottage1(15, 120, 15);
+//    createCottage2(25, 120, 25);
 //    createHut(10, 120, 10);
 //    createToriiGate(10, 108, 10, 0);
+    createTeaHouse(25, 120, 25);
 }
 
 void Terrain::loadNewChunks(glm::vec3 currPos) {
@@ -747,6 +748,11 @@ void Terrain::createCottage2(int x, int y, int z) {
         setBlockAt(x + 10, y + 4, z1, WISTERIA_WOOD_Z);
         setBlockAt(x, y + 6, z1, WISTERIA_WOOD_Z);
         setBlockAt(x + 10, y + 6, z1, WISTERIA_WOOD_Z);
+
+        setBlockAt(x + 2, y + 6, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x + 4, y + 6, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x + 6, y + 6, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x + 8, y + 6, z1, WISTERIA_WOOD_Z);
     }
     setBlockAt(x + 10, y + 1, z + 1, EMPTY);
     setBlockAt(x + 10, y + 2, z + 1, EMPTY);
@@ -803,5 +809,159 @@ void Terrain::createCottage2(int x, int y, int z) {
 }
 
 void Terrain::createTeaHouse(int x, int y, int z) {
+    // platform
+    for (int x1 = x - 2; x1 <= x + 16; x1++) {
+        for (int z1 = z - 2; z1 <= z + 11; z1++) {
+            setBlockAt(x1, y, z1, PINE_PLANKS);
+        }
+    }
 
+    // floor
+    for (int x2 = x + 1; x2 <= x + 13; x2++) {
+        for (int z2 = z + 1; z2 <= z + 8; z2++) {
+            setBlockAt(x2, y + 1, z2, CEDAR_PLANKS);
+        }
+    }
+
+    // walls
+    for (int y3 = y + 2; y3 <= y + 7; y3++) {
+        for (int x3 = x + 1; x3 <= x + 13; x3++) {
+            setBlockAt(x3, y3, z, PLASTER);
+            setBlockAt(x3, y3, z + 9, CEDAR_WINDOW_Z);
+        }
+        for (int z3 = z + 1; z3 <= z + 8; z3++) {
+            setBlockAt(x, y3, z3, PLASTER);
+            setBlockAt(x + 14, y3, z3, CEDAR_WINDOW_X);
+        }
+    }
+    setBlockAt(x + 10, y + 2, z + 9, PLASTER);
+    setBlockAt(x + 11, y + 2, z + 9, PLASTER);
+    setBlockAt(x + 12, y + 2, z + 9, PLASTER);
+    setBlockAt(x + 13, y + 2, z + 9, PLASTER);
+    setBlockAt(x + 10, y + 3, z + 9, PLASTER);
+    setBlockAt(x + 10, y + 4, z + 9, PLASTER);
+    setBlockAt(x + 13, y + 3, z + 9, PLASTER);
+    setBlockAt(x + 13, y + 4, z + 9, PLASTER);
+    setBlockAt(x + 10, y + 5, z + 9, PLASTER);
+    setBlockAt(x + 11, y + 5, z + 9, PLASTER);
+    setBlockAt(x + 12, y + 5, z + 9, PLASTER);
+    setBlockAt(x + 13, y + 5, z + 9, PLASTER);
+
+    for (int x3 = x + 1; x3 <= x + 13; x3++) {
+        setBlockAt(x3, y + 1, z, CEDAR_PLANKS);
+        setBlockAt(x3, y + 1, z + 9, CEDAR_PLANKS);
+        setBlockAt(x3, y + 6, z, CEDAR_PLANKS);
+        setBlockAt(x3, y + 6, z + 9, CEDAR_PLANKS);
+        setBlockAt(x3, y + 8, z, CEDAR_PLANKS);
+        setBlockAt(x3, y + 8, z + 9, CEDAR_PLANKS);
+    }
+    for (int z3 = z + 1; z3 <= z + 8; z3++) {
+        setBlockAt(x, y + 1, z3, CEDAR_PLANKS);
+        setBlockAt(x + 14, y + 1, z3, CEDAR_PLANKS);
+        setBlockAt(x, y + 6, z3, CEDAR_PLANKS);
+        setBlockAt(x + 14, y + 6, z3, CEDAR_PLANKS);
+        setBlockAt(x, y + 8, z3, CEDAR_PLANKS);
+        setBlockAt(x + 14, y + 8, z3, CEDAR_PLANKS);
+    }
+    for (int y3 = y + 1; y3 <= y + 8; y3++) {
+        setBlockAt(x, y3, z, CEDAR_PLANKS);
+        setBlockAt(x + 14, y3, z, CEDAR_PLANKS);
+        setBlockAt(x, y3, z + 9, CEDAR_PLANKS);
+        setBlockAt(x + 14, y3, z + 9, CEDAR_PLANKS);
+        setBlockAt(x + 9, y3, z, CEDAR_PLANKS);
+        setBlockAt(x + 9, y3, z + 9, CEDAR_PLANKS);
+    }
+
+    // door
+    for (int y3 = y + 2; y3 <= y + 5; y3++) {
+        for (int z3 = z + 5; z3 <= z + 6; z3++) {
+            setBlockAt(x + 14, y3, z3, TEAK_WINDOW_X);
+        }
+        for (int z3 = z + 3; z3 <= z + 4; z3++) {
+            setBlockAt(x + 14, y3, z3, EMPTY);
+        }
+    }
+
+    // decor
+    setBlockAt(x + 7, y + 4, z + 1, PAINTING_1_ZP);
+    setBlockAt(x + 6, y + 4, z + 1, PAINTING_2_ZP);
+    setBlockAt(x + 5, y + 4, z + 1, PAINTING_3_ZP);
+
+    setBlockAt(x + 10, y + 2, z + 1, TEAK_PLANKS);
+    setBlockAt(x + 11, y + 2, z + 1, TEAK_PLANKS);
+    setBlockAt(x + 10, y + 3, z + 1, CHERRY_BLOSSOM_IKEBANA);
+    setBlockAt(x + 11, y + 3, z + 1, PAINTING_7B_ZP);
+    setBlockAt(x + 11, y + 4, z + 1, PAINTING_7T_ZP);
+    setBlockAt(x + 9, y + 2, z + 1, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 2, z + 2, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 2, z + 3, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 3, z + 1, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 3, z + 2, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 3, z + 3, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 4, z + 1, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 4, z + 2, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 4, z + 3, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 5, z + 1, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 5, z + 2, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 5, z + 3, TEAK_WINDOW_X);
+
+    setBlockAt(x + 1, y + 2, z + 1, TATAMI_ZT);
+    setBlockAt(x + 2, y + 2, z + 1, TATAMI_ZB);
+    setBlockAt(x + 3, y + 2, z + 1, TATAMI_ZT);
+    setBlockAt(x + 4, y + 2, z + 1, TATAMI_ZB);
+    setBlockAt(x + 5, y + 2, z + 1, TATAMI_ZT);
+    setBlockAt(x + 6, y + 2, z + 1, TATAMI_ZB);
+
+    setBlockAt(x + 1, y + 2, z + 8, TATAMI_ZT);
+    setBlockAt(x + 2, y + 2, z + 8, TATAMI_ZB);
+    setBlockAt(x + 3, y + 2, z + 8, TATAMI_ZT);
+    setBlockAt(x + 4, y + 2, z + 8, TATAMI_ZB);
+    setBlockAt(x + 5, y + 2, z + 8, TATAMI_ZT);
+    setBlockAt(x + 6, y + 2, z + 8, TATAMI_ZB);
+
+    setBlockAt(x + 1, y + 2, z + 2, TATAMI_XR);
+    setBlockAt(x + 1, y + 2, z + 3, TATAMI_XL);
+    setBlockAt(x + 1, y + 2, z + 4, TATAMI_XR);
+    setBlockAt(x + 1, y + 2, z + 5, TATAMI_XL);
+    setBlockAt(x + 1, y + 2, z + 6, TATAMI_XR);
+    setBlockAt(x + 1, y + 2, z + 7, TATAMI_XL);
+
+    setBlockAt(x + 6, y + 2, z + 2, TATAMI_XR);
+    setBlockAt(x + 6, y + 2, z + 3, TATAMI_XL);
+    setBlockAt(x + 6, y + 2, z + 4, TATAMI_XR);
+    setBlockAt(x + 6, y + 2, z + 5, TATAMI_XL);
+    setBlockAt(x + 6, y + 2, z + 6, TATAMI_XR);
+    setBlockAt(x + 6, y + 2, z + 7, TATAMI_XL);
+
+    setBlockAt(x + 2, y + 2, z + 2, TATAMI_ZT);
+    setBlockAt(x + 3, y + 2, z + 2, TATAMI_ZB);
+    setBlockAt(x + 4, y + 2, z + 2, TATAMI_ZT);
+    setBlockAt(x + 5, y + 2, z + 2, TATAMI_ZB);
+
+    setBlockAt(x + 2, y + 2, z + 7, TATAMI_ZT);
+    setBlockAt(x + 3, y + 2, z + 7, TATAMI_ZB);
+    setBlockAt(x + 4, y + 2, z + 7, TATAMI_ZT);
+    setBlockAt(x + 5, y + 2, z + 7, TATAMI_ZB);
+
+    setBlockAt(x + 2, y + 2, z + 3, TATAMI_XR);
+    setBlockAt(x + 2, y + 2, z + 4, TATAMI_XL);
+    setBlockAt(x + 2, y + 2, z + 5, TATAMI_XR);
+    setBlockAt(x + 2, y + 2, z + 6, TATAMI_XL);
+
+    setBlockAt(x + 5, y + 2, z + 3, TATAMI_XR);
+    setBlockAt(x + 5, y + 2, z + 4, TATAMI_XL);
+    setBlockAt(x + 5, y + 2, z + 5, TATAMI_XR);
+    setBlockAt(x + 5, y + 2, z + 6, TATAMI_XL);
+
+    setBlockAt(x + 3, y + 2, z + 3, TATAMI_ZT);
+    setBlockAt(x + 4, y + 2, z + 3, TATAMI_ZB);
+
+    setBlockAt(x + 3, y + 2, z + 6, TATAMI_ZT);
+    setBlockAt(x + 4, y + 2, z + 6, TATAMI_ZB);
+
+    setBlockAt(x + 3, y + 2, z + 4, TATAMI_XR);
+    setBlockAt(x + 3, y + 2, z + 5, TATAMI_XL);
+
+    setBlockAt(x + 4, y + 2, z + 4, TATAMI_XR);
+    setBlockAt(x + 4, y + 2, z + 5, TATAMI_XL);
 }

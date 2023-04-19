@@ -223,7 +223,7 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetZNEG = 0.25f;
             keepEdges = true;
             break;
-        case TATAMI_X: case TATAMI_Z:
+        case TATAMI_XL: case TATAMI_XR: case TATAMI_ZT: case TATAMI_ZB:
             offsetYPOS = 0.0625;
             break;
         case SNOW_1: case COTTON_1:
@@ -260,7 +260,7 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetZPOS = 0.5625;
             offsetZNEG = 0.4375;
             break;
-        case TILLED_DIRT: case PATH:
+        case TILLED_DIRT: case PATH: case IRRIGATED_SOIL:
             offsetYPOS = 0.9375;
             break;
         case BAMBOO_1: case BAMBOO_2: case BAMBOO_3:

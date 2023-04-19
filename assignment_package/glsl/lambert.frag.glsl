@@ -81,8 +81,9 @@ float mod(float a, float b) {
 }
 
 vec4 tint(vec4 origCol, vec4 tintCol) {
-    float grayscaleCol = (0.21 * origCol.r) + (0.72 * origCol.g) + (0.07 * origCol.b);
-    vec4 finalCol = tintCol * grayscaleCol;
+//    float grayscaleCol = (0.21 * origCol.r) + (0.72 * origCol.g) + (0.07 * origCol.b);
+//    vec4 finalCol = tintCol * grayscaleCol;
+    vec4 finalCol = origCol * 0.25 + tintCol * 0.75;
     finalCol.a = tintCol.a;
     return finalCol;
 }
