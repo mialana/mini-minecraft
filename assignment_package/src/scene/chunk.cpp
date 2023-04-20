@@ -561,22 +561,22 @@ void Chunk::createVBOdata() {
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
 
                                 for (const Vertex& v : faceVerts) {
-                                    tVertData.push_back(v.position);
-                                    tVertData.push_back(v.normal);
-                                    tVertData.push_back(v.color);
-                                    tVertData.push_back(v.uvCoords);
-                                    tVertData.push_back(v.blockType);
-                                    tVertData.push_back(v.biomeWts);
+                                    oVertData.push_back(v.position);
+                                    oVertData.push_back(v.normal);
+                                    oVertData.push_back(v.color);
+                                    oVertData.push_back(v.uvCoords);
+                                    oVertData.push_back(v.blockType);
+                                    oVertData.push_back(v.biomeWts);
                                 }
 
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 1);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount + 3);
+                                oIndices.push_back(oVertCount);
+                                oIndices.push_back(oVertCount + 1);
+                                oIndices.push_back(oVertCount + 2);
+                                oIndices.push_back(oVertCount);
+                                oIndices.push_back(oVertCount + 2);
+                                oIndices.push_back(oVertCount + 3);
 
-                                tVertCount += 4;
+                                oVertCount += 4;
                             }
                         }
                     }
@@ -589,29 +589,29 @@ void Chunk::createVBOdata() {
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
 
                                 for (const Vertex& v : faceVerts) {
-                                    tVertData.push_back(v.position);
-                                    tVertData.push_back(v.normal);
-                                    tVertData.push_back(v.color);
-                                    tVertData.push_back(v.uvCoords);
-                                    tVertData.push_back(v.blockType);
-                                    tVertData.push_back(v.biomeWts);
+                                    oVertData.push_back(v.position);
+                                    oVertData.push_back(v.normal);
+                                    oVertData.push_back(v.color);
+                                    oVertData.push_back(v.uvCoords);
+                                    oVertData.push_back(v.blockType);
+                                    oVertData.push_back(v.biomeWts);
                                 }
 
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 1);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount + 3);
+                                oIndices.push_back(oVertCount);
+                                oIndices.push_back(oVertCount + 1);
+                                oIndices.push_back(oVertCount + 2);
+                                oIndices.push_back(oVertCount);
+                                oIndices.push_back(oVertCount + 2);
+                                oIndices.push_back(oVertCount + 3);
 
-                                tIndices.push_back(tVertCount + 4);
-                                tIndices.push_back(tVertCount + 5);
-                                tIndices.push_back(tVertCount + 6);
-                                tIndices.push_back(tVertCount + 4);
-                                tIndices.push_back(tVertCount + 6);
-                                tIndices.push_back(tVertCount + 7);
+                                oIndices.push_back(oVertCount + 4);
+                                oIndices.push_back(oVertCount + 5);
+                                oIndices.push_back(oVertCount + 6);
+                                oIndices.push_back(oVertCount + 4);
+                                oIndices.push_back(oVertCount + 6);
+                                oIndices.push_back(oVertCount + 7);
 
-                                tVertCount += 8;
+                                oVertCount += 8;
                             }
                         }
                     }

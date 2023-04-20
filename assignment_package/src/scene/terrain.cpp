@@ -487,7 +487,7 @@ void Terrain::CreateTestScene()
                 float p4 = Biome::noise1D(glm::vec2(x, z));
                 if (p4 < 0.1025) {
 //                    createDeciduous3(x, y, z, WISTERIA_BLOSSOMS_1, WISTERIA_WOOD_Y);
-                } else if (p4 < 0.1075) {
+                } else if (p4 < 0.105) {
 //                    createDeciduous2(x, y, z, WISTERIA_BLOSSOMS_2, WISTERIA_WOOD_Y);
                 } else {
 //                    createDeciduous1(x, y, z, WISTERIA_BLOSSOMS_3, WISTERIA_WOOD_Y);
