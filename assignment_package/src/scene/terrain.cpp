@@ -173,7 +173,7 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
     for(int x = minX; x < maxX; x += 16) {
         for(int z = minZ; z < maxZ; z += 16) {
             const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-            currChunk->createVBOdata();
+//            currChunk->createVBOdata();
 
             shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
             shaderProgram->drawInterleavedO(*currChunk);
@@ -183,7 +183,7 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
     for(int x = minX; x < maxX; x += 16) {
         for(int z = minZ; z < maxZ; z += 16) {
             const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-            currChunk->createVBOdata();
+//            currChunk->createVBOdata();
 
             shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
             shaderProgram->drawInterleavedT(*currChunk);
@@ -448,31 +448,49 @@ void Terrain::CreateTestScene()
                 }
             }
 
-            bool isEmpty = false;
+            bool prevWasEmpty = false;
+            std::vector<float> treePos;
             for (int currY = 1; currY <= 106; currY++) {
                 float cavePerlin3D = Biome::perlin3D(glm::vec3(x, currY, z) * 0.06f);
                 float cavePerlin3DTwo = Biome::perlin3D(glm::vec3(x, currY, glm::mix(x, z, 0.35f)) * 0.06f);
+
+                float p3 = Biome::noise1D(glm::vec3(x, currY, z));
 
                 if (cavePerlin3D + cavePerlin3DTwo < -0.15f) {
                     if (currY < 25) {
                         setBlockAt(x, currY, z, LAVA);
                     } else {
                         setBlockAt(x, currY, z, EMPTY);
-                        isEmpty = true;
+                        if (!prevWasEmpty) {
+                            if (p3 < 0.6) {
+                                setBlockAt(x, currY - 1, z, GRASS);
+                            }
+
+                            if (p3 < 0.02) {
+                                setBlockAt(x, currY, z, GHOST_LILY);
+                            } else if (p3 < 0.04) {
+                                setBlockAt(x, currY, z, GHOST_WEED);
+                            } else if (p3 < 0.1) {
+                                setBlockAt(x, currY, z, TALL_GRASS);
+                            }
+                            else if (p3 < 0.1075) {
+                                treePos.push_back(currY);
+                            }
+                        }
+                        prevWasEmpty = true;
                     }
                 } else {
-                    if (p1 < 0.001) {
-                        setBlockAt(x, currY + 1, z, GHOST_LILY);
-                    } else if (p1 < 0.002) {
-                        setBlockAt(x, currY + 1, z, GHOST_WEED);
-                    } else if (p1 < 0.00225) {
-                        createDeciduous1(x, currY + 1, z, WISTERIA_BLOSSOMS_1, WISTERIA_WOOD_Y);
-                    } else if (p1 < 0.0025) {
-                        createDeciduous1(x, currY + 1, z, WISTERIA_BLOSSOMS_2, WISTERIA_WOOD_Y);
-                    } else if (p1 < 0.00275) {
-                        createDeciduous1(x, currY + 1, z, WISTERIA_BLOSSOMS_3, WISTERIA_WOOD_Y);
-                    }
-                    isEmpty = false;
+                    prevWasEmpty = false;
+                }
+            }
+            for (float y : treePos) {
+                float p4 = Biome::noise1D(glm::vec2(x, z));
+                if (p4 < 0.1025) {
+//                    createDeciduous3(x, y, z, WISTERIA_BLOSSOMS_1, WISTERIA_WOOD_Y);
+                } else if (p4 < 0.1075) {
+//                    createDeciduous2(x, y, z, WISTERIA_BLOSSOMS_2, WISTERIA_WOOD_Y);
+                } else {
+//                    createDeciduous1(x, y, z, WISTERIA_BLOSSOMS_3, WISTERIA_WOOD_Y);
                 }
             }
 
@@ -485,6 +503,10 @@ void Terrain::CreateTestScene()
             }
             setBlockAt(x, 0, z, BEDROCK);
         }
+    }
+
+    for (const auto& c: m_chunks) {
+        c.second->createVBOdata();
     }
 }
 

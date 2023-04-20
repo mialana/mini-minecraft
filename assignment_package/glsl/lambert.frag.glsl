@@ -115,7 +115,7 @@ void main()
 
             vec4 tintCol;
 
-            if (fs_Pos.y < 50) {
+            if (fs_Pos.y < 110) {
                 tintCol = cCol;
             } else {
                 tintCol = mCol + hCol + fCol + iCol;
