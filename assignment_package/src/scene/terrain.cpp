@@ -448,7 +448,7 @@ void Terrain::CreateTestScene()
                 }
             }
 
-            bool prevWasEmpty = false;
+            bool prevNotGround = false;
             std::vector<float> treePos;
             for (int currY = 1; currY <= 106; currY++) {
                 float cavePerlin3D = Biome::perlin3D(glm::vec3(x, currY, z) * 0.06f);
@@ -461,9 +461,20 @@ void Terrain::CreateTestScene()
                         setBlockAt(x, currY, z, LAVA);
                     } else {
                         setBlockAt(x, currY, z, EMPTY);
-                        if (!prevWasEmpty) {
+                        if (!prevNotGround) {
+//                            BlockType xn = getBlockAt(x - 1, currY - 1, z);
+//                            BlockType xp = getBlockAt(x + 1, currY - 1, z);
+//                            BlockType zn = getBlockAt(x, currY - 1, z - 1);
+//                            BlockType zp = getBlockAt(x, currY - 1, z + 1);
+
                             if (p3 < 0.6) {
                                 setBlockAt(x, currY - 1, z, GRASS);
+                            } else if (p3 < 0.8 /*&&
+                                (Chunk::isFullCube(xn) || xn == WATER) &&
+                                (Chunk::isFullCube(xp) || xp == WATER) &&
+                                (Chunk::isFullCube(zn) || zn == WATER) &&
+                                (Chunk::isFullCube(zp) || zp == WATER)*/) {
+                                    setBlockAt(x, currY - 1, z, WATER);
                             }
 
                             if (p3 < 0.02) {
@@ -477,10 +488,10 @@ void Terrain::CreateTestScene()
                                 treePos.push_back(currY);
                             }
                         }
-                        prevWasEmpty = true;
+                        prevNotGround = true;
                     }
                 } else {
-                    prevWasEmpty = false;
+                    prevNotGround = false;
                 }
             }
             for (float y : treePos) {

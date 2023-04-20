@@ -131,6 +131,8 @@ void MyGL::tick() {
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
     if (m_inputs.underWater) {
+        m_progLiquid.setPlayerPosBiomeWts(m_terrain.getBiomeAt(prevPlayerPos.x, prevPlayerPos.z));
+        m_progLiquid.setPlayerPos(prevPlayerPos);
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
     } else if (m_inputs.underLava) {
         m_progLiquid.setGeometryColor(glm::vec4(1.f, 0.f, 0.f, 1.f));

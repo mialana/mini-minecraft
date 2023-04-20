@@ -101,17 +101,18 @@ void main()
         // 1 = interpolate grass color
         // 2 = water (animation + biome color interpolation)
         // 3 = lava animation
+        // 4 = glowing blocks/ doesn't receive shadows
 
-        if (fs_TexIdx == 0) {
-            newUV = fs_UV;
-            out_Col = vec4(texture(u_TextureSampler, fs_UV));
-        } else if (fs_TexIdx == 1) {
+        out_Col = vec4(texture(u_TextureSampler, fs_UV));
+        newUV = fs_UV;
+
+        if (fs_TexIdx == 1) {
             // mountains = 0, hills = 1, forest = 2, islands = 3
             vec4 mCol = vec4(0, 0.27, 0.235, 1) * fs_BiomeWts.x;
             vec4 hCol = vec4(0.08, 0.35, 0, 1) * fs_BiomeWts.y;
             vec4 fCol = vec4(0.04, 0.3, 0.3, 1) * fs_BiomeWts.z;
             vec4 iCol = vec4(0.157, 0.55, 0.235, 1) * fs_BiomeWts.w;
-            vec4 cCol = vec4(0.03, 0.208, 0.28, 1);
+            vec4 cCol = vec4(0.03, 0.175, 0.278, 1);
 
             vec4 tintCol;
 
@@ -130,19 +131,24 @@ void main()
             out_Col = vec4(texture(u_TextureSampler, newUV));
 
             // biome color interpolation (water)
-            vec3 mCol = vec3(0, 0.431, 0.9) * fs_BiomeWts.x;
-            vec3 hCol = vec3(0, 0.75, 1) * fs_BiomeWts.y;
-            vec3 fCol = vec3(0, 0.196, 0.8235) * fs_BiomeWts.z;
-            vec3 iCol = vec3(0, 0.9, 1) * fs_BiomeWts.w;
-            vec3 cCol = vec3(0.212, 0.07, 0.714);
+//            vec4 mCol = vec4(0, 0.243, 0.5, 0.6) * fs_BiomeWts.x;
+//            vec4 hCol = vec4(0, 0.75, 1, 0.3) * fs_BiomeWts.y;
+//            vec4 fCol = vec4(0, 0.435, 0.898, 0.5) * fs_BiomeWts.z;
+//            vec4 iCol = vec4(0, 1, 0.95, 0.25) * fs_BiomeWts.w;
+//            vec4 cCol = vec4(0, 0.196, 0.8235, 0.75);
+            vec4 mCol = vec4(0, 0.243, 0.5, 0.9) * fs_BiomeWts.x;
+            vec4 hCol = vec4(0, 0.75, 1, 0.9) * fs_BiomeWts.y;
+            vec4 fCol = vec4(0, 0.435, 0.898, 0.9) * fs_BiomeWts.z;
+            vec4 iCol = vec4(0, 1, 0.95, 0.9) * fs_BiomeWts.w;
+            vec4 cCol = vec4(0, 0.196, 0.8235, 0.9);
 
-            vec3 tintCol;
-            if (fs_Pos.y < 50) {
+            vec4 tintCol;
+            if (fs_Pos.y < 100) {
                 tintCol = cCol;
             } else {
                 tintCol = mCol + hCol + fCol + iCol;
             }
-            out_Col = color(out_Col, vec4(tintCol, 1), 0.9);
+            out_Col = tint(out_Col, tintCol, 0.9);
 
         } else if (fs_TexIdx == 3) {
             // lava animation
@@ -171,25 +177,27 @@ void main()
             }
             out_Col = texture(u_TextureSampler, newUV);
         }
-    }
-    else {
+    } else {
         // Material base color (before shading)
             vec4 diffuseColor = fs_Col;
             out_Col = diffuseColor * (0.5 * fbm(fs_Pos.xyz) + 0.5);
     }
-    float alpha = texture(u_TextureSampler, newUV).a;
-    float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
-                // Avoid negative lighting values
-    diffuseTerm = clamp(diffuseTerm, 0, 1);
 
-    float ambientTerm = 0.3;
+    if (fs_TexIdx != 4) {
+        float alpha = texture(u_TextureSampler, newUV).a;
+        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
+                    // Avoid negative lighting values
+        diffuseTerm = clamp(diffuseTerm, 0, 1);
 
-    float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
-                                                        //to simulate ambient lighting. This ensures that faces that are not
-                                                        //lit by our point light are not completely black.
+        float ambientTerm = 0.3;
 
-    // Compute final shaded color
-    out_Col = vec4(out_Col.rgb * lightIntensity, alpha);
+        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
+                                                            //to simulate ambient lighting. This ensures that faces that are not
+                                                            //lit by our point light are not completely black.
+
+        // Compute final shaded color
+        out_Col = vec4(out_Col.rgb * lightIntensity, alpha);
+    }
     if (out_Col.a == 0.f) {
         discard;
     }
