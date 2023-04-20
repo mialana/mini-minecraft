@@ -64,10 +64,9 @@ private:
     void createConifer1(int x, int y, int z, BlockType leaf, BlockType wood); // cone shape, tall
     void createConifer2(int x, int y, int z, BlockType leaf, BlockType wood); // constant width, tall
     void createConifer3(int x, int y, int z, BlockType leaf, BlockType wood); // small
-    void createDeciduous1(int x, int y, int z, BlockType leaf, BlockType wood); // tall, asymmetric
-    void createDeciduous2(int x, int y, int z, BlockType leaf, BlockType wood); // medium tall
-    void createDeciduous3(int x, int y, int z, BlockType leaf, BlockType wood); // medium short
-    void createDeciduous4(int x, int y, int z, BlockType leaf, BlockType wood); // short, asymmetric
+    void createDeciduous1(int x, int y, int z, BlockType leaf, BlockType wood); // medium tall
+    void createDeciduous2(int x, int y, int z, BlockType leaf, BlockType wood); // medium short
+    void createDeciduous3(int x, int y, int z, BlockType leaf, BlockType wood); // short, asymmetric
 
     // rot = 0 if door faces XPOS dir; 1 if faces XNEG; 2 if faces ZPOS; 3 if faces ZNEG
     void createHut(int x, int y, int z); // hills
