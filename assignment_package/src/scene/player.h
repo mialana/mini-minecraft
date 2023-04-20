@@ -33,7 +33,7 @@ public:
     void isInLiquid(InputBundle& input);
     void isUnderLiquid(InputBundle& input);
     void isOnGround(InputBundle& input);
-    void detectCollision(glm::vec3* direction);
+    void detectCollision();
 
     bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection,
                    float *out_dist, glm::ivec3* out_blockHit);

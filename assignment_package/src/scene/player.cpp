@@ -22,33 +22,27 @@ void Player::tick(float dT, InputBundle &input) {
 void Player::processInputs(InputBundle &inputs) {
     // TODO: Update the Player's velocity and acceleration based on the
     // state of the inputs.
-    float acceleration = 30.f;
-
+    m_acceleration = glm::vec3();
     if (inputs.flightMode) { // flight mode on
-
-        m_acceleration = glm::vec3();
-        m_velocity = glm::vec3();
         if (inputs.wPressed) {
-            m_acceleration += glm::normalize(glm::vec3(m_forward.x, 0.0f, m_forward.z));
+            m_acceleration += m_forward;
         }
         if (inputs.sPressed) {
-            m_acceleration += -glm::normalize(glm::vec3(m_forward.x, 0.0f, m_forward.z));
+            m_acceleration += -m_forward;
         }
         if (inputs.dPressed) {
-            m_acceleration += glm::normalize(glm::vec3(m_right.x, 0.0f, m_right.z));
+            m_acceleration += m_right;
         }
         if (inputs.aPressed) {
-            m_acceleration += -glm::normalize(glm::vec3(m_right.x, 0.0f, m_right.z));
+            m_acceleration -= m_right;
         }
         if (inputs.ePressed) {
-            m_acceleration += glm::normalize(glm::vec3(0.0f, m_up.y, 0.0f));
+            m_acceleration += m_up;
         }
         if (inputs.qPressed) {
-            m_acceleration +=  -glm::normalize(glm::vec3(0.0f, m_up.y, 0.0f));
+            m_acceleration -= m_up;
         }
     } else { // flight mode off
-        m_acceleration = glm::vec3();
-        m_velocity = glm::vec3();
         if (inputs.wPressed) {
             m_acceleration += glm::normalize(glm::vec3(m_forward.x, 0.0f, m_forward.z));
         }
@@ -61,43 +55,45 @@ void Player::processInputs(InputBundle &inputs) {
         if (inputs.aPressed) {
             m_acceleration += -glm::normalize(glm::vec3(m_right.x, 0.0f, m_right.z));
         }
+
         if (inputs.spacePressed) {
             if (inputs.inLiquid) {
-                 m_velocity += glm::vec3(0.f, 10.f, 0.f);
+                 m_acceleration += glm::vec3(0.f, 1.5f, 0.f);
             } else if (inputs.onGround) {
-                // jump on ground
-                m_velocity += glm::vec3(0.f, 6.f, 0.f);
+                m_acceleration += glm::vec3(0.f, 10.f, 0.f);
             }
         }
     }
-    m_acceleration *= acceleration;
+    m_acceleration *= 20.f;
 }
 
 void Player::computePhysics(float dT, InputBundle& inputs) {
-
     glm::vec3 rayDirection = glm::vec3();
-    glm::vec3 gravity = glm::vec3(0.f, -40.f, 0.f); // -9.8 for gravity * 10 for mass lol
 
     if (!inputs.flightMode) {
+        float friction = 0.7f;
+        m_velocity.x *= friction;
+        m_velocity.z *= friction;
 
-        if(!inputs.onGround) {
-            m_acceleration += gravity;
-            m_velocity += m_acceleration * (dT / 10.f);
-        } else {
-            m_velocity += m_acceleration * (dT / 10.f);
-        }
-        rayDirection = m_velocity;
+        float airFriction = 0.95f;
+        m_velocity.y *= airFriction;
+
+        glm::vec3 gravity = glm::vec3(0.f, -15.f, 0.f);
+        m_acceleration += gravity;
+
         if (inputs.inLiquid) {
-            rayDirection *= 0.3f;
+            m_velocity *= 0.5f;
         }
-        detectCollision(&rayDirection);
+    } else {
+        float friction = 0.9f;
+        m_velocity *= friction;
     }
-    else
-    {
-        m_velocity += m_acceleration * (dT / 10.f);
-        rayDirection = m_velocity;
+    m_velocity += m_acceleration * (dT / 10.f);
+    if (!inputs.flightMode) {
+        detectCollision();
     }
-    this->moveAlongVector(rayDirection);
+
+    this->moveAlongVector(m_velocity);
 }
 
 void Player::isInLiquid(InputBundle &input) {
@@ -160,12 +156,12 @@ void Player::isOnGround(InputBundle &input) {
     input.onGround = acc;
 }
 
-void Player::detectCollision(glm::vec3 *rayDirection) {
+void Player::detectCollision() {
     glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, 0.f, 0.5f);
 
-    glm::vec3 rayDirectionX = glm::vec3((*rayDirection).x, 0.f, 0.f);
-    glm::vec3 rayDirectionY = glm::vec3(0.f, (*rayDirection).y, 0.f);
-    glm::vec3 rayDirectionZ = glm::vec3(0.f, 0.f, (*rayDirection).z);
+    glm::vec3 rayDirectionX = glm::vec3(m_velocity.x, 0.f, 0.f);
+    glm::vec3 rayDirectionY = glm::vec3(0.f, m_velocity.y, 0.f);
+    glm::vec3 rayDirectionZ = glm::vec3(0.f, 0.f, m_velocity.z);
 
     float minOutDistY = std::numeric_limits<float>::infinity();
     float minOutDistX = std::numeric_limits<float>::infinity();
@@ -200,26 +196,26 @@ void Player::detectCollision(glm::vec3 *rayDirection) {
     float threshold = 0.005f;
     if (minOutDistY < std::numeric_limits<float>::infinity()) {
         if (minOutDistY < threshold) {
-            (*rayDirection).y = 0.f;
+            m_velocity.y = 0.f;
 
         } else {
-            (*rayDirection).y = (minOutDistY * 0.8) * glm::sign((*rayDirection).y);
+            m_velocity.y = (minOutDistY * 0.8) * glm::sign(m_velocity.y);
         }
     }
 
     if (minOutDistX < std::numeric_limits<float>::infinity()) {
         if (minOutDistX < threshold) {
-            (*rayDirection).x = 0.f;
+            m_velocity.x = 0.f;
         } else {
-            (*rayDirection).x = (minOutDistX * 0.8) * glm::sign((*rayDirection).x);
+            m_velocity.x = (minOutDistX * 0.8) * glm::sign(m_velocity.x);
         }
     }
 
     if (minOutDistZ < std::numeric_limits<float>::infinity()) {
         if (minOutDistZ < threshold) {
-            (*rayDirection).z = 0.f;
+            m_velocity.z = 0.f;
         } else {
-            (*rayDirection).z = (minOutDistZ * 0.8) * glm::sign((*rayDirection).z);
+            m_velocity.z = (minOutDistZ * 0.8) * glm::sign(m_velocity.z);
         }
     }
 }

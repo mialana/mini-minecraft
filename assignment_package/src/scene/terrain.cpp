@@ -173,7 +173,6 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
     for(int x = minX; x < maxX; x += 16) {
         for(int z = minZ; z < maxZ; z += 16) {
             const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-            currChunk->createVBOdata();
 
             shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
             shaderProgram->drawInterleavedO(*currChunk);
@@ -183,7 +182,6 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
     for(int x = minX; x < maxX; x += 16) {
         for(int z = minZ; z < maxZ; z += 16) {
             const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-            currChunk->createVBOdata();
 
             shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
             shaderProgram->drawInterleavedT(*currChunk);
@@ -249,8 +247,6 @@ void Terrain::CreateTestScene()
             std::pair<float, BiomeEnum> hb = blendMultipleBiomes(glm::vec2(x, z), hM, hF, hH, hI);
             float h = hb.first;
             BiomeEnum b = hb.second;
-
-
 
             int numDirtBlocks = 10 * Biome::fbm(glm::vec2(x, z));
             if (b == MOUNTAINS) {
@@ -355,6 +351,10 @@ void Terrain::CreateTestScene()
             }
             setBlockAt(x, 0, z, BEDROCK);
         }
+    }
+
+    for (const auto& c: m_chunks) {
+        c.second->createVBOdata();
     }
 }
 

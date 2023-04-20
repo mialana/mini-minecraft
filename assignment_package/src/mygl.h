@@ -2,7 +2,7 @@
 #define MYGL_H
 
 #include "openglcontext.h"
-#include "scene/screenquadrangle.h"
+#include "scene/quad.h"
 #include "shaderprogram.h"
 #include "scene/worldaxes.h"
 #include "scene/camera.h"
@@ -47,7 +47,7 @@ private:
 
     // for post-process shading when in water or lava
     FrameBuffer m_frameBuffer;
-    ScreenQuadrangle m_screenQuad;
+    Quad m_screenQuad;
     ShaderProgram m_progLiquid;
 
 

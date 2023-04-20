@@ -207,11 +207,43 @@ void MyGL::renderTerrain() {
 
 
 void MyGL::keyPressEvent(QKeyEvent *e) {
-    float amount = 2.0f;
-    if(e->modifiers() & Qt::ShiftModifier){
-        amount = 10.0f;
+    if (e->key() == Qt::Key_Escape) {
+        QApplication::quit();
     }
+
+    if (e->key() == Qt::Key_W) {
+        m_inputs.wPressed = true;        
+    }
+    if (e->key() == Qt::Key_S) {
+        m_inputs.sPressed = true;        
+    }
+    if (e->key() == Qt::Key_D) {
+        m_inputs.dPressed = true;       
+    }
+    if (e->key() == Qt::Key_A) {
+        m_inputs.aPressed = true;
+    }
+    if (e->key() == Qt::Key_F) {
+        m_inputs.flightMode = !m_inputs.flightMode;
+    }
+    if (m_inputs.flightMode) {
+        if (e->key() == Qt::Key_Q) {
+            m_inputs.qPressed = true;
+        }
+        if (e->key() == Qt::Key_E) {
+            m_inputs.ePressed = true;
+        }
+    } else {
+        if (e->key() == Qt::Key_Space) {
+            m_inputs.spacePressed = true;
+        }
+    }
+
     if (QSysInfo().productType() == "macos") {
+        float amount = 2.0f;
+        if(e->modifiers() & Qt::ShiftModifier){
+            amount = 10.0f;
+        }
         if (e->key() == Qt::Key_Right) {
             m_player.rotateOnUpGlobal(3 * -amount);
         }
@@ -223,38 +255,6 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
         }
         if (e->key() == Qt::Key_Down) {
             m_player.rotateOnRightLocal(3 * -amount);
-        }
-    }
-    if (e->key() == Qt::Key_Escape) {
-        QApplication::quit();
-    }
-
-    if (e->key() == Qt::Key_W) {
-        m_inputs.wPressed = true;
-    }
-    if (e->key() == Qt::Key_S) {
-        m_inputs.sPressed = true;
-    }
-    if (e->key() == Qt::Key_D) {
-        m_inputs.dPressed = true;
-    }
-    if (e->key() == Qt::Key_A) {
-        m_inputs.aPressed = true;
-    }
-    if (e->key() == Qt::Key_F) {
-        m_inputs.flightMode = !m_inputs.flightMode;
-    }
-
-    if (m_inputs.flightMode) {
-        if (e->key() == Qt::Key_Q) {
-            m_inputs.qPressed = true;
-        }
-        if (e->key() == Qt::Key_E) {
-            m_inputs.ePressed = true;
-        }
-    } else {
-        if (e->key() == Qt::Key_Space) {
-            m_inputs.spacePressed = true;
         }
     }
 }
