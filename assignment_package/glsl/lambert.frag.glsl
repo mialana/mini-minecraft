@@ -131,16 +131,11 @@ void main()
             out_Col = vec4(texture(u_TextureSampler, newUV));
 
             // biome color interpolation (water)
-//            vec4 mCol = vec4(0, 0.243, 0.5, 0.6) * fs_BiomeWts.x;
-//            vec4 hCol = vec4(0, 0.75, 1, 0.3) * fs_BiomeWts.y;
-//            vec4 fCol = vec4(0, 0.435, 0.898, 0.5) * fs_BiomeWts.z;
-//            vec4 iCol = vec4(0, 1, 0.95, 0.25) * fs_BiomeWts.w;
-//            vec4 cCol = vec4(0, 0.196, 0.8235, 0.75);
-            vec4 mCol = vec4(0, 0.243, 0.5, 0.9) * fs_BiomeWts.x;
-            vec4 hCol = vec4(0, 0.75, 1, 0.9) * fs_BiomeWts.y;
-            vec4 fCol = vec4(0, 0.435, 0.898, 0.9) * fs_BiomeWts.z;
-            vec4 iCol = vec4(0, 1, 0.95, 0.9) * fs_BiomeWts.w;
-            vec4 cCol = vec4(0, 0.196, 0.8235, 0.9);
+            vec4 mCol = vec4(0, 0.243, 0.5, 0.6) * fs_BiomeWts.x;
+            vec4 hCol = vec4(0, 0.75, 1, 0.3) * fs_BiomeWts.y;
+            vec4 fCol = vec4(0, 0.435, 0.898, 0.5) * fs_BiomeWts.z;
+            vec4 iCol = vec4(0, 1, 0.95, 0.25) * fs_BiomeWts.w;
+            vec4 cCol = vec4(0, 0.196, 0.8235, 0.75);
 
             vec4 tintCol;
             if (fs_Pos.y < 100) {
