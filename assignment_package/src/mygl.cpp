@@ -134,7 +134,7 @@ void MyGL::tick() {
     m_player.tick(dT, m_inputs);
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
-    //m_terrain.multithreadedWork(m_player.mcr_position, prevPlayerPos);
+    m_terrain.multithreadedWork(m_player.mcr_position, prevPlayerPos);
 
     if (m_inputs.underWater) {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 1.f, 1.f));

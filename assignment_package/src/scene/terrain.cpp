@@ -185,8 +185,8 @@ void Terrain::tryExpansion(glm::vec3 currPlayerPos, glm::vec3 prevPlayerPos) {
     glm::ivec2 prevZone = glm::ivec2(glm::floor(prevPlayerPos.x / 64.f) * 64.f,
                                      glm::floor(prevPlayerPos.z / 64.f) * 64.f);
 
-    std::vector<glm::ivec2> currTGZs = getNearTerrainGenZones(currZone, 1);
-    std::vector<glm::ivec2> prevTGZs = getNearTerrainGenZones(prevZone, 1);
+    std::vector<glm::ivec2> currTGZs = getNearTerrainGenZones(currZone, 2);
+    std::vector<glm::ivec2> prevTGZs = getNearTerrainGenZones(prevZone, 2);
 
     std::vector<glm::ivec2> newZones = firstTick ? currTGZs : isSameVector(currTGZs, prevTGZs);
     std::vector<glm::ivec2> oldZones = isSameVector(currTGZs, prevTGZs);
@@ -378,68 +378,68 @@ Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
             if (b == MOUNTAINS) {
                 if (h < 120) {
                     for (int y = 0; y < h - numDirtBlocks; ++y) {
-                        setBlockAt(x, y, z, STONE);
+                        cPtr->setBlockAt(x, y, z, STONE);
                     }
                     for (int y = h - numDirtBlocks; y < h; ++y) {
-                        setBlockAt(x, y, z, DIRT);
+                        cPtr->setBlockAt(x, y, z, DIRT);
                     }
                     for (int y = h; y < 120; ++y) {
-                        setBlockAt(x, y, z, WATER);
+                        cPtr->setBlockAt(x, y, z, WATER);
                     }
                 } else {
                     for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
-                        setBlockAt(x, y, z, STONE);
+                        cPtr->setBlockAt(x, y, z, STONE);
                     }
                     for (int y = h - numDirtBlocks - 1; y < h - 1; ++y) {
-                        setBlockAt(x, y, z, DIRT);
+                        cPtr->setBlockAt(x, y, z, DIRT);
                     }
-                    setBlockAt(x, h - 1, z, GRASS);
-                    setBlockAt(x, h, z, SNOW_1);
+                    cPtr->setBlockAt(x, h - 1, z, GRASS);
+                    cPtr->setBlockAt(x, h, z, SNOW_1);
                 }
             } else if (b == HILLS) {
                 for (int y = 0; y < h - 3 - numDirtBlocks; ++y) {
-                    setBlockAt(x, y, z, STONE);
+                    cPtr->setBlockAt(x, y, z, STONE);
                 }
                 for (int currY = h - 3 - numDirtBlocks; currY < h - 1; ++currY) {
-                    setBlockAt(x, currY, z, DIRT);
+                    cPtr->setBlockAt(x, currY, z, DIRT);
                 }
 
                 if (h < 120) {
-                    setBlockAt(x, h - 1, z, DIRT);
+                    cPtr->setBlockAt(x, h - 1, z, DIRT);
 
                     for (int y = h; y < 120; ++y) {
-                        setBlockAt(x, y, z, WATER);
+                        cPtr->setBlockAt(x, y, z, WATER);
                     }
                 } else {
-                    setBlockAt(x, h - 1, z, GRASS);
+                    cPtr->setBlockAt(x, h - 1, z, GRASS);
                 }
             } else if (b == FOREST) {
                 for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
-                    setBlockAt(x, y, z, STONE);
+                    cPtr->setBlockAt(x, y, z, STONE);
                 }
                 for (int y = h - numDirtBlocks - 1; y < h - 1; ++y) {
-                    setBlockAt(x, y, z, DIRT);
+                    cPtr->setBlockAt(x, y, z, DIRT);
                 }
 
                 if (h < 125) {
-                    setBlockAt(x, h - 1, z, DIRT);
+                    cPtr->setBlockAt(x, h - 1, z, DIRT);
 
                     for (int y = h; y < 125; ++y) {
-                        setBlockAt(x, y, z, WATER);
+                        cPtr->setBlockAt(x, y, z, WATER);
                     }
                 } else {
-                    setBlockAt(x, h - 1, z, GRASS);
+                    cPtr->setBlockAt(x, h - 1, z, GRASS);
                 }
             } else if (b == ISLANDS) {
                 for (int y = 0; y < 80; ++y) {
-                    setBlockAt(x, y, z, STONE);
+                    cPtr->setBlockAt(x, y, z, STONE);
                 }
                 for (int y = 80; y < h; ++y) {
-                    setBlockAt(x, y, z, SAND);
+                    cPtr->setBlockAt(x, y, z, SAND);
                 }
                 if (h < 115) {
                     for (int y = h; y < 115; ++y) {
-                        setBlockAt(x, y, z, WATER);
+                        cPtr->setBlockAt(x, y, z, WATER);
                     }
                 }
             }
@@ -454,7 +454,7 @@ Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
                     (b == FOREST && plant < 0.25) ||
                     (b == ISLANDS && plant < 0.1)) {
 
-                    setBlockAt(x, h, z, TALL_GRASS);
+                    cPtr->setBlockAt(x, h, z, TALL_GRASS);
                 }
 
                 // bamboo, trees
@@ -468,14 +468,14 @@ Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
 
                 if (cavePerlin3D + cavePerlin3DTwo < -0.15f) {
                     if (currY < 25) {
-                        setBlockAt(x, currY, z, LAVA);
+                        cPtr->setBlockAt(x, currY, z, LAVA);
                     } else {
-                        setBlockAt(x, currY, z, EMPTY);
+                        cPtr->setBlockAt(x, currY, z, EMPTY);
                     }
 
                 }
             }
-            setBlockAt(x, 0, z, BEDROCK);
+            cPtr->setBlockAt(x, 0, z, BEDROCK);
         }
     }
 
@@ -498,7 +498,7 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
 
 
             if (hasChunkAt(x, z)) {
-                std::cout << x << ", " << z << std::endl;
+                //std::cout << x << ", " << z << std::endl;
                 const uPtr<Chunk> &currChunk = getChunkAt(x, z);
                 //currChunk->loadVBO();
                 //std::cout << currChunk->m_oCount << std::endl;
