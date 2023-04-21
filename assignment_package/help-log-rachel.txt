@@ -19,14 +19,18 @@ https://stackoverflow.com/questions/11376163/custom-hash-function-for-pair-of-en
 
 https://registry.khronos.org/OpenGL-Refpages/gl4/html/glVertexAttribDivisor.xhtml
 
-
+https://stackoverflow.com/questions/27581271/flat-qualifier-in-glsl
+https://stackoverflow.com/questions/39467374/linker-error-in-glsl-shader
+https://stackoverflow.com/questions/29854910/glsl-cant-compile-a-shader-without-interpolation-flat
 
 notes:
 
-- bilinear interp: end of 4/11 lec
-
+underwater overlay
 - underwater if the BlockType at this position == WATER or underwater plant
+- 
 
+glowing blocks:
 - inside setBlockAt(), check if the block emits light. If it does, add it to a set for calculation later
-
 - pass additional vec4 lightIntensity characteristic to vtx shader: 0 = sunlight, 1 = lava, 2 = lantern light, 3 = cave plants
+- use flood fill algo
+

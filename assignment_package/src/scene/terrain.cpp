@@ -239,7 +239,24 @@ void Terrain::CreateTestScene()
                         setBlockAt(x, y, z, DIRT);
                     }
                     setBlockAt(x, h - 1, z, GRASS);
-                    setBlockAt(x, h, z, SNOW_1);
+                    float snowBar = Biome::noise1D(glm::vec3(x, h, z));
+                    if (snowBar < 0.5) {
+                        setBlockAt(x, h, z, SNOW_1);
+                    } else if (snowBar < 0.75) {
+                        setBlockAt(x, h, z, SNOW_2);
+                    } else if (snowBar < 0.85) {
+                        setBlockAt(x, h, z, SNOW_3);
+                    } else if (snowBar < 0.9) {
+                        setBlockAt(x, h, z, SNOW_4);
+                    } else if (snowBar < 0.925) {
+                        setBlockAt(x, h, z, SNOW_5);
+                    } else if (snowBar < 0.9375) {
+                        setBlockAt(x, h, z, SNOW_6);
+                    } else if (snowBar < 0.94375) {
+                        setBlockAt(x, h, z, SNOW_7);
+                    } else if (snowBar < 0.946875) {
+                        setBlockAt(x, h, z, SNOW_8);
+                    }
                 }
             } else if (b == HILLS) {
                 for (int y = 0; y < h - 3 - numDirtBlocks; ++y) {
@@ -329,7 +346,7 @@ void Terrain::CreateTestScene()
 
             // assets
             float p1 = Biome::noise1D(glm::vec2(x, z));
-            float p2 = Biome::worley(glm::vec2(x, z));
+            float p2 = Biome::fbm(glm::vec2(x, z));
 
             if (getBlockAt(x, h, z) == EMPTY || getBlockAt(x, h, z) == SNOW_1) {
 
@@ -344,9 +361,9 @@ void Terrain::CreateTestScene()
 
                 // bamboo, trees
                 if (b == MOUNTAINS && h > 130) {
-                    if (p1 < 0.025) {
+                    if (p1 < 0.175) {
 //                        createConifer1(x, h, z, CEDAR_LEAVES, CEDAR_WOOD_Y);
-                    } else if (p1 < 0.05) {
+                    } else if (p1 < 0.225) {
 //                        createConifer2(x, h, z, TEAK_LEAVES, TEAK_WOOD_Y);
                     } else if (p1 > 0.995) {
                         float p3 = Biome::noise1D(glm::vec3(x, h, z));
@@ -424,7 +441,7 @@ void Terrain::CreateTestScene()
                     } else if (p1 < 0.1) {
                         setBlockAt(x, 120, z, LOTUS_2);
                     }
-                } else if (b == ISLANDS && p2 < 0.3 && h < 124) {
+                } else if (b == ISLANDS && p2 < 0.75 && h < 119) {
                     if (p1 < 0.1) {
                         setBlockAt(x, h, z, SEA_GRASS);
                     } else if (p1 < 0.11) {
@@ -435,7 +452,7 @@ void Terrain::CreateTestScene()
                         setBlockAt(x, h, z, CORAL_3);
                     } else if (p1 < 0.14) {
                         setBlockAt(x, h, z, CORAL_4);
-                    } else if (p1 < 0.4) {
+                    } else if (p1 < 0.3) {
                         int y = h;
                         bool addHeight = true;
                         while (y < 119 && addHeight) {
