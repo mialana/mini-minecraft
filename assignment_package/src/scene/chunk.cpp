@@ -1,4 +1,5 @@
 #include "chunk.h"
+#include "terrain.h"
 #include <iostream>
 #include "biome.h"
 
@@ -1263,51 +1264,50 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                     setBlockAt(x, currY, z, DIRT);
                 }
 
+                float p3 = Biome::noise1D(glm::vec2(h, h));
+                float p4 = Biome::noise1D(glm::vec3(worldX, h, worldZ));
+
                 if (h < 120) {
                     setBlockAt(x, h - 1, z, DIRT);
 
                     for (int y = h; y < 120; ++y) {
                         setBlockAt(x, y, z, WATER);
                     }
-                } else if (h > 130) {
-                    float p3 = Biome::noise1D(glm::vec2(h, h));
-                    float p4 = Biome::noise1D(glm::vec3(worldX, h, worldZ));
-                    if (p3 < 0.4) {
-                        setBlockAt(x, h - 1, z, TILLED_DIRT);
-                        if (p4 < 0.05) {
-                            setBlockAt(x, h, z, WHEAT_1);
-                        } else if (p4 < 0.1) {
-                            setBlockAt(x, h, z, WHEAT_2);
-                        } else if (p4 < 0.15) {
-                            setBlockAt(x, h, z, WHEAT_3);
-                        } else if (p4 < 0.2) {
-                            setBlockAt(x, h, z, WHEAT_4);
-                        } else if (p4 < 0.25) {
-                            setBlockAt(x, h, z, WHEAT_5);
-                        } else if (p4 < 0.3) {
-                            setBlockAt(x, h, z, WHEAT_6);
-                        } else if (p4 < 0.35) {
-                            setBlockAt(x, h, z, WHEAT_7);
-                        } else {
-                            setBlockAt(x, h, z, WHEAT_8);
-                        }
-                    } else if (p3 < 0.7) {
-                        setBlockAt(x, h - 1, z, IRRIGATED_SOIL);
-                        if (p4 < 0.45) {
-                            setBlockAt(x, h, z, RICE_1);
-                        } else if (p4 < 0.5) {
-                            setBlockAt(x, h, z, RICE_2);
-                        } else if (p4 < 0.55) {
-                            setBlockAt(x, h, z, RICE_3);
-                        } else if (p4 < 0.6) {
-                            setBlockAt(x, h, z, RICE_4);
-                        } else if (p4 < 0.65) {
-                            setBlockAt(x, h, z, RICE_5);
-                        } else {
-                            setBlockAt(x, h, z, RICE_6);
-                        }
+                } else if (h <= 130) {
+                    setBlockAt(x, h - 1, z, GRASS);
+                } else if (h > 130 && h <= 130 + 10 * p3) {
+                    setBlockAt(x, h - 1, z, TILLED_DIRT);
+                    if (p4 < 0.1) {
+                        setBlockAt(x, h, z, WHEAT_1);
+                    } else if (p4 < 0.2) {
+                        setBlockAt(x, h, z, WHEAT_2);
+                    } else if (p4 < 0.3) {
+                        setBlockAt(x, h, z, WHEAT_3);
+                    } else if (p4 < 0.4) {
+                        setBlockAt(x, h, z, WHEAT_4);
+                    } else if (p4 < 0.5) {
+                        setBlockAt(x, h, z, WHEAT_5);
+                    } else if (p4 < 0.6) {
+                        setBlockAt(x, h, z, WHEAT_6);
+                    } else if (p4 < 0.7) {
+                        setBlockAt(x, h, z, WHEAT_7);
                     } else {
-                        setBlockAt(x, h - 1, z, GRASS);
+                        setBlockAt(x, h, z, WHEAT_8);
+                    }
+                } else {
+                    setBlockAt(x, h - 1, z, IRRIGATED_SOIL);
+                    if (p4 < 0.3) {
+                        setBlockAt(x, h, z, RICE_1);
+                    } else if (p4 < 0.5) {
+                        setBlockAt(x, h, z, RICE_2);
+                    } else if (p4 < 0.6) {
+                        setBlockAt(x, h, z, RICE_3);
+                    } else if (p4 < 0.7) {
+                        setBlockAt(x, h, z, RICE_4);
+                    } else if (p4 < 0.85) {
+                        setBlockAt(x, h, z, RICE_5);
+                    } else {
+                        setBlockAt(x, h, z, RICE_6);
                     }
                 }
             } else if (b == FOREST) {
@@ -1385,14 +1385,14 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                         while (addHeight == 1) {
                             setBlockAt(x, y, z, BAMBOO_2);
                             y++;
-                            if (Biome::noise1D(glm::vec3(x, y, z)) >= 0.5) {
+                            if (Biome::noise1D(glm::vec3(worldX, y, worldZ)) >= 0.5) {
                                 addHeight = 2;
                             }
                         }
                         while (addHeight == 2) {
                             setBlockAt(x, y, z, BAMBOO_3);
                             y++;
-                            if (Biome::noise1D(glm::vec3(x, y, z)) >= 0.25) {
+                            if (Biome::noise1D(glm::vec3(worldX, y, worldZ)) >= 0.25) {
                                 addHeight = 3;
                             }
                         }

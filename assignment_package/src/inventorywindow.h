@@ -78,22 +78,22 @@ public:
 //        {std::make_pair(ICE, XPOS),},
 
 
-        {CEDAR_WOOD, "Cedar Wood"},
+        {CEDAR_WOOD_Y, "Cedar Wood"},
 
 
-        {TEAK_WOOD, "Teak Wood"},
+        {TEAK_WOOD_Y, "Teak Wood"},
 
 
-        {CHERRY_WOOD, "Cherry Wood"},
+        {CHERRY_WOOD_Y, "Cherry Wood"},
 
 
-        {MAPLE_WOOD, "Maple Wood"},
+        {MAPLE_WOOD_Y, "Maple Wood"},
 
 
-        {PINE_WOOD, "Pine Wood"},
+        {PINE_WOOD_Y, "Pine Wood"},
 
 
-        {WISTERIA_WOOD, "Wisteria Wood"},
+        {WISTERIA_WOOD_Y, "Wisteria Wood"},
 
 
 //        {std::make_pair(CEDAR_LEAVES, XPOS), },
@@ -153,22 +153,22 @@ public:
         {WISTERIA_PLANKS, "Wisteria Planks"},
 
 
-        {CEDAR_WINDOW, "Cedar Window"},
+        {CEDAR_WINDOW_X, "Cedar Window"},
 
 
-        {TEAK_WINDOW, "Teak Window"},
+        {TEAK_WINDOW_X, "Teak Window"},
 
 
-        {CHERRY_WINDOW, "Cherry Window"},
+        {CHERRY_WINDOW_X, "Cherry Window"},
 
 
-        {MAPLE_WINDOW, "Maple Window"},
+        {MAPLE_WINDOW_X, "Maple Window"},
 
 
-        {PINE_WINDOW, "Pine Window"},
+        {PINE_WINDOW_X, "Pine Window"},
 
 
-        {WISTERIA_WINDOW, "Wisteria Window"},
+        {WISTERIA_WINDOW_X, "Wisteria Window"},
 
 
         {RED_PAINTED_WOOD, "Red Painted Wood"},
