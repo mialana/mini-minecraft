@@ -80,13 +80,19 @@ float mod(float a, float b) {
     return a - (div * b);
 }
 
-vec4 tint(vec4 origCol, vec4 tintCol) {
-    float grayscaleCol = (0.21 * origCol.r) + (0.72 * origCol.g) + (0.07 * origCol.b);
-    vec4 finalCol = tintCol * grayscaleCol;
-    finalCol.a = origCol.a;
+vec4 tint(vec4 origCol, vec4 tintCol, float tintWt) {
+
+    vec4 finalCol = origCol * (1 - tintWt) + tintCol * tintWt;
+    finalCol.a = tintCol.a;
     return finalCol;
 }
-
+vec4 color(vec4 origCol, vec4 newCol, float newWt) {
+    float grayscaleCol = (0.21 * origCol.r) + (0.72 * origCol.g) + (0.07 * origCol.b);
+    vec4 finalCol = newCol * newWt + (grayscaleCol * (1 - newWt) * grayscaleCol);
+    finalCol.a = newCol.a;
+//    vec4 finalCol = newCol * grayscaleCol;
+    return finalCol;
+}
 void main()
 {
     vec2 newUV;
@@ -95,35 +101,50 @@ void main()
         // 1 = interpolate grass color
         // 2 = water (animation + biome color interpolation)
         // 3 = lava animation
+        // 4 = glowing blocks/ doesn't receive shadows
 
-        if (fs_TexIdx == 0) {
-            newUV = fs_UV;
-            out_Col = vec4(texture(u_TextureSampler, fs_UV));
-        } else if (fs_TexIdx == 1) {
+        out_Col = vec4(texture(u_TextureSampler, fs_UV));
+        newUV = fs_UV;
+
+        if (fs_TexIdx == 1) {
             // mountains = 0, hills = 1, forest = 2, islands = 3
-            vec4 mCol = vec4(0.3, 0.55, 0.25, 1) * fs_BiomeWts.x;
-            vec4 hCol = vec4(0.15, 0.812, 0, 1) * fs_BiomeWts.y;
-            vec4 fCol = vec4(0.65, 0.8, 0.5, 1) * fs_BiomeWts.z;
-            vec4 iCol = vec4(0.55, 0.75, 0.25, 1) * fs_BiomeWts.w;
-            vec4 cCol = vec4(0.5, 0.8, 0.65, 1);
+            vec4 mCol = vec4(0, 0.27, 0.235, 1) * fs_BiomeWts.x;
+            vec4 hCol = vec4(0.08, 0.35, 0, 1) * fs_BiomeWts.y;
+            vec4 fCol = vec4(0.04, 0.3, 0.3, 1) * fs_BiomeWts.z;
+            vec4 iCol = vec4(0.157, 0.55, 0.235, 1) * fs_BiomeWts.w;
+            vec4 cCol = vec4(0.03, 0.175, 0.278, 1);
 
             vec4 tintCol;
 
-            if (fs_Pos.z < 50) {
+            if (fs_Pos.y < 110) {
                 tintCol = cCol;
             } else {
                 tintCol = mCol + hCol + fCol + iCol;
             }
             newUV = fs_UV;
             out_Col = vec4(texture(u_TextureSampler, fs_UV));
-            out_Col = vec4(tint(out_Col, tintCol));
+            out_Col = color(out_Col, tintCol, 0.6);
         } else if (fs_TexIdx == 2) {
             // water animation
             float uOffset = (0.0625 / 64.f) * float(mod(u_Time, 64));
             newUV = vec2(fs_UV.x + uOffset, fs_UV.y);
             out_Col = vec4(texture(u_TextureSampler, newUV));
 
-            // TODO: biome color interpolation (water)
+            // biome color interpolation (water)
+            vec4 mCol = vec4(0, 0.243, 0.5, 0.6) * fs_BiomeWts.x;
+            vec4 hCol = vec4(0, 0.75, 1, 0.3) * fs_BiomeWts.y;
+            vec4 fCol = vec4(0, 0.435, 0.898, 0.5) * fs_BiomeWts.z;
+            vec4 iCol = vec4(0, 1, 0.95, 0.25) * fs_BiomeWts.w;
+            vec4 cCol = vec4(0, 0.196, 0.8235, 0.75);
+
+            vec4 tintCol;
+            if (fs_Pos.y < 100) {
+                tintCol = cCol;
+            } else {
+                tintCol = mCol + hCol + fCol + iCol;
+            }
+            out_Col = tint(out_Col, tintCol, 0.9);
+
         } else if (fs_TexIdx == 3) {
             // lava animation
             float frame = mod(u_Time, 256);
@@ -151,26 +172,27 @@ void main()
             }
             out_Col = texture(u_TextureSampler, newUV);
         }
-    }
-    else {
+    } else {
         // Material base color (before shading)
             vec4 diffuseColor = fs_Col;
             out_Col = diffuseColor * (0.5 * fbm(fs_Pos.xyz) + 0.5);
     }
-    float alpha = texture(u_TextureSampler, newUV).a;
-    float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
-                // Avoid negative lighting values
-    diffuseTerm = clamp(diffuseTerm, 0, 1);
 
-    float ambientTerm = 0.2;
+    if (fs_TexIdx != 4) {
+        float alpha = texture(u_TextureSampler, newUV).a;
+        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
+                    // Avoid negative lighting values
+        diffuseTerm = clamp(diffuseTerm, 0, 1);
 
-    float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
-                                                        //to simulate ambient lighting. This ensures that faces that are not
-                                                        //lit by our point light are not completely black.
+        float ambientTerm = 0.3;
 
-    // Compute final shaded color
-    out_Col = vec4(out_Col.rgb * lightIntensity, alpha);
-//    out_Col = vec4(0,1,0,1);
+        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
+                                                            //to simulate ambient lighting. This ensures that faces that are not
+                                                            //lit by our point light are not completely black.
+
+        // Compute final shaded color
+        out_Col = vec4(out_Col.rgb * lightIntensity, alpha);
+    }
     if (out_Col.a == 0.f) {
         discard;
     }

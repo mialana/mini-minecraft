@@ -43,7 +43,7 @@ private:
 
     void sendPlayerDataToGUI() const;
 
-    int m_time; //not sure what this does
+    int m_time;
 
     // for post-process shading when in water or lava
     FrameBuffer m_frameBuffer;

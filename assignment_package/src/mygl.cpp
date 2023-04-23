@@ -56,7 +56,6 @@ void MyGL::initializeGL()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     glEnable(GL_CULL_FACE);
-//    glCullFace(GL_FRONT);
     // Set the color with which the screen is filled at the start of each render call.
     glClearColor(0.37f, 0.74f, 1.0f, 1);
 
@@ -137,6 +136,8 @@ void MyGL::tick() {
 
 
     if (m_inputs.underWater) {
+        m_progLiquid.setPlayerPosBiomeWts(m_terrain.getBiomeAt(prevPlayerPos.x, prevPlayerPos.z));
+        m_progLiquid.setPlayerPos(prevPlayerPos);
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
     } else if (m_inputs.underLava) {
         m_progLiquid.setGeometryColor(glm::vec4(1.f, 0.f, 0.f, 1.f));

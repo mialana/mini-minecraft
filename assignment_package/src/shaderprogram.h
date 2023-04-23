@@ -27,6 +27,8 @@ public:
     int unifModelInvTr; // A handle for the "uniform" mat4 representing inverse transpose of the model matrix in the vertex shader
     int unifViewProj; // A handle for the "uniform" mat4 representing combined projection and view matrices in the vertex shader
     int unifColor; // A handle for the "uniform" vec4 representing color of geometry in the vertex shader
+    int unifPlayerPosBWts;
+    int unifPlayerPos;
     int unifSampler2D;
     int unifTexture;
     int unifTime;
@@ -43,6 +45,8 @@ public:
     void setViewProjMatrix(const glm::mat4 &vp);
     // Pass the given color to this shader on the GPU
     void setGeometryColor(glm::vec4 color);
+    void setPlayerPosBiomeWts(glm::vec4 bWts);
+    void setPlayerPos(glm::vec3 pos);
     void setSampler2D(GLuint slot);
     // Pass the given texture to this shader on the GPU
     void setTexture();

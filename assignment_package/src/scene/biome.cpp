@@ -6,6 +6,34 @@ Biome::Biome()
 
 }
 
+float Biome::noise1D(float x) {
+    return glm::fract(std::pow(x, 4) / 4.f);
+}
+
+float Biome::interpNoise(float x) {
+    int intX = int(floor(x));
+    float fractX = glm::fract(x);
+
+    float v1 = noise1D(intX);
+    float v2 = noise1D(intX + 1);
+    return glm::mix(v1, v2, fractX);
+}
+
+float Biome::fbm(float x) {
+    float total = 0;
+    float persistence = 0.5f;
+    int octaves = 8;
+    float freq = 2.f;
+    float amp = 0.5f;
+    for(int i = 1; i <= octaves; i++) {
+        total += interpNoise(x * freq) * amp;
+
+        freq *= 2.f;
+        amp *= persistence;
+    }
+    return total;
+}
+
 float Biome::noise1D(glm::vec2 p) {
     return glm::fract(sin(glm::dot(p, glm::vec2(127.1, 311.7))) * 43758.5453);
 }
@@ -15,6 +43,14 @@ glm::vec2 Biome::noise2D(glm::vec2 p) {
     float y = glm::fract(43758.5453 * glm::sin(glm::dot(p, glm::vec2(269.5, 183.3))));
     return glm::vec2(x, y);
 }
+
+float Biome::noise1D(glm::vec3 p) {
+    return glm::fract(sin((glm::dot(p, glm::vec3(127.1,
+                                  311.7,
+                                  191.999)))) *
+                 43758.5453);
+}
+
 
 glm::vec3 Biome::noise3D(glm::vec2 p) {
     float x = glm::fract(43758.5453 * glm::sin(glm::dot(p, glm::vec2(127.1, 311.7))));
@@ -117,9 +153,9 @@ float Biome::perlin2(glm::vec2 uv) {
     float surfletSum = 0.f;
     // Iterate over the four integer corners surrounding uv
     for(int dx = 0; dx <= 1; ++dx) {
-            for(int dy = 0; dy <= 1; ++dy) {
-                surfletSum += surflet2(uv, glm::floor(uv) + glm::vec2(dx, dy));
-            }
+        for(int dy = 0; dy <= 1; ++dy) {
+            surfletSum += surflet2(uv, glm::floor(uv) + glm::vec2(dx, dy));
+        }
     } return surfletSum;
 }
 float Biome::surflet3D(glm::vec3 P, glm::vec3 gridPoint) {
@@ -170,7 +206,7 @@ float Biome::hills(glm::vec2 xz) {
         h -= min;
         h *= sharpen;
         h += min;
-    } return floor(160.f + (h * 50.f));
+    } return floor(128.f + (h * 50.f));
 }
 
 float Biome::mountains(glm::vec2 xz) {
@@ -186,7 +222,7 @@ float Biome::mountains(glm::vec2 xz) {
 
         amp *= 0.5;
         freq *= 0.5;
-    } return floor(75.f + h * 150.f);
+    } return floor(128.f + h * 100.f);
 }
 
 float Biome::forest(glm::vec2 xz) {
@@ -199,7 +235,7 @@ float Biome::forest(glm::vec2 xz) {
         h += amp * perlin1(xz / freq);
         freq *= 0.5;
         amp *= 0.5;
-    } return floor(150.f + h * 20) - 20;
+    } return floor(128.f + h * 20) - 20;
 }
 
 float Biome::islands(glm::vec2 xz) {
@@ -212,7 +248,18 @@ float Biome::islands(glm::vec2 xz) {
         h += amp * perlin1(xz / freq);
         freq *= 0.25;
         amp *= 0.25;
-    } return floor(35.f + h * 100);
+    }
+
+    h = (h + 1.f) / 2.f; // remap to 0-1
+
+    float bar = 0.25f;
+    float flatten = 2.f;
+    if (h < bar) {
+        h -= bar;
+        h /= flatten;
+        h += bar;
+    }
+    return floor(135.f - h * 100);
 }
 
 float Biome::blendTerrain(glm::vec2 uv, float h1, float h2) {
