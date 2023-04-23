@@ -1224,8 +1224,6 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
             float h = hb.first;
             BiomeEnum b = hb.second;
 
-
-
             int numDirtBlocks = 10 * Biome::fbm(glm::vec2(worldX, worldZ));
 
             if (b == MOUNTAINS) {

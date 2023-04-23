@@ -524,9 +524,20 @@ void Terrain::CreateTestScene() {
             Chunk* c = instantiateChunkAt(x, z);
 
             c->helperCreate(x, z);
-            c->createVBOdata();
+
         }
     }
+
+    for (int x = 0; x < 64; x += 16) {
+        for (int z = 0; z < 64; z += 16) {
+            Chunk* c = getChunkAt(x, z).get();
+
+            c->createVBOdata();
+
+        }
+    }
+
+
 
     // Tell our existing terrain set that
     // the "generated terrain zone" at (0,0)
