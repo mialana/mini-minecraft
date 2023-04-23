@@ -1,8 +1,11 @@
 #include "terrain.h"
 #include <stdexcept>
 #include <iostream>
+#include <cstdlib>
+#include <QThreadPool>
+#include "workers.h"
 
-Terrain::Terrain(OpenGLContext *context)
+Terrain::Terrain(OpenGLContext* context)
     : m_chunks(), m_generatedTerrain(), mp_context(context)
 {}
 
@@ -30,12 +33,14 @@ int64_t toKey(int x, int z) {
 glm::ivec2 toCoords(int64_t k) {
     // Z is lower 32 bits
     int64_t z = k & 0x00000000ffffffff;
+
     // If the most significant bit of Z is 1, then it's a negative number
     // so we have to set all the upper 32 bits to 1.
     // Note the 8    V
-    if(z & 0x0000000080000000) {
+    if (z & 0x0000000080000000) {
         z = z | 0xffffffff00000000;
     }
+
     int64_t x = (k >> 32);
 
     return glm::ivec2(x, z);
@@ -43,21 +48,20 @@ glm::ivec2 toCoords(int64_t k) {
 
 // Surround calls to this with try-catch if you don't know whether
 // the coordinates at x, y, z have a corresponding Chunk
-BlockType Terrain::getBlockAt(int x, int y, int z) const
-{
-    if(hasChunkAt(x, z)) {
+BlockType Terrain::getBlockAt(int x, int y, int z) const {
+    if (hasChunkAt(x, z)) {
         // Just disallow action below or above min/max height,
         // but don't crash the game over it.
-        if(y < 0 || y >= 256) {
+        if (y < 0 || y >= 256) {
             return EMPTY;
         }
-        const uPtr<Chunk> &c = getChunkAt(x, z);
+
+        const uPtr<Chunk>& c = getChunkAt(x, z);
         glm::vec2 chunkOrigin = glm::vec2(floor(x / 16.f) * 16, floor(z / 16.f) * 16);
         return c->getBlockAt(static_cast<unsigned int>(x - chunkOrigin.x),
                              static_cast<unsigned int>(y),
                              static_cast<unsigned int>(z - chunkOrigin.y));
-    }
-    else {
+    } else {
         throw std::out_of_range("Coordinates " + std::to_string(x) +
                                 " " + std::to_string(y) + " " +
                                 std::to_string(z) + " have no Chunk!");
@@ -68,15 +72,13 @@ glm::vec4 Terrain::getBiomeAt(glm::vec2 p) const {
     return getBiomeAt(p.x, p.y);
 }
 
-glm::vec4 Terrain::getBiomeAt(int x, int z) const
-{
-    if(hasChunkAt(x, z)) {
-        const uPtr<Chunk> &c = getChunkAt(x, z);
+glm::vec4 Terrain::getBiomeAt(int x, int z) const {
+    if (hasChunkAt(x, z)) {
+        const uPtr<Chunk>& c = getChunkAt(x, z);
         glm::vec2 chunkOrigin = glm::vec2(floor(x / 16.f) * 16, floor(z / 16.f) * 16);
         return c->getBiomeAt(static_cast<unsigned int>(x - chunkOrigin.x),
                              static_cast<unsigned int>(z - chunkOrigin.y));
-    }
-    else {
+    } else {
         throw std::out_of_range("Coordinates " + std::to_string(x) +
                                 std::to_string(z) + " have no Chunk!");
     }
@@ -99,6 +101,12 @@ bool Terrain::hasChunkAt(int x, int z) const {
     return m_chunks.find(toKey(16 * xFloor, 16 * zFloor)) != m_chunks.end();
 }
 
+bool Terrain::hasNewChunkAt(int x, int z) const {
+    int xFloor = static_cast<int>(glm::floor(x / 16.f));
+    int zFloor = static_cast<int>(glm::floor(z / 16.f));
+
+    return newChunks.find(toKey(16 * xFloor, 16 * zFloor)) != newChunks.end();
+}
 
 uPtr<Chunk>& Terrain::getChunkAt(int x, int z) {
     int xFloor = static_cast<int>(glm::floor(x / 16.f));
@@ -106,24 +114,291 @@ uPtr<Chunk>& Terrain::getChunkAt(int x, int z) {
     return m_chunks[toKey(16 * xFloor, 16 * zFloor)];
 }
 
-
 const uPtr<Chunk>& Terrain::getChunkAt(int x, int z) const {
     int xFloor = static_cast<int>(glm::floor(x / 16.f));
     int zFloor = static_cast<int>(glm::floor(z / 16.f));
     return m_chunks.at(toKey(16 * xFloor, 16 * zFloor));
 }
 
-void Terrain::setBlockAt(int x, int y, int z, BlockType t)
-{
-    if(hasChunkAt(x, z)) {
-        uPtr<Chunk> &c = getChunkAt(x, z);
+uPtr<Chunk>& Terrain::getNewChunkAt(int x, int z) {
+    int xFloor = static_cast<int>(glm::floor(x / 16.f));
+    int zFloor = static_cast<int>(glm::floor(z / 16.f));
+
+    return newChunks[toKey(16 * xFloor, 16 * zFloor)];
+}
+
+const uPtr<Chunk>& Terrain::getNewChunkAt(int x, int z) const {
+    int xFloor = static_cast<int>(glm::floor(x / 16.f));
+    int zFloor = static_cast<int>(glm::floor(z / 16.f));
+
+    return newChunks.at(toKey(16 * xFloor, 16 * zFloor));
+}
+
+bool Terrain::hasTerrainGenerationZoneAt(glm::ivec2 zone) {
+    return m_generatedTerrain.find(toKey(zone.x, zone.y)) != m_generatedTerrain.end();
+}
+
+void Terrain::multithreadedWork(glm::vec3 currPlayerPos, glm::vec3 prevPlayerPos, float dt) {
+    m_chunkTimer += dt;
+
+    if (m_chunkTimer >= 0.5f) {
+        tryNewChunk(currPlayerPos, prevPlayerPos);
+        m_chunkTimer = 0.0f;
+    }
+
+    checkthreadResults();
+}
+
+std::vector<glm::ivec2> getNearTerrainGenZones(glm::vec2 pos, int n) {
+    std::vector<glm::ivec2> tgzs = {};
+    int halfWidth = glm::floor(n / 2.f) * 64;
+
+    for (int i = pos.x - halfWidth; i <= pos.x + halfWidth; i += 64) {
+        for (int j = pos.y - halfWidth; j <= pos.y + halfWidth; j += 64) {
+            tgzs.push_back(glm::ivec2(i, j));
+        }
+    }
+
+    return tgzs;
+}
+
+std::vector<glm::ivec2> isSameVector(std::vector<glm::ivec2> a, std::vector<glm::ivec2> b) {
+    std::vector<glm::ivec2> diff;
+
+    for (glm::ivec2 vecB : b) {
+        bool match = false;
+
+        for (glm::ivec2 vecA : a) {
+            if (vecA.x == vecB.x && vecA.y == vecB.y) {
+                match = true;
+                break;
+            }
+        }
+
+        if (!match) {
+            diff.push_back(vecB);
+        }
+    }
+
+    return diff;
+}
+
+void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos) {
+    // Find the 64 x 64 zone the player is on
+    glm::ivec2 curr(64.f * floor(pos.x / 64.f), 64.f * floor(pos.z / 64.f));
+    glm::ivec2 prev(64.f * floor(prevPos.x / 64.f), 64.f * floor(prevPos.z / 64.f));
+    // Figure out which zones border this zone and the previous zone
+    QSet<long long> borderingCurr = borderingZone(curr, 3, false);
+    QSet<long long> borderingPrev = borderingZone(prev, 3, false);
+
+    // If previous zones are no longer there, remove their vbo data
+    for (long long zone : borderingPrev) {
+        if (!borderingCurr.contains(zone)) {
+            std::cout << "hello world";
+            glm::ivec2 coord = toCoords(zone);
+
+            for (int x = coord.x; x < coord.x + 64; x += 16) {
+                for (int z = coord.y; z < coord.y + 64; z += 16) {
+                    auto& c = getChunkAt(x, z);
+                    c->destroyVBOdata();
+                    c->hasVBOData = false;
+                    c->hasBinded = false;
+                    //c->isBuffered = false;
+                }
+            }
+        }
+    }
+
+    // Figure out if the current zones need VBO data or Block data
+    for (long long zone : borderingCurr) {
+        if (m_chunks.find(zone) != m_chunks.end()) {
+            if (!borderingPrev.contains(zone)) {
+                glm::ivec2 coord = toCoords(zone);
+
+                for (int x = coord.x; x < coord.x + 64; x += 16) {
+                    for (int z = coord.y; z < coord.y + 64; z += 16) {
+                        auto& c = getChunkAt(x, z);
+                        createVBOWorker(c.get());
+                    }
+                }
+            }
+        } else {
+            //std::cout<<"I am bd worker \n";
+            createBDWorker(zone);
+        }
+    }
+}
+
+QSet<long long> Terrain::borderingZone(glm::ivec2 coords, int radius, bool atEdge) {
+    int radiusScale = radius * 64;
+    QSet<long long> result;
+
+    // Adds Zones only at the radius
+    if (atEdge) {
+        for (int i = -radiusScale; i <= radiusScale; i += 64) {
+            result.insert(toKey(coords.x + radiusScale, coords.y + i));
+            result.insert(toKey(coords.x - radiusScale, coords.y + i));
+            result.insert(toKey(coords.x + i, coords.y + radiusScale));
+            result.insert(toKey(coords.x + i, coords.y + radiusScale));
+        }
+
+        // Adds Zones upto and including the radius
+    } else {
+        for (int i = -radiusScale; i <= radiusScale; i += 64) {
+            for (int j = -radiusScale; j <= radiusScale; j += 64) {
+                result.insert(toKey(coords.x + i, coords.y + j));
+            }
+        }
+    }
+
+    return result;
+}
+
+void Terrain::tryExpansion(glm::vec3 currPlayerPos, glm::vec3 prevPlayerPos) {
+
+    //std::cout<<"itry  \n";
+
+    glm::ivec2 currZone = glm::ivec2(glm::floor(currPlayerPos.x / 64.f) * 64.f,
+                                     glm::floor(currPlayerPos.z / 64.f) * 64.f);
+
+    glm::ivec2 prevZone = glm::ivec2(glm::floor(prevPlayerPos.x / 64.f) * 64.f,
+                                     glm::floor(prevPlayerPos.z / 64.f) * 64.f);
+
+    std::vector<glm::ivec2> currTGZs = getNearTerrainGenZones(currZone, 1);
+    std::vector<glm::ivec2> prevTGZs = getNearTerrainGenZones(prevZone, 1);
+
+    std::vector<glm::ivec2> newZones = firstTick ? currTGZs : isSameVector(currTGZs, prevTGZs);
+    std::vector<glm::ivec2> oldZones = isSameVector(currTGZs, prevTGZs);
+
+    for (glm::ivec2 newZone : newZones) {
+        if (!hasTerrainGenerationZoneAt(newZone)) {
+            m_generatedTerrain.insert(toKey(newZone.x, newZone.y));
+
+            for (int x = 0; x < 64; x += 16) {
+                for (int z = 0; z < 64; z += 16) {
+                    std::cout << "i am add new chunk \n";
+                    newChunks[toKey(newZone.x + x, newZone.y + z)] = instantiateNewChunkAt(newZone.x + x,
+                                                                                           newZone.y + z);
+                }
+            }
+        }
+    }
+
+    for (auto & [ key, chunk ] : newChunks) {
+        int x = chunk->getWorldPos().x;
+        int z = chunk->getWorldPos().y;
+
+        if (hasChunkAt(x, z + 16)) {
+            auto& chunkNorth = getChunkAt(x, z + 16);
+            chunk->linkNeighbor(chunkNorth, ZPOS);
+        }
+
+        if (hasChunkAt(x, z - 16)) {
+            auto& chunkSouth = getChunkAt(x, z - 16);
+            chunk->linkNeighbor(chunkSouth, ZNEG);
+        }
+
+        if (hasChunkAt(x + 16, z)) {
+            auto& chunkEast = getChunkAt(x + 16, z);
+            chunk->linkNeighbor(chunkEast, XPOS);
+        }
+
+        if (hasChunkAt(x - 16, z)) {
+            auto& chunkWest = getChunkAt(x - 16, z);
+            chunk->linkNeighbor(chunkWest, XNEG);
+        }
+    }
+
+    for (auto & [ key, chunk ] : newChunks) {
+        blockWorkerThreads.push_back(std::thread(&Terrain::blockWorker, this, move(chunk)));
+    }
+
+    newChunks.clear();
+    firstTick = false;
+}
+
+uPtr<Chunk> Terrain::instantiateNewChunkAt(int x, int z) {
+    uPtr<Chunk> chunk = mkU<Chunk>(mp_context);
+    chunk.get()->setWorldPos(x, z);
+
+    return chunk;
+}
+
+BlockType Terrain::generateBlockTypeByHeight(int height, bool isTop) {
+
+    if (height < 120) {
+        return STONE;
+    }
+
+    if (height < 140) {
+        return STONE;
+    }
+
+    if (height < 160) {
+        return isTop ? GRASS : STONE;
+    }
+
+    if (height > 200) {
+        return isTop ? GRASS : STONE;
+    }
+
+    return STONE;
+}
+
+void Terrain::blockWorker(uPtr<Chunk> chunk) {
+    chunksWithBlockDataMutex.lock();
+    glm::ivec2 chunkWorldPos = chunk->getWorldPos();
+
+    for (int x = 0; x < 16; x++) {
+        for (int z = 0; z < 16; z++) {
+            int height = std::rand() % 250;
+
+            for (int k = 0; k <= height; k++) {
+                chunk->setBlockAt(x, k, z, generateBlockTypeByHeight(height, k == height));
+            }
+        }
+    }
+
+    chunksWithBlockData[toKey(chunk->getWorldPos().x, chunk->getWorldPos().y)] = move(chunk);
+    chunksWithBlockDataMutex.unlock();
+}
+
+void Terrain::checkThreadResults() {
+    /*  //std::cout<<"i am cjecl tjread load \n";
+        chunksWithBlockDataMutex.lock();
+        for (auto & [ key, chunk ] : chunksWithBlockData) {
+         std::cout<<"i am here at vbo worker \n";
+         vboWorkerThreads.push_back(std::thread(&Terrain::VBOWorker, this, std::move(chunk)));
+        }
+        chunksWithBlockData.clear();
+        chunksWithBlockDataMutex.unlock();
+
+        chunksWithVBODataMutex.lock();
+        for (auto & [ key, chunk ] : chunksWithVBOData) {
+         chunk->loadVBO();
+         std::cout<<"i am here at load \n";
+         m_chunks[key] = move(chunk);
+        }
+        chunksWithVBOData.clear();
+        chunksWithVBODataMutex.unlock();*/
+}
+
+/*  void Terrain::VBOWorker(uPtr<Chunk> chunk) {
+    chunksWithVBODataMutex.lock();
+    chunk->generateVBOData();
+    chunksWithVBOData[toKey(chunk->getWorldPos().x, chunk->getWorldPos().y)] = move(chunk);
+    chunksWithVBODataMutex.unlock();
+    }*/
+
+void Terrain::setBlockAt(int x, int y, int z, BlockType t) {
+    if (hasChunkAt(x, z)) {
+        uPtr<Chunk>& c = getChunkAt(x, z);
         glm::vec2 chunkOrigin = glm::vec2(floor(x / 16.f) * 16, floor(z / 16.f) * 16);
         c->setBlockAt(static_cast<unsigned int>(x - chunkOrigin.x),
                       static_cast<unsigned int>(y),
                       static_cast<unsigned int>(z - chunkOrigin.y),
                       t);
-    }
-    else {
+    } else {
         throw std::out_of_range("Coordinates " + std::to_string(x) +
                                 " " + std::to_string(y) + " " +
                                 std::to_string(z) + " have no Chunk!");
@@ -131,74 +406,135 @@ void Terrain::setBlockAt(int x, int y, int z, BlockType t)
 }
 
 void Terrain::setBiomeAt(int x, int z, glm::vec4 b) {
-    if(hasChunkAt(x, z)) {
-        uPtr<Chunk> &c = getChunkAt(x, z);
+    if (hasChunkAt(x, z)) {
+        uPtr<Chunk>& c = getChunkAt(x, z);
         glm::vec2 chunkOrigin = glm::vec2(floor(x / 16.f) * 16, floor(z / 16.f) * 16);
         c->setBiomeAt(static_cast<unsigned int>(x - chunkOrigin.x),
                       static_cast<unsigned int>(z - chunkOrigin.y),
                       b);
-    }
-    else {
+    } else {
         throw std::out_of_range("Coordinates " + std::to_string(x) +
                                 std::to_string(z) + " have no Chunk!");
     }
 }
 
-Chunk* Terrain::instantiateChunkAt(int x, int z) {
+Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
     uPtr<Chunk> chunk = mkU<Chunk>(mp_context);
-    Chunk *cPtr = chunk.get();
-    m_chunks[toKey(x, z)] = std::move(chunk);
+    chunk->setWorldPos(xcoord, zcoord);
+    m_chunks[toKey(xcoord, zcoord)] = std::move(chunk);
+    Chunk* cPtr = m_chunks[toKey(xcoord, zcoord)].get();
+
     // Set the neighbor pointers of itself and its neighbors
-    if(hasChunkAt(x, z + 16)) {
-        auto &chunkNorth = m_chunks[toKey(x, z + 16)];
+    if (hasChunkAt(xcoord, zcoord + 16)) {
+        auto& chunkNorth = m_chunks[toKey(xcoord, zcoord + 16)];
         cPtr->linkNeighbor(chunkNorth, ZPOS);
     }
-    if(hasChunkAt(x, z - 16)) {
-        auto &chunkSouth = m_chunks[toKey(x, z - 16)];
+
+    if (hasChunkAt(xcoord, zcoord - 16)) {
+        auto& chunkSouth = m_chunks[toKey(xcoord, zcoord - 16)];
         cPtr->linkNeighbor(chunkSouth, ZNEG);
     }
-    if(hasChunkAt(x + 16, z)) {
-        auto &chunkEast = m_chunks[toKey(x + 16, z)];
+
+    if (hasChunkAt(xcoord + 16, zcoord)) {
+        auto& chunkEast = m_chunks[toKey(xcoord + 16, zcoord)];
         cPtr->linkNeighbor(chunkEast, XPOS);
     }
-    if(hasChunkAt(x - 16, z)) {
-        auto &chunkWest = m_chunks[toKey(x - 16, z)];
+
+    if (hasChunkAt(xcoord - 16, zcoord)) {
+        auto& chunkWest = m_chunks[toKey(xcoord - 16, zcoord)];
         cPtr->linkNeighbor(chunkWest, XNEG);
     }
-    return cPtr;
+
     return cPtr;
 }
 
-void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shaderProgram) {
-    for(int x = minX; x < maxX; x += 16) {
-        for(int z = minZ; z < maxZ; z += 16) {
-            const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-//            currChunk->createVBOdata();
+void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shaderProgram) {
+    chunksWithBlockDataMutex.lock();
+    chunksWithVBODataMutex.lock();
+    m_blockDataChunksLock.lock();
 
-            shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
-            shaderProgram->drawInterleavedO(*currChunk);
+    m_VBODataChunksLock.lock();
+
+    for (int x = minX; x < maxX; x += 16) {
+        for (int z = minZ; z < maxZ; z += 16) {
+
+
+            /*  const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+                currChunk->generateVBOData();
+                currChunk->loadVBO();
+                shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
+                shaderProgram->drawInterleavedO(*currChunk);*/
+
+
+            if (hasChunkAt(x, z)) {
+                //std::cout << x << ", " << z << std::endl;
+                const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+
+                if (currChunk->hasVBOData && currChunk->hasBinded) {
+                    shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
+                    shaderProgram->drawInterleavedO(*currChunk);
+                }
+
+                //currChunk->loadVBO();
+                //std::cout << currChunk->m_oCount << std::endl;
+
+            }
         }
     }
 
-    for(int x = minX; x < maxX; x += 16) {
-        for(int z = minZ; z < maxZ; z += 16) {
-            const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-//            currChunk->createVBOdata();
+    for (int x = minX; x < maxX; x += 16) {
+        for (int z = minZ; z < maxZ; z += 16) {
 
-            shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
-            shaderProgram->drawInterleavedT(*currChunk);
+
+            /*  const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+                currChunk->generateVBOData();
+                currChunk->loadVBO();
+                shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
+                shaderProgram->drawInterleavedO(*currChunk);*/
+
+
+            if (hasChunkAt(x, z)) {
+                const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+
+                //currChunk->loadVBO();
+                if (currChunk->hasVBOData && currChunk->hasBinded) {
+                    shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
+                    shaderProgram->drawInterleavedT(*currChunk);
+                }
+            }
         }
     }
+
+    m_blockDataChunksLock.unlock();
+
+    m_VBODataChunksLock.unlock();
+    chunksWithBlockDataMutex.unlock();
+    chunksWithVBODataMutex.unlock();
 }
 
-void Terrain::CreateTestScene()
-{
+
+
+void Terrain::CreateTestScene() {
     // Create the Chunks that will
     // store the blocks for our
     // initial world space
-    for(int x = 0; x < 256; x += 16) {
-        for(int z = 0; z < 256; z += 16) {
-            instantiateChunkAt(x, z);
+
+
+    for (int x = 0; x < 64; x += 16) {
+        for (int z = 0; z < 64; z += 16) {
+            Chunk* c = instantiateChunkAt(x, z);
+
+            c->helperCreate(x, z);
+
+        }
+    }
+
+    for (int x = 0; x < 64; x += 16) {
+        for (int z = 0; z < 64; z += 16) {
+            Chunk* c = getChunkAt(x, z).get();
+
+            c->createVBOdata();
+
         }
     }
 
@@ -206,336 +542,6 @@ void Terrain::CreateTestScene()
     // the "generated terrain zone" at (0,0)
     // now exists.
     m_generatedTerrain.insert(toKey(0, 0));
-
-    for (int x = 0; x < 48; ++x) {
-        for (int z = 0; z < 48; ++z) {
-
-            float hM = Biome::mountains(glm::vec2(x, z));
-            float hH = Biome::hills(glm::vec2(x, z));
-            float hF = Biome::forest(glm::vec2(x, z));
-            float hI = Biome::islands(glm::vec2(x, z));
-
-            std::pair<float, BiomeEnum> hb = blendMultipleBiomes(glm::vec2(x, z), hM, hF, hH, hI);
-            float h = hb.first;
-            BiomeEnum b = hb.second;
-
-            int numDirtBlocks = 10 * Biome::fbm(glm::vec2(x, z));
-            if (b == MOUNTAINS) {
-                if (h < 120) {
-                    for (int y = 0; y < h - numDirtBlocks; ++y) {
-                        setBlockAt(x, y, z, STONE);
-                    }
-                    for (int y = h - numDirtBlocks; y < h; ++y) {
-                        setBlockAt(x, y, z, DIRT);
-                    }
-                    for (int y = h; y < 120; ++y) {
-                        setBlockAt(x, y, z, WATER);
-                    }
-                } else {
-                    for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
-                        setBlockAt(x, y, z, STONE);
-                    }
-                    for (int y = h - numDirtBlocks - 1; y < h - 1; ++y) {
-                        setBlockAt(x, y, z, DIRT);
-                    }
-                    setBlockAt(x, h - 1, z, GRASS);
-                    float snowBar = Biome::noise1D(glm::vec3(x, h, z));
-                    if (snowBar < 0.5) {
-                        setBlockAt(x, h, z, SNOW_1);
-                    } else if (snowBar < 0.75) {
-                        setBlockAt(x, h, z, SNOW_2);
-                    } else if (snowBar < 0.85) {
-                        setBlockAt(x, h, z, SNOW_3);
-                    } else if (snowBar < 0.9) {
-                        setBlockAt(x, h, z, SNOW_4);
-                    } else if (snowBar < 0.925) {
-                        setBlockAt(x, h, z, SNOW_5);
-                    } else if (snowBar < 0.9375) {
-                        setBlockAt(x, h, z, SNOW_6);
-                    } else if (snowBar < 0.94375) {
-                        setBlockAt(x, h, z, SNOW_7);
-                    } else if (snowBar < 0.946875) {
-                        setBlockAt(x, h, z, SNOW_8);
-                    }
-                }
-            } else if (b == HILLS) {
-                for (int y = 0; y < h - 3 - numDirtBlocks; ++y) {
-                    setBlockAt(x, y, z, STONE);
-                }
-                for (int currY = h - 3 - numDirtBlocks; currY < h - 1; ++currY) {
-                    setBlockAt(x, currY, z, DIRT);
-                }
-
-                if (h < 120) {
-                    setBlockAt(x, h - 1, z, DIRT);
-
-                    for (int y = h; y < 120; ++y) {
-                        setBlockAt(x, y, z, WATER);
-                    }
-                } else if (h > 130) {
-                    float p3 = Biome::noise1D(glm::vec2(h, h));
-                    float p4 = Biome::noise1D(glm::vec3(x, h, z));
-                    if (p3 < 0.4) {
-                        setBlockAt(x, h - 1, z, TILLED_DIRT);
-                        if (p4 < 0.05) {
-                            setBlockAt(x, h, z, WHEAT_1);
-                        } else if (p4 < 0.1) {
-                            setBlockAt(x, h, z, WHEAT_2);
-                        } else if (p4 < 0.15) {
-                            setBlockAt(x, h, z, WHEAT_3);
-                        } else if (p4 < 0.2) {
-                            setBlockAt(x, h, z, WHEAT_4);
-                        } else if (p4 < 0.25) {
-                            setBlockAt(x, h, z, WHEAT_5);
-                        } else if (p4 < 0.3) {
-                            setBlockAt(x, h, z, WHEAT_6);
-                        } else if (p4 < 0.35) {
-                            setBlockAt(x, h, z, WHEAT_7);
-                        } else {
-                            setBlockAt(x, h, z, WHEAT_8);
-                        }
-                    } else if (p3 < 0.7) {
-                        setBlockAt(x, h - 1, z, IRRIGATED_SOIL);
-                        if (p4 < 0.45) {
-                            setBlockAt(x, h, z, RICE_1);
-                        } else if (p4 < 0.5) {
-                            setBlockAt(x, h, z, RICE_2);
-                        } else if (p4 < 0.55) {
-                            setBlockAt(x, h, z, RICE_3);
-                        } else if (p4 < 0.6) {
-                            setBlockAt(x, h, z, RICE_4);
-                        } else if (p4 < 0.65) {
-                            setBlockAt(x, h, z, RICE_5);
-                        } else {
-                            setBlockAt(x, h, z, RICE_6);
-                        }
-                    } else {
-                        setBlockAt(x, h - 1, z, GRASS);
-                    }
-                }
-            } else if (b == FOREST) {
-                for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
-                    setBlockAt(x, y, z, STONE);
-                }
-                for (int y = h - numDirtBlocks - 1; y < h - 1; ++y) {
-                    setBlockAt(x, y, z, DIRT);
-                }
-
-                if (h < 120) {
-                    setBlockAt(x, h - 1, z, DIRT);
-
-                    for (int y = h; y < 120; ++y) {
-                        setBlockAt(x, y, z, WATER);
-                    }
-                } else {
-                    setBlockAt(x, h - 1, z, GRASS);
-                }
-            } else if (b == ISLANDS) {
-                for (int y = 0; y < 80; ++y) {
-                    setBlockAt(x, y, z, STONE);
-                }
-                for (int y = 80; y < h; ++y) {
-                    setBlockAt(x, y, z, SAND);
-                }
-                if (h < 120) {
-                    for (int y = h; y < 120; ++y) {
-                        setBlockAt(x, y, z, WATER);
-                    }
-                }
-            }
-
-            // assets
-            float p1 = Biome::noise1D(glm::vec2(x, z));
-            float p2 = Biome::fbm(glm::vec2(x, z));
-
-            if (getBlockAt(x, h, z) == EMPTY || getBlockAt(x, h, z) == SNOW_1) {
-
-                // TALL_GRASS
-                if ((b == MOUNTAINS && p1 < 0.15) ||
-                    (b == HILLS && p1 < 0.35) ||
-                    (b == FOREST && p1 < 0.05) ||
-                    (b == ISLANDS && p1 < 0.1)) {
-
-                    setBlockAt(x, h, z, TALL_GRASS);
-                }
-
-                // bamboo, trees
-                if (b == MOUNTAINS && h > 130) {
-                    if (p1 < 0.175) {
-//                        createConifer1(x, h, z, CEDAR_LEAVES, CEDAR_WOOD_Y);
-                    } else if (p1 < 0.225) {
-//                        createConifer2(x, h, z, TEAK_LEAVES, TEAK_WOOD_Y);
-                    } else if (p1 > 0.995) {
-                        float p3 = Biome::noise1D(glm::vec3(x, h, z));
-                        if (p3 < 0.5) {
-//                            createCottage1(x, h, z);
-                        } else {
-//                            createCottage2(x, h, z);
-                        }
-                    }
-                } else if (b == FOREST) {
-                    if (p1 < 0.04) {
-                        // bamboo
-                        int y = h;
-                        int addHeight = 0;
-                        while (addHeight == 0) {
-                            setBlockAt(x, y, z, BAMBOO_1);
-                            y++;
-                            if (Biome::noise1D(glm::vec3(x, y, z)) >= 0.75) {
-                                addHeight = 1;
-                            }
-                        }
-                        while (addHeight == 1) {
-                            setBlockAt(x, y, z, BAMBOO_2);
-                            y++;
-                            if (Biome::noise1D(glm::vec3(x, y, z)) >= 0.5) {
-                                addHeight = 2;
-                            }
-                        }
-                        while (addHeight == 2) {
-                            setBlockAt(x, y, z, BAMBOO_3);
-                            y++;
-                            if (Biome::noise1D(glm::vec3(x, y, z)) >= 0.25) {
-                                addHeight = 3;
-                            }
-                        }
-                    } else if (p1 < 0.05) {
-//                        createDeciduous2(x, h, z, CHERRY_BLOSSOMS_1, CHERRY_WOOD_Y);
-                    } else if (p1 < 0.055) {
-//                        createDeciduous3(x, h, z, CHERRY_BLOSSOMS_2, CHERRY_WOOD_Y);
-                    } else if (p1 < 0.06) {
-//                        createDeciduous3(x, h, z, CHERRY_BLOSSOMS_3, CHERRY_WOOD_Y);
-                    } else if (p1 < 0.065) {
-//                        createDeciduous1(x, h, z, CHERRY_BLOSSOMS_4, CHERRY_WOOD_Y);
-                    } else if (p1 > 0.997) {
-//                        createTeaHouse(x, h, z);
-                    }
-                } else if (b == HILLS) {
-//                    if (p1 > 0.998) {
-//                        createHut(x, h, z);
-//                    }
-                } else if (b == ISLANDS) {
-                    if (p1 < 0.005) {
-//                    createConifer3(x, h, z, PINE_LEAVES, PINE_WOOD_Y);
-                    } else if (p1 < 0.00525) {
-//                        createDeciduous2(x, h, z, MAPLE_LEAVES_1, MAPLE_WOOD_Y);
-                    } else if (p1 < 0.0055) {
-//                        createDeciduous3(x, h, z, MAPLE_LEAVES_2, MAPLE_WOOD_Y);
-                    } else if (p1 < 0.00575) {
-//                        createDeciduous1(x, h, z, MAPLE_LEAVES_3, MAPLE_WOOD_Y);
-                    }
-                }
-            } else if (getBlockAt(x, h, z) == WATER) {
-                // lotuses, coral, sea grass, kelp, lanterns
-                if (b == MOUNTAINS) {
-                    if (p1 < 0.0125) {
-                        setBlockAt(x, 120 + (1000 * p1), z, PAPER_LANTERN);
-                    } else if (p1 < 0.025) {
-                        setBlockAt(x, 120, z, PAPER_LANTERN);
-                    }
-                } else if (b == FOREST) {
-                    if (p1 < 0.05) {
-                        setBlockAt(x, 120, z, LILY_PAD);
-                    } else if (p1 < 0.075) {
-                        setBlockAt(x, 120, z, LOTUS_1);
-                    } else if (p1 < 0.1) {
-                        setBlockAt(x, 120, z, LOTUS_2);
-                    }
-                } else if (b == ISLANDS && p2 < 0.75 && h < 119) {
-                    if (p1 < 0.1) {
-                        setBlockAt(x, h, z, SEA_GRASS);
-                    } else if (p1 < 0.11) {
-                        setBlockAt(x, h, z, CORAL_1);
-                    } else if (p1 < 0.12) {
-                        setBlockAt(x, h, z, CORAL_2);
-                    } else if (p1 < 0.13) {
-                        setBlockAt(x, h, z, CORAL_3);
-                    } else if (p1 < 0.14) {
-                        setBlockAt(x, h, z, CORAL_4);
-                    } else if (p1 < 0.3) {
-                        int y = h;
-                        bool addHeight = true;
-                        while (y < 118 && addHeight) {
-                            setBlockAt(x, y, z, KELP_1);
-                            y++;
-                            addHeight = (Biome::noise1D(glm::vec3(x, y, z)) < 0.75);
-                        }
-                        setBlockAt(x, y, z, KELP_2);
-                    }
-                }
-            }
-
-            bool prevNotGround = false;
-            std::vector<float> treePos;
-            for (int currY = 1; currY <= 106; currY++) {
-                float cavePerlin3D = Biome::perlin3D(glm::vec3(x, currY, z) * 0.06f);
-                float cavePerlin3DTwo = Biome::perlin3D(glm::vec3(x, currY, glm::mix(x, z, 0.35f)) * 0.06f);
-
-                float p3 = Biome::noise1D(glm::vec3(x, currY, z));
-
-                if (cavePerlin3D + cavePerlin3DTwo < -0.15f) {
-                    if (currY < 25) {
-                        setBlockAt(x, currY, z, LAVA);
-                    } else {
-                        setBlockAt(x, currY, z, EMPTY);
-                        if (!prevNotGround) {
-//                            BlockType xn = getBlockAt(x - 1, currY - 1, z);
-//                            BlockType xp = getBlockAt(x + 1, currY - 1, z);
-//                            BlockType zn = getBlockAt(x, currY - 1, z - 1);
-//                            BlockType zp = getBlockAt(x, currY - 1, z + 1);
-
-                            if (p3 < 0.6) {
-                                setBlockAt(x, currY - 1, z, GRASS);
-                            } else if (p3 < 0.8 /*&&
-                                (Chunk::isFullCube(xn) || xn == WATER) &&
-                                (Chunk::isFullCube(xp) || xp == WATER) &&
-                                (Chunk::isFullCube(zn) || zn == WATER) &&
-                                (Chunk::isFullCube(zp) || zp == WATER)*/) {
-                                    setBlockAt(x, currY - 1, z, WATER);
-                            }
-
-                            if (p3 < 0.02) {
-                                setBlockAt(x, currY, z, GHOST_LILY);
-                            } else if (p3 < 0.04) {
-                                setBlockAt(x, currY, z, GHOST_WEED);
-                            } else if (p3 < 0.1) {
-                                setBlockAt(x, currY, z, TALL_GRASS);
-                            }
-                            else if (p3 < 0.1075) {
-                                treePos.push_back(currY);
-                            }
-                        }
-                        prevNotGround = true;
-                    }
-                } else {
-                    prevNotGround = false;
-                }
-            }
-            for (float y : treePos) {
-                float p4 = Biome::noise1D(glm::vec2(x, z));
-                if (p4 < 0.1025) {
-//                    createDeciduous3(x, y, z, WISTERIA_BLOSSOMS_1, WISTERIA_WOOD_Y);
-                } else if (p4 < 0.105) {
-//                    createDeciduous2(x, y, z, WISTERIA_BLOSSOMS_2, WISTERIA_WOOD_Y);
-                } else {
-//                    createDeciduous1(x, y, z, WISTERIA_BLOSSOMS_3, WISTERIA_WOOD_Y);
-                }
-            }
-
-            if (getBlockAt(x, h, z) == WATER) {
-                int y = h - 1;
-                while (getBlockAt(x, y, z) == EMPTY && y > 0) {
-                    setBlockAt(x, y, z, WATER);
-                    y--;
-                }
-            }
-            setBlockAt(x, 0, z, BEDROCK);
-        }
-    }
-
-    for (const auto& c: m_chunks) {
-        c.second->createVBOdata();
-    }
 }
 
 void Terrain::loadNewChunks(glm::vec3 currPos) {
@@ -551,43 +557,44 @@ void Terrain::loadNewChunks(glm::vec3 currPos) {
     }
 }
 
-std::pair<float, BiomeEnum> Terrain::blendMultipleBiomes(glm::vec2 xz, float forestH, float mountH, float hillH, float islandH) {
+std::pair<float, BiomeEnum> Terrain::blendMultipleBiomes(glm::vec2 xz, float forestH, float mountH,
+                                                         float hillH, float islandH) {
 
     // perform bilinear interpolation
 
-    BiomeEnum b;
-    glm::vec4 biomeWts;
+        BiomeEnum b;
+        glm::vec4 biomeWts;
 
-    double elev = (Biome::perlin1(xz / 297.f) + 1.f) / 2.f; // remap perlin noise from (-1, 1) to (0, 1)
-    double temp = (Biome::perlin2(xz / 308.f) + 1.f) / 2.f;
-//    std::cout<<elev<<","<<temp<<std::endl;
+        double elev = (Biome::perlin1(xz / 297.f) + 1.f) / 2.f; // remap perlin noise from (-1, 1) to (0, 1)
+        double temp = (Biome::perlin2(xz / 308.f) + 1.f) / 2.f;
+    //    std::cout<<elev<<","<<temp<<std::endl;
 
-    float LimE = 0.39;
-    float LimT = 0.69;
+        float LimE = 0.39;
+        float LimT = 0.69;
 
 
-    if (elev >= LimE && temp < LimT) {
-        b = MOUNTAINS;
-    } else if (elev >= LimE && temp >= LimT) {
-        b = HILLS;
-    } else if (elev < LimE && temp < LimT) {
-        b = FOREST;
-    } else if (elev < LimE && temp >= LimT) {
-        b = ISLANDS;
-    }
-    // set biome weights in m_biomes for each xz coord in this chunk
-    biomeWts.x = elev * (1.f - temp);
-    biomeWts.y = elev * temp;
-    biomeWts.z = (1.f - elev) * (1.f - temp);
-    biomeWts.w = (1.f - elev) * temp;
+        if (elev >= LimE && temp < LimT) {
+            b = MOUNTAINS;
+        } else if (elev >= LimE && temp >= LimT) {
+            b = HILLS;
+        } else if (elev < LimE && temp < LimT) {
+            b = FOREST;
+        } else if (elev < LimE && temp >= LimT) {
+            b = ISLANDS;
+        }
+        // set biome weights in m_biomes for each xz coord in this chunk
+        biomeWts.x = elev * (1.f - temp);
+        biomeWts.y = elev * temp;
+        biomeWts.z = (1.f - elev) * (1.f - temp);
+        biomeWts.w = (1.f - elev) * temp;
 
-    setBiomeAt(xz.x, xz.y, biomeWts);
+        setBiomeAt(xz.x, xz.y, biomeWts);
 
-    float h = (biomeWts.x * mountH) +
-                (biomeWts.y * hillH) +
-                (biomeWts.z * forestH) +
-                (biomeWts.w * islandH);
-    return std::pair(h, b);
+        float h = (biomeWts.x * mountH) +
+                    (biomeWts.y * hillH) +
+                    (biomeWts.z * forestH) +
+                    (biomeWts.w * islandH);
+        return std::pair(h, b);
 }
 
 void Terrain::createToriiGate(int x, int y, int z, int rot) {
@@ -1417,4 +1424,66 @@ void Terrain::createDeciduous3(int x, int y, int z, BlockType leaf, BlockType wo
     setBlockAt(x, y + 3, z, leaf);
     setBlockAt(x, y, z, wood);
     setBlockAt(x, y + 1, z, wood);
+}
+
+void Terrain::checkthreadResults() {
+    // First, send chunks processed by BlockWorkers to VBOWorkers
+    if (!m_blockDataChunks.empty()) {
+        m_blockDataChunksLock.lock();
+
+        for (auto& c : m_blockDataChunks) {
+            for (auto& n : c->m_neighbors) {
+                if (n.second) {
+                    m_blockDataChunks.insert(n.second);
+                }
+            }
+        }
+
+        createVBOWorkers(m_blockDataChunks);
+        m_blockDataChunks.clear();
+        m_blockDataChunksLock.unlock();
+    }
+
+    // Second, take the chunks that have VBO data and send data to GPU
+    m_VBODataChunksLock.lock();
+
+    for (auto& data : m_vboDataChunks) {
+        data->loadVBO();
+    }
+
+    m_vboDataChunks.clear();
+    m_VBODataChunksLock.unlock();
+}
+
+void Terrain::createBDWorkers(const QSet<long long>& zones) {
+    for (long long zone : zones) {
+        createBDWorker(zone);
+    }
+}
+
+void Terrain::createBDWorker(long long zone) {
+    std::vector<Chunk*> toDo;
+    int x = toCoords(zone).x;
+    int z = toCoords(zone).y;
+
+    for (int i = x; i < x + 64; i += 16) {
+        for (int j = z; j < z + 64; j += 16) {
+            toDo.push_back(instantiateChunkAt(i, j));
+        }
+    }
+
+    BDWorker* worker = new BDWorker(x, z, toDo,
+                                    &m_blockDataChunks, &m_blockDataChunksLock);
+    QThreadPool::globalInstance()->start(worker);
+}
+
+void Terrain::createVBOWorkers(const std::unordered_set<Chunk*>& chunks) {
+    for (Chunk* chunk : chunks) {
+        createVBOWorker(chunk);
+    }
+}
+
+void Terrain::createVBOWorker(Chunk* chunk) {
+    VBOWorker* werk = new VBOWorker(chunk, &m_vboDataChunks, &m_VBODataChunksLock);
+    QThreadPool::globalInstance()->start(werk);
 }

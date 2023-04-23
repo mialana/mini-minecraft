@@ -2,6 +2,7 @@
 #include "entity.h"
 #include "camera.h"
 #include "terrain.h"
+#include "InventoryManager.h"
 
 const static std::vector<float> playerDimensions = {
     0.125f, 0.875f, 0.25f, 0.75f, 0.f, 1.9f
@@ -22,6 +23,8 @@ public:
     // Readonly public reference to our camera
     // for easy access from MyGL
     const Camera& mcr_camera;
+
+    InventoryManager inventory;
 
     Player(glm::vec3 pos, const Terrain &terrain);
     virtual ~Player() override;

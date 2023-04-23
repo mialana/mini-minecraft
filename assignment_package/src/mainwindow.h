@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "cameracontrolshelp.h"
 #include "playerinfo.h"
+#include "inventorywindow.h"
 
 
 namespace Ui {
@@ -24,10 +25,13 @@ private slots:
 
     void on_actionCamera_Controls_triggered();
 
+    void slot_actionToggleInventory(bool);
+
 private:
     Ui::MainWindow *ui;
     CameraControlsHelp cHelp;
     PlayerInfo playerInfoWindow;
+    InventoryWindow inventoryWindow;
 };
 
 
