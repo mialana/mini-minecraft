@@ -144,7 +144,7 @@ void MyGL::tick() {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
     }
 
-    m_terrain.multithreadedWork(m_player.mcr_position, prevPlayerPos, dT);
+    //m_terrain.multithreadedWork(m_player.mcr_position, prevPlayerPos, dT);
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
@@ -327,11 +327,11 @@ void MyGL::mouseMoveEvent(QMouseEvent *e) {
 }
 
 void MyGL::mousePressEvent(QMouseEvent *e) {
-    if (!isInventoryOpen) {
+
         if (e->button() == Qt::LeftButton) {
             BlockType removed = m_player.removeBlock(&m_terrain);
         } else if (e->button() == Qt::RightButton) {
-            m_player.placeBlock(&m_terrain, ROOF_TILES_1);
+            m_player.placeBlock(&m_terrain, currBlock);
         }
-    }
+
 }

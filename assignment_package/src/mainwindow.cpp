@@ -44,6 +44,7 @@ void MainWindow::on_actionCamera_Controls_triggered()
 void MainWindow::slot_actionToggleInventory(bool status) {
     if (status) {
         this->inventoryWindow.ui_main = ui;
+        this->inventoryWindow.populateTable(ui->mygl->m_player.inventory.items);
         this->inventoryWindow.show();
     }
     else {

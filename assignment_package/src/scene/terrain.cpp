@@ -434,6 +434,9 @@ Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
 void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shaderProgram) {
     chunksWithBlockDataMutex.lock();
     chunksWithVBODataMutex.lock();
+    m_blockDataChunksLock.lock();
+
+    m_VBODataChunksLock.lock();
     for(int x = minX; x < maxX; x += 16) {
         for(int z = minZ; z < maxZ; z += 16) {
 
@@ -480,6 +483,9 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
             }
         }
     }
+    m_blockDataChunksLock.unlock();
+
+    m_VBODataChunksLock.unlock();
     chunksWithBlockDataMutex.unlock();
     chunksWithVBODataMutex.unlock();
 }

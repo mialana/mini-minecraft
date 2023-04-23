@@ -30,7 +30,7 @@ private:
                 // Don't worry too much about this. Just know it is necessary in order to render geometry.
 
     Terrain m_terrain; // All of the Chunks that currently comprise the world.
-    Player m_player; // The entity controlled by the user. Contains a camera to display what it sees as well.
+     // The entity controlled by the user. Contains a camera to display what it sees as well.
     InputBundle m_inputs; // A collection of variables to be updated in keyPressEvent, mouseMoveEvent, mousePressEvent, etc.
 
     qint64 m_currMSecSinceEpoch;
@@ -56,6 +56,10 @@ private:
 public:
     explicit MyGL(QWidget *parent = nullptr);
     ~MyGL();
+
+    Player m_player;
+
+    BlockType currBlock = EMPTY;
 
     // Called once when MyGL is initialized.
     // Once this is called, all OpenGL function
