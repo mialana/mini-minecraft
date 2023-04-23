@@ -13,8 +13,7 @@
 // of memory to store our different block types. By default, the size of a C++ enum
 // is that of an int (so, usually four bytes). This *does* limit us to only 256 different
 // block types, but in the scope of this project we'll never get anywhere near that many.
-enum BlockType : unsigned char
-{
+enum BlockType : unsigned char {
     GRASS, DIRT, STONE, COBBLESTONE, MOSS_STONE, SAND,
     TALL_GRASS, WATER, LAVA, BEDROCK, SNOW_1, SNOW_2, SNOW_3, SNOW_4, SNOW_5, SNOW_6, SNOW_7, SNOW_8, ICE,
     RED_PAINTED_WOOD, BLACK_PAINTED_WOOD, PLASTER,
@@ -45,8 +44,7 @@ enum BiomeEnum : unsigned char {
 };
 
 // The six cardinal directions in 3D space + diagonals (rotated 45 degrees)
-enum Direction : unsigned char
-{
+enum Direction : unsigned char {
     XPOS, XNEG, YPOS, YNEG, ZPOS, ZNEG, XPOS_ZPOS, XPOS_ZNEG, XNEG_ZNEG, XNEG_ZPOS
 };
 
@@ -64,8 +62,8 @@ struct EnumHash {
 struct PairEnumHash {
     size_t operator()(const faceDef fd) const {
         return static_cast<size_t>(fd.first)
-            * static_cast<size_t>(EMPTY)
-            + static_cast<size_t>(fd.second);
+               * static_cast<size_t>(EMPTY)
+               + static_cast<size_t>(fd.second);
     }
 };
 
@@ -79,7 +77,9 @@ const static std::unordered_map<Direction, Direction, EnumHash> oppositeDirectio
 };
 
 // maps blocktype and direction to texture flag and uv coord
-const static std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, glm::vec2>, PairEnumHash> btToUV {
+const static
+std::unordered_map<std::pair<BlockType, Direction>, std::pair<int, glm::vec2>, PairEnumHash>
+btToUV {
     {std::make_pair(GRASS, XPOS), std::make_pair(1, glm::vec2(0, 11))},
     {std::make_pair(GRASS, XNEG), std::make_pair(1, glm::vec2(0, 11))},
     {std::make_pair(GRASS, ZPOS), std::make_pair(1, glm::vec2(0, 11))},
@@ -1031,21 +1031,23 @@ struct Vertex {
         position = p;
         normal = glm::vec4(n, 1);
         biomeWts = bWts;
+
         if (btToUV.find(std::make_pair(b, d)) != btToUV.end()) {
             blockType = glm::vec4(btToUV.at(std::make_pair(b, d)).first, 0, 0, 0);
 
             if (d == XPOS) {
                 // 32x32 (double) res
                 if (b == PAINTING_1 || b == PAINTING_2 || b == PAINTING_3 ||
-                        b == PAINTING_6L || b == PAINTING_6R ||
-                        b == PAINTING_7T || b == PAINTING_7B) {
+                    b == PAINTING_6L || b == PAINTING_6R ||
+                    b == PAINTING_7T || b == PAINTING_7B) {
                     uv *= 2;
 
-                // 48x48 (triple) res
+                    // 48x48 (triple) res
                 } else if (b == PAINTING_4 || b == PAINTING_5) {
                     uv *= 3;
                 }
             }
+
             uvCoords = glm::vec4(uv + btToUV.at(std::make_pair(b, d)).second, 0, 0);
             uvCoords /= 16.f;
         } else {
@@ -1075,75 +1077,78 @@ struct ChunkVBOData {
 
 // TODO have Chunk inherit from Drawable
 class Chunk : public Drawable {
-public:
-    // All of the blocks contained within this Chunk
-    std::array<BlockType, 65536> m_blocks;
-    // This Chunk's four neighbors to the north, south, east, and west
-    // The third input to this map just lets us use a Direction as
-    // a key for this map.
-    // These allow us to properly determine
-    std::unordered_map<Direction, Chunk*, EnumHash> m_neighbors;
+    private:
+        int worldPos_x;
+        int worldPos_z;
+    public:
+        // All of the blocks contained within this Chunk
+        std::array<BlockType, 65536> m_blocks;
+        // This Chunk's four neighbors to the north, south, east, and west
+        // The third input to this map just lets us use a Direction as
+        // a key for this map.
+        // These allow us to properly determine
+        std::unordered_map<Direction, Chunk*, EnumHash> m_neighbors;
 
-    int worldPos_x;
-    int worldPos_z;
+        bool hasVBOData = false;
 
-    bool hasVBOData = false;
+        bool hasBinded = false;
 
-    bool hasBinded = false;
+        std::array<glm::vec4, 256> m_biomes;
+        static bool isInBounds(glm::ivec3);
+        BlockType getAdjBlockType(Direction, glm::ivec3);
 
-    void helperCreate(float, float);
+        void helperCreate(int, int);
 
-    std::array<glm::vec4, 256> m_biomes;
-    static bool isInBounds(glm::ivec3);
-    BlockType getAdjBlockType(Direction, glm::ivec3);
+        // coords given in block space
+        static void createFaceVBOData(std::vector<Vertex>&, float, float, float, DirectionVector, BlockType,
+                                      glm::vec4);
 
-    // coords given in block space
-    static void createFaceVBOData(std::vector<Vertex>&, float, float, float, DirectionVector, BlockType, glm::vec4);
+        void redistributeVertexData(std::vector<glm::vec4>, std::vector<GLuint>, std::vector<glm::vec4>,
+                                    std::vector<GLuint>);
 
-    void redistributeVertexData(std::vector<glm::vec4>, std::vector<GLuint>, std::vector<glm::vec4>, std::vector<GLuint>);
+        ChunkVBOData chunkVBOData;
+        Chunk(OpenGLContext* context);
+        BlockType getBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
+        BlockType getBlockAt(int x, int y, int z) const;
+        void setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t);
 
-public:
-    ChunkVBOData chunkVBOData;
-    Chunk(OpenGLContext* context);
-    BlockType getBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
-    BlockType getBlockAt(int x, int y, int z) const;
-    void setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t);
+        std::pair<float, BiomeEnum> blendMultipleBiomes(glm::vec2, glm::vec2, float forestH, float mountH,
+                                                        float hillH, float islandH);
 
-    std::pair<float, BiomeEnum> blendMultipleBiomes(glm::vec2 xz, float forestH, float mountH, float hillH, float islandH);
+        // mountains = 0, hills = 1, forest = 2, islands = 3, caves = 4
+        glm::vec4 getBiomeAt(unsigned int x, unsigned int z) const;
+        glm::vec4 getBiomeAt(int x, int z) const;
+        void setBiomeAt(unsigned int x, unsigned int z, glm::vec4 b);
 
-    // mountains = 0, hills = 1, forest = 2, islands = 3, caves = 4
-    glm::vec4 getBiomeAt(unsigned int x, unsigned int z) const;
-    glm::vec4 getBiomeAt(int x, int z) const;
-    void setBiomeAt(unsigned int x, unsigned int z, glm::vec4 b);
+        void linkNeighbor(uPtr<Chunk>& neighbor, Direction dir);
 
-    void linkNeighbor(uPtr<Chunk>& neighbor, Direction dir);
+        static bool isHPlane(BlockType);
+        static bool isCross2(BlockType);
+        static bool isCross4(BlockType);
+        static bool isPartialX(BlockType);
+        static bool isPartialY(BlockType);
+        static bool isPartialZ(BlockType);
+        static bool isFullCube(BlockType);
+        static bool isTransparent(BlockType);
 
-    static bool isHPlane(BlockType);
-    static bool isCross2(BlockType);
-    static bool isCross4(BlockType);
-    static bool isPartialX(BlockType);
-    static bool isPartialY(BlockType);
-    static bool isPartialZ(BlockType);
-    static bool isFullCube(BlockType);
-    static bool isTransparent(BlockType);
+        void setWorldPos(int x, int z);
+        glm::ivec2 getWorldPos();
 
-    void setWorldPos(int x, int z);
-    glm::ivec2 getWorldPos();
+        bool isVisible(int x, int y, int z, BlockType bt); // checks whether block is enclosed on all sides
+        bool isVisible(int x, int y, int z, DirectionVector dv,
+                       BlockType bt); // checks whether a x/y/z face is visible
 
-    bool isVisible(int x, int y, int z, BlockType bt); // checks whether block is enclosed on all sides
-    bool isVisible(int x, int y, int z, DirectionVector dv, BlockType bt); // checks whether a x/y/z face is visible
+        void createVBOdata() override;
 
-    void createVBOdata() override;
+        void generateVBOData();
 
-    void generateVBOData();
+        void loadVBO();
 
-    void loadVBO();
+        void virtual create();
 
-    void virtual create();
-
-    GLenum drawMode() override {
-        return GL_TRIANGLES;
-    }
+        GLenum drawMode() override {
+            return GL_TRIANGLES;
+        }
 
 
 };
