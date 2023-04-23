@@ -455,7 +455,7 @@ void Terrain::CreateTestScene()
                     } else if (p1 < 0.3) {
                         int y = h;
                         bool addHeight = true;
-                        while (y < 119 && addHeight) {
+                        while (y < 118 && addHeight) {
                             setBlockAt(x, y, z, KELP_1);
                             y++;
                             addHeight = (Biome::noise1D(glm::vec3(x, y, z)) < 0.75);
