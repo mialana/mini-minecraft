@@ -18,6 +18,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->mygl, SIGNAL(sig_sendPlayerLook(QString)), &playerInfoWindow, SLOT(slot_setLookText(QString)));
     connect(ui->mygl, SIGNAL(sig_sendPlayerChunk(QString)), &playerInfoWindow, SLOT(slot_setChunkText(QString)));
     connect(ui->mygl, SIGNAL(sig_sendPlayerTerrainZone(QString)), &playerInfoWindow, SLOT(slot_setZoneText(QString)));
+
+    connect(ui->mygl, SIGNAL(sig_sendInventoryToggle(bool)), this, SLOT(slot_actionToggleInventory(bool)));
 }
 
 MainWindow::~MainWindow()
@@ -37,4 +39,15 @@ void MainWindow::on_actionQuit_triggered()
 void MainWindow::on_actionCamera_Controls_triggered()
 {
     cHelp.show();
+}
+
+void MainWindow::slot_actionToggleInventory(bool status) {
+    if (status) {
+        this->inventoryWindow.ui_main = ui;
+        this->inventoryWindow.populateTable(ui->mygl->m_player.inventory.items);
+        this->inventoryWindow.show();
+    }
+    else {
+        this->inventoryWindow.close();
+    }
 }
