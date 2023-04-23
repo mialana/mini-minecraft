@@ -73,6 +73,8 @@ public:
     // Calls Terrain::draw().
     void renderTerrain();
 
+    bool isInventoryOpen;
+
 
 protected:
     // Automatically invoked when the user
@@ -96,6 +98,8 @@ signals:
     void sig_sendPlayerLook(QString) const;
     void sig_sendPlayerChunk(QString) const;
     void sig_sendPlayerTerrainZone(QString) const;
+
+    void sig_sendInventoryToggle(bool) const;
 };
 
 

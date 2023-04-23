@@ -1087,6 +1087,12 @@ public:
     int worldPos_x;
     int worldPos_z;
 
+    bool hasVBOData = false;
+
+    bool hasBinded = false;
+
+    void helperCreate(float, float);
+
     std::array<glm::vec4, 256> m_biomes;
     static bool isInBounds(glm::ivec3);
     BlockType getAdjBlockType(Direction, glm::ivec3);
@@ -1102,6 +1108,8 @@ public:
     BlockType getBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
     BlockType getBlockAt(int x, int y, int z) const;
     void setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t);
+
+    std::pair<float, BiomeEnum> blendMultipleBiomes(glm::vec2 xz, float forestH, float mountH, float hillH, float islandH);
 
     // mountains = 0, hills = 1, forest = 2, islands = 3, caves = 4
     glm::vec4 getBiomeAt(unsigned int x, unsigned int z) const;

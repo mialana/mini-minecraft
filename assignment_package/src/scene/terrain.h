@@ -8,6 +8,8 @@
 #include "biome.h"
 #include <mutex>
 #include <thread>
+#include <QMutex>
+#include "workers.h"
 
 //using namespace std;
 
@@ -36,6 +38,14 @@ private:
 
     std::unordered_map<int64_t, uPtr<Chunk>> chunksWithVBOData;
     std::mutex chunksWithVBODataMutex;
+
+
+    // Set and mutex of chunks that have block data
+        std::unordered_set<Chunk*> m_blockDataChunks;
+        QMutex m_blockDataChunksLock;
+        // Vector and mutex of chunks that have VBO data
+        std::vector<Chunk*> m_vboDataChunks;
+        QMutex m_VBODataChunksLock;
 
 
     // Stores every Chunk according to the location of its lower-left corner
@@ -81,6 +91,12 @@ public:
 
     //multithreading functions
 
+    float m_chunkTimer = 0.0f;
+
+    QSet<long long> borderingZone(glm::ivec2 coords, int radius, bool atEdge);
+
+    void tryNewChunk(glm::vec3 pos, glm::vec3 prevPos);
+
     bool hasTerrainGenerationZoneAt(glm::ivec2);
 
     bool hasNewChunkAt(int x, int z) const;
@@ -88,13 +104,19 @@ public:
     uPtr<Chunk>& getNewChunkAt(int x, int z);
     const uPtr<Chunk>& getNewChunkAt(int x, int z) const;
 
-    void multithreadedWork(glm::vec3, glm::vec3);
+    void multithreadedWork(glm::vec3, glm::vec3, float);
 
     void tryExpansion(glm::vec3, glm::vec3);
     void checkThreadResults();
 
     void blockWorker(uPtr<Chunk>);
-    void VBOWorker(uPtr<Chunk>);
+    //void VBOWorker(uPtr<Chunk>);
+
+    void createVBOWorker(Chunk* chunk);
+    void createVBOWorkers(const std::unordered_set<Chunk*> &chunks);
+    void createBDWorker(long long zone);
+    void createBDWorkers(const QSet<long long> &zones);
+    void checkthreadResults();
 
     uPtr<Chunk> instantiateNewChunkAt(int x, int z);
 

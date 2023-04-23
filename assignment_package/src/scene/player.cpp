@@ -278,10 +278,7 @@ BlockType Player::removeBlock(Terrain* terrain) {
     float outDist = 0.f;
     glm::ivec3 outBlockHit = glm::ivec3();
 
-    std::cout<<"removeing \n";
-
     if (gridMarch(rayOrigin, rayDirection, &outDist, &outBlockHit)) {
-        std::cout<<"should remove \n";
         BlockType blockType = terrain->getBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z);
         terrain->setBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z, EMPTY);
         terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();

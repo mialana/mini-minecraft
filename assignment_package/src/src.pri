@@ -3,12 +3,14 @@ DEPENDPATH += $$PWD
 
 SOURCES += \
     $$PWD/framebuffer.cpp \
+    $$PWD/inventorywindow.cpp \
     $$PWD/la.cpp \
     $$PWD/main.cpp \
     $$PWD/mainwindow.cpp \
     $$PWD/mygl.cpp \
     $$PWD/scene/biome.cpp \
     $$PWD/scene/screenquadrangle.cpp \
+    $$PWD/scene/workers.cpp \
     $$PWD/shaderprogram.cpp \
     $$PWD/drawable.cpp \
     $$PWD/cameracontrolshelp.cpp \
@@ -25,11 +27,13 @@ SOURCES += \
 
 HEADERS += \
     $$PWD/framebuffer.h \
+    $$PWD/inventorywindow.h \
     $$PWD/la.h \
     $$PWD/mainwindow.h \
     $$PWD/mygl.h \
     $$PWD/scene/biome.h \
     $$PWD/scene/screenquadrangle.h \
+    $$PWD/scene/workers.h \
     $$PWD/shaderprogram.h \
     $$PWD/drawable.h \
     $$PWD/cameracontrolshelp.h \
