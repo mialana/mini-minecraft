@@ -18,6 +18,7 @@ include(src/src.pri)
 
 FORMS += forms/mainwindow.ui \
     forms/cameracontrolshelp.ui \
+    forms/inventorywindow.ui \
     forms/playerinfo.ui
 
 RESOURCES += glsl.qrc \
@@ -59,3 +60,7 @@ DISTFILES += \
     textures/minecraft_normals_all.png \
     textures/minecraft_textures_all.png \
     textures/minecraft_textures_all_copy.png
+
+HEADERS +=
+
+SOURCES +=

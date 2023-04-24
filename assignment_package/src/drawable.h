@@ -6,7 +6,7 @@
 //Make any geometry a subclass of ShaderProgram::Drawable in order to render it with the ShaderProgram class.
 class Drawable
 {
-protected:
+public:
     int m_oCount;     // The number of indices stored in bufIdx.
 
     GLuint m_oBufIdx; // A Vertex Buffer Object that we will use to store triangle indices (GLuints)

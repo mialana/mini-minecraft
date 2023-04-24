@@ -27,7 +27,6 @@ class MyGL : public OpenGLContext {
         // Don't worry too much about this. Just know it is necessary in order to render geometry.
 
         Terrain m_terrain; // All of the Chunks that currently comprise the world.
-        Player m_player; // The entity controlled by the user. Contains a camera to display what it sees as well.
         InputBundle m_inputs; // A collection of variables to be updated in keyPressEvent, mouseMoveEvent, mousePressEvent, etc.
 
         qint64 m_currMSecSinceEpoch;
@@ -40,7 +39,7 @@ class MyGL : public OpenGLContext {
 
         void sendPlayerDataToGUI() const;
 
-        int m_time; //not sure what this does
+        int m_time;
 
         // for post-process shading when in water or lava
         FrameBuffer m_frameBuffer;
@@ -51,6 +50,10 @@ class MyGL : public OpenGLContext {
         std::shared_ptr<Texture> m_playerTexture;
 
     public:
+        Player m_player;
+
+        BlockType currBlock = EMPTY;
+
         explicit MyGL(QWidget* parent = nullptr);
         ~MyGL();
 
@@ -89,13 +92,15 @@ class MyGL : public OpenGLContext {
     private slots:
         void tick(); // Slot that gets called ~60 times per second by m_timer firing.
 
-    signals:
-        void sig_sendPlayerPos(QString) const;
-        void sig_sendPlayerVel(QString) const;
-        void sig_sendPlayerAcc(QString) const;
-        void sig_sendPlayerLook(QString) const;
-        void sig_sendPlayerChunk(QString) const;
-        void sig_sendPlayerTerrainZone(QString) const;
+signals:
+    void sig_sendPlayerPos(QString) const;
+    void sig_sendPlayerVel(QString) const;
+    void sig_sendPlayerAcc(QString) const;
+    void sig_sendPlayerLook(QString) const;
+    void sig_sendPlayerChunk(QString) const;
+    void sig_sendPlayerTerrainZone(QString) const;
+
+    void sig_sendInventoryToggle(bool) const;
 };
 
 

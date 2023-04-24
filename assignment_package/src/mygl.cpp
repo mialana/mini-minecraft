@@ -20,7 +20,7 @@ MyGL::MyGL(QWidget* parent)
       m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f),
       m_frameBuffer(this, this->width(), this->height(),
                     this->devicePixelRatio()),
-      m_screenQuad(this), m_progLiquid(this), m_progPlayer(this) {
+      m_screenQuad(this), m_progLiquid(this), m_progPlayer(this), isInventoryOpen(false) {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
     // Tell the timer to redraw 60 times per second
@@ -53,7 +53,6 @@ void MyGL::initializeGL() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     glEnable(GL_CULL_FACE);
-    //    glCullFace(GL_FRONT);
     // Set the color with which the screen is filled at the start of each render call.
     glClearColor(0.37f, 0.74f, 1.0f, 1);
 
@@ -94,6 +93,7 @@ void MyGL::initializeGL() {
     m_terrain.CreateTestScene();
 
     m_screenQuad.destroyVBOdata();
+    m_frameBuffer.create();
     m_screenQuad.createVBOdata();
 }
 
@@ -125,7 +125,11 @@ void MyGL::tick() {
     m_player.tick(dT, m_inputs);
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
+
+
     if (m_inputs.underWater) {
+        m_progLiquid.setPlayerPosBiomeWts(m_terrain.getBiomeAt(prevPlayerPos.x, prevPlayerPos.z));
+        m_progLiquid.setPlayerPos(prevPlayerPos);
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
     } else if (m_inputs.underLava) {
         m_progLiquid.setGeometryColor(glm::vec4(1.f, 0.f, 0.f, 1.f));
@@ -133,9 +137,11 @@ void MyGL::tick() {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
     }
 
+    //m_terrain.multithreadedWork(m_player.mcr_position, prevPlayerPos, dT);
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
-    m_terrain.loadNewChunks(m_player.m_position);
+
+    //m_terrain.loadNewChunks(m_player.mcr_position);
     m_time++;
 }
 
@@ -208,7 +214,22 @@ void MyGL::paintGL() {
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
 void MyGL::renderTerrain() {
-    m_terrain.draw(0, 96, 0, 96, &m_progLambert);
+
+//    int xFloor = static_cast<int>(glm::floor(m_player.mcr_position.x / 16.f));
+//    int zFloor = static_cast<int>(glm::floor(m_player.mcr_position.z / 16.f));
+//    int x = 16 * xFloor;
+//    int z = 16 * zFloor;
+
+//    m_terrain.draw(x - 256, x + 256, z - 256, z + 256, &m_progLambert);
+
+    glm::vec2 pPos(m_player.mcr_position.x, m_player.mcr_position.z);
+    glm::ivec2 chunk(16 * glm::ivec2(glm::floor(pPos / 16.f)));
+
+    //m_terrain.getChunkAt(m_player.mcr_position.x, m_player.mcr_position.z).get();
+
+
+
+    m_terrain.draw(0, 64, 0, 64, &m_progLambert);
 }
 
 void MyGL::keyPressEvent(QKeyEvent* e) {
@@ -220,6 +241,12 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
         m_inputs.inThirdPerson = !m_inputs.inThirdPerson;
         m_player.calculateThirdPersonCameraRotation();
         m_player.changeCamera(m_inputs.inThirdPerson);
+    }
+    
+    if (e->key() == Qt::Key_I) {
+        isInventoryOpen = !isInventoryOpen;
+
+        emit sig_sendInventoryToggle(isInventoryOpen);
     }
 
     if (e->key() == Qt::Key_W) {
@@ -330,12 +357,14 @@ void MyGL::mouseMoveEvent(QMouseEvent* e) {
     }
 }
 
-void MyGL::mousePressEvent(QMouseEvent* e) {
-    if (e->button() == Qt::LeftButton) {
-        BlockType removed = m_player.removeBlock(&m_terrain);
-    } else if (e->button() == Qt::RightButton) {
-        m_player.placeBlock(&m_terrain, GRASS);
-    }
+void MyGL::mousePressEvent(QMouseEvent *e) {
+
+        if (e->button() == Qt::LeftButton) {
+            BlockType removed = m_player.removeBlock(&m_terrain);
+        } else if (e->button() == Qt::RightButton) {
+            m_player.placeBlock(&m_terrain, currBlock);
+        }
+
 }
 
 QJsonObject MyGL::importJson(const char* path) {

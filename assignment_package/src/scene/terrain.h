@@ -6,6 +6,10 @@
 #include <unordered_set>
 #include "shaderprogram.h"
 #include "biome.h"
+#include <mutex>
+#include <thread>
+#include <QMutex>
+#include "workers.h"
 
 //using namespace std;
 
@@ -26,6 +30,24 @@ glm::ivec2 toCoords(int64_t k);
 // expands.
 class Terrain {
 private:
+
+    std::unordered_map<int64_t, uPtr<Chunk>> newChunks;
+
+    std::unordered_map<int64_t, uPtr<Chunk>> chunksWithBlockData;
+    std::mutex chunksWithBlockDataMutex;
+
+    std::unordered_map<int64_t, uPtr<Chunk>> chunksWithVBOData;
+    std::mutex chunksWithVBODataMutex;
+
+
+    // Set and mutex of chunks that have block data
+        std::unordered_set<Chunk*> m_blockDataChunks;
+        QMutex m_blockDataChunksLock;
+        // Vector and mutex of chunks that have VBO data
+        std::vector<Chunk*> m_vboDataChunks;
+        QMutex m_VBODataChunksLock;
+
+
     // Stores every Chunk according to the location of its lower-left corner
     // in world space.
     // We combine the X and Z coordinates of the Chunk's corner into one 64-bit int
@@ -56,11 +78,67 @@ private:
     // inefficient, and will cause your game to run very slowly until
     // milestone 1's Chunk VBO setup is completed.
 
+    std::vector<std::thread> blockWorkerThreads;
+    std::vector<std::thread> vboWorkerThreads;
+
+    bool firstTick = true;
+
     OpenGLContext* mp_context;
+
+    // rot = 0 if placed along x dir; 1 if placed along z dir
+    void createToriiGate(int x, int y, int z, int rot);
+
+    void createConifer1(int x, int y, int z, BlockType leaf, BlockType wood); // cone shape, tall
+    void createConifer2(int x, int y, int z, BlockType leaf, BlockType wood); // constant width, tall
+    void createConifer3(int x, int y, int z, BlockType leaf, BlockType wood); // small
+    void createDeciduous1(int x, int y, int z, BlockType leaf, BlockType wood); // medium tall
+    void createDeciduous2(int x, int y, int z, BlockType leaf, BlockType wood); // medium short
+    void createDeciduous3(int x, int y, int z, BlockType leaf, BlockType wood); // short, asymmetric
+
+    // rot = 0 if door faces XPOS dir; 1 if faces XNEG; 2 if faces ZPOS; 3 if faces ZNEG
+    void createHut(int x, int y, int z); // hills
+    void createCottage1(int x, int y, int z); // mountains
+    void createCottage2(int x, int y, int z); // mountains
+    void createTeaHouse(int x, int y, int z); // forest
 
 public:
     Terrain(OpenGLContext *context);
     ~Terrain();
+
+    //multithreading functions
+
+    float m_chunkTimer = 0.0f;
+
+    QSet<long long> borderingZone(glm::ivec2 coords, int radius, bool atEdge);
+
+    void tryNewChunk(glm::vec3 pos, glm::vec3 prevPos);
+
+    bool hasTerrainGenerationZoneAt(glm::ivec2);
+
+    bool hasNewChunkAt(int x, int z) const;
+
+    uPtr<Chunk>& getNewChunkAt(int x, int z);
+    const uPtr<Chunk>& getNewChunkAt(int x, int z) const;
+
+    void multithreadedWork(glm::vec3, glm::vec3, float);
+
+    void tryExpansion(glm::vec3, glm::vec3);
+    void checkThreadResults();
+
+    void blockWorker(uPtr<Chunk>);
+    //void VBOWorker(uPtr<Chunk>);
+
+    void createVBOWorker(Chunk* chunk);
+    void createVBOWorkers(const std::unordered_set<Chunk*> &chunks);
+    void createBDWorker(long long zone);
+    void createBDWorkers(const QSet<long long> &zones);
+    void checkthreadResults();
+
+    uPtr<Chunk> instantiateNewChunkAt(int x, int z);
+
+    void setNewBlockAt(int x, int y, int z, BlockType t);
+
+    BlockType generateBlockTypeByHeight(int, bool);
 
     // Instantiates a new Chunk and stores it in
     // our chunk map at the given coordinates.

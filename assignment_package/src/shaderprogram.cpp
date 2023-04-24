@@ -12,7 +12,9 @@ ShaderProgram::ShaderProgram(OpenGLContext* context)
     : vertShader(), fragShader(), prog(),
       attrPos(-1), attrNor(-1), attrCol(-1), attrUV(-1), attrBT(-1), attrBWts(-1),
       unifModel(-1), unifModelInvTr(-1), unifViewProj(-1), unifColor(-1),
-      unifTexture(-1), unifTime(-1), unifFrameBufferTexture(-1), unifPlayerTexture(-1), context(context)
+      unifPlayerPosBWts(-1), unifPlayerPos(-1), unifTime(-1), 
+      unifFrameBufferTexture(-1),  unifPlayerTexture(-1), unifTexture(-1), 
+      context(context)
 {}
 
 void ShaderProgram::create(const char* vertfile, const char* fragfile) {
@@ -79,12 +81,14 @@ void ShaderProgram::create(const char* vertfile, const char* fragfile) {
 
     attrPosOffset = context->glGetAttribLocation(prog, "vs_OffsetInstanced");
 
-    unifModel      = context->glGetUniformLocation(prog, "u_Model");
-    unifModelInvTr = context->glGetUniformLocation(prog, "u_ModelInvTr");
-    unifViewProj   = context->glGetUniformLocation(prog, "u_ViewProj");
-    unifColor      = context->glGetUniformLocation(prog, "u_Color");
-    unifTexture    = context->glGetUniformLocation(prog, "u_TextureSampler");
-    unifTime       = context->glGetUniformLocation(prog, "u_Time");
+    unifModel           = context->glGetUniformLocation(prog, "u_Model");
+    unifModelInvTr      = context->glGetUniformLocation(prog, "u_ModelInvTr");
+    unifViewProj        = context->glGetUniformLocation(prog, "u_ViewProj");
+    unifColor           = context->glGetUniformLocation(prog, "u_Color");
+    unifPlayerPosBWts   = context->glGetUniformLocation(prog, "u_playerPosBiomeWts");
+    unifPlayerPos       = context->glGetUniformLocation(prog, "u_playerPos");
+    unifTexture         = context->glGetUniformLocation(prog, "u_TextureSampler");
+    unifTime            = context->glGetUniformLocation(prog, "u_Time");
 
     unifFrameBufferTexture    = context->glGetUniformLocation(prog, "u_FrameBufferTexture");
     unifPlayerTexture    = context->glGetUniformLocation(prog, "u_PlayerTexture");
@@ -145,6 +149,21 @@ void ShaderProgram::setGeometryColor(glm::vec4 color) {
 
     if (unifColor != -1) {
         context->glUniform4fv(unifColor, 1, &color[0]);
+    }
+}
+
+void ShaderProgram::setPlayerPosBiomeWts(glm::vec4 bWts) {
+    useMe();
+
+    if (unifPlayerPosBWts != -1) {
+        context->glUniform4fv(unifPlayerPosBWts, 1, &bWts[0]);
+    }
+}
+void ShaderProgram::setPlayerPos(glm::vec3 pos) {
+    useMe();
+
+    if (unifPlayerPos != -1) {
+        context->glUniform3fv(unifPlayerPos, 1, &pos[0]);
     }
 }
 

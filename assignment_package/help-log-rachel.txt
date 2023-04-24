@@ -19,16 +19,18 @@ https://stackoverflow.com/questions/11376163/custom-hash-function-for-pair-of-en
 
 https://registry.khronos.org/OpenGL-Refpages/gl4/html/glVertexAttribDivisor.xhtml
 
-
+https://stackoverflow.com/questions/27581271/flat-qualifier-in-glsl
+https://stackoverflow.com/questions/39467374/linker-error-in-glsl-shader
+https://stackoverflow.com/questions/29854910/glsl-cant-compile-a-shader-without-interpolation-flat
 
 notes:
 
-- have chunk store a vec4 biomes that contains weighting of each biome at that xz coord, and in vertex struct, push back the correct interpolated color in the color variable for water and grass
-- bilinear interp: end of 4/11 lec
+underwater overlay
+- underwater if the BlockType at this position == WATER or underwater plant
+- 
 
-- neg faces are dark (create ambient light term in frag shader)
-- shared transparent faces are being drawn when they shouldn't be
-
-- think about how to check if you're underwater (not just if the BlockType at this position == WATER)
-- maybe travel upwards until you hit either a full/ partial block or a water block?
+glowing blocks:
+- inside setBlockAt(), check if the block emits light. If it does, add it to a set for calculation later
+- pass additional vec4 lightIntensity characteristic to vtx shader: 0 = sunlight, 1 = lava, 2 = lantern light, 3 = cave plants
+- use flood fill algo
 
