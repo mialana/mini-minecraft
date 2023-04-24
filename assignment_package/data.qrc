@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>data/geom3dData.json</file>
+        <file>data/nodeData.json</file>
+    </qresource>
+</RCC>

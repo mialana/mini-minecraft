@@ -10,12 +10,14 @@ SOURCES += \
     $$PWD/mygl.cpp \
     $$PWD/scene/InventoryManager.cpp \
     $$PWD/scene/biome.cpp \
-    $$PWD/scene/screenquadrangle.cpp \
+    $$PWD/scene/geometry3d.cpp \
+    $$PWD/scene/node.cpp \
+    $$PWD/scene/pig.cpp \
+    $$PWD/scene/quad.cpp \
     $$PWD/scene/workers.cpp \
     $$PWD/shaderprogram.cpp \
     $$PWD/drawable.cpp \
     $$PWD/cameracontrolshelp.cpp \
-    $$PWD/scene/cube.cpp \
     $$PWD/openglcontext.cpp \
     $$PWD/scene/terrain.cpp \
     $$PWD/scene/worldaxes.cpp \
@@ -34,12 +36,14 @@ HEADERS += \
     $$PWD/mygl.h \
     $$PWD/scene/InventoryManager.h \
     $$PWD/scene/biome.h \
-    $$PWD/scene/screenquadrangle.h \
+    $$PWD/scene/geometry3d.h \
+    $$PWD/scene/node.h \
+    $$PWD/scene/pig.h \
+    $$PWD/scene/quad.h \
     $$PWD/scene/workers.h \
     $$PWD/shaderprogram.h \
     $$PWD/drawable.h \
     $$PWD/cameracontrolshelp.h \
-    $$PWD/scene/cube.h \
     $$PWD/openglcontext.h \
     $$PWD/scene/terrain.h \
     $$PWD/scene/worldaxes.h \

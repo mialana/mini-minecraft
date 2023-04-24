@@ -3,15 +3,14 @@
 #include <QOpenGLWidget>
 #include <iostream>
 
-Texture::Texture(OpenGLContext *context)
+Texture::Texture(OpenGLContext* context)
     : context(context), m_textureHandle(-1), m_textureImage(nullptr)
 {}
 
 Texture::~Texture()
 {}
 
-void Texture::create(const char *texturePath)
-{
+void Texture::create(const char* texturePath) {
     context->printGLErrorLog();
 
     QImage img(texturePath);
@@ -23,8 +22,7 @@ void Texture::create(const char *texturePath)
     context->printGLErrorLog();
 }
 
-void Texture::load(int texSlot = 0)
-{
+void Texture::load(int texSlot) {
     context->printGLErrorLog();
 
     context->glActiveTexture(GL_TEXTURE0 + texSlot);
@@ -45,8 +43,7 @@ void Texture::load(int texSlot = 0)
 }
 
 
-void Texture::bind(int texSlot = 0)
-{
+void Texture::bind(int texSlot) {
     context->glActiveTexture(GL_TEXTURE0 + texSlot);
     context->glBindTexture(GL_TEXTURE_2D, m_textureHandle);
 }

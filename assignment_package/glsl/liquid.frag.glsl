@@ -1,6 +1,6 @@
 #version 330
 
-uniform sampler2D u_Texture;
+uniform sampler2D u_FrameBufferTexture;
 uniform vec4 u_playerPosBiomeWts;
 uniform vec3 u_playerPos;
 uniform vec4 u_Color;
@@ -29,7 +29,7 @@ vec4 mySmoothStep(vec4 a, vec4 b, float t) {
 
 void main()
 {
-    vec4 frame = texture(u_Texture, vec2(fs_Col.x, fs_Col.y));
+    vec4 frame = texture(u_FrameBufferTexture, vec2(fs_Col.x, fs_Col.y));
     if (u_Color == vec4(0.f, 0.f, 1.f, 1.f)) {
         // biome based water color interpolation
         vec4 mCol = vec4(0, 0.243, 0.5, 0.6) * u_playerPosBiomeWts.x;

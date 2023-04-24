@@ -2,10 +2,9 @@
 #define MYGL_H
 
 #include "openglcontext.h"
-#include "scene/screenquadrangle.h"
+#include "scene/quad.h"
 #include "shaderprogram.h"
 #include "scene/worldaxes.h"
-#include "scene/camera.h"
 #include "scene/terrain.h"
 #include "scene/player.h"
 #include "framebuffer.h"
@@ -17,83 +16,82 @@
 #include <smartpointerhelp.h>
 
 
-class MyGL : public OpenGLContext
-{
-    Q_OBJECT
-private:
-    WorldAxes m_worldAxes; // A wireframe representation of the world axes. It is hard-coded to sit centered at (32, 128, 32).
-    ShaderProgram m_progLambert;// A shader program that uses lambertian reflection
-    ShaderProgram m_progFlat;// A shader program that uses "flat" reflection (no shadowing at all)
-    ShaderProgram m_progInstanced;// A shader program that is designed to be compatible with instanced rendering
+class MyGL : public OpenGLContext {
+        Q_OBJECT
+    private:
+        WorldAxes m_worldAxes; // A wireframe representation of the world axes. It is hard-coded to sit centered at (32, 128, 32).
+        ShaderProgram m_progLambert;// A shader program that uses lambertian reflection
+        ShaderProgram m_progPlayer;
 
-    GLuint vao; // A handle for our vertex array object. This will store the VBOs created in our geometry classes.
-                // Don't worry too much about this. Just know it is necessary in order to render geometry.
+        GLuint vao; // A handle for our vertex array object. This will store the VBOs created in our geometry classes.
+        // Don't worry too much about this. Just know it is necessary in order to render geometry.
 
-    Terrain m_terrain; // All of the Chunks that currently comprise the world.
-     // The entity controlled by the user. Contains a camera to display what it sees as well.
-    InputBundle m_inputs; // A collection of variables to be updated in keyPressEvent, mouseMoveEvent, mousePressEvent, etc.
+        Terrain m_terrain; // All of the Chunks that currently comprise the world.
+        InputBundle m_inputs; // A collection of variables to be updated in keyPressEvent, mouseMoveEvent, mousePressEvent, etc.
 
-    qint64 m_currMSecSinceEpoch;
+        qint64 m_currMSecSinceEpoch;
 
-    QTimer m_timer; // Timer linked to tick(). Fires approximately 60 times per second.
+        QTimer m_timer; // Timer linked to tick(). Fires approximately 60 times per second.
 
-    void moveMouseToCenter(); // Forces the mouse position to the screen's center. You should call this
-                              // from within a mouse move event after reading the mouse movement so that
-                              // your mouse stays within the screen bounds and is always read.
+        void moveMouseToCenter(); // Forces the mouse position to the screen's center. You should call this
+        // from within a mouse move event after reading the mouse movement so that
+        // your mouse stays within the screen bounds and is always read.
 
-    void sendPlayerDataToGUI() const;
+        void sendPlayerDataToGUI() const;
 
-    int m_time;
+        int m_time;
 
-    // for post-process shading when in water or lava
-    FrameBuffer m_frameBuffer;
-    ScreenQuadrangle m_screenQuad;
-    ShaderProgram m_progLiquid;
+        // for post-process shading when in water or lava
+        FrameBuffer m_frameBuffer;
+        Quad m_screenQuad;
+        ShaderProgram m_progLiquid;
+
+        std::shared_ptr<Texture> m_texture;
+        std::shared_ptr<Texture> m_playerTexture;
+
+    public:
+        bool isInventoryOpen;
+        Player m_player;
+
+        BlockType currBlock = EMPTY;
+
+        explicit MyGL(QWidget* parent = nullptr);
+        ~MyGL();
+
+        // Called once when MyGL is initialized.
+        // Once this is called, all OpenGL function
+        // invocations are valid (before this, they
+        // will cause segfaults)
+        void initializeGL() override;
+        // Called whenever MyGL is resized.
+        void resizeGL(int w, int h) override;
+        // Called whenever MyGL::update() is called.
+        // In the base code, update() is called from tick().
+        void paintGL() override;
+
+        // Called from paintGL().
+        // Calls Terrain::draw().
+        void renderTerrain();
+
+        static QJsonObject importJson(const char* path);
+        static glm::vec3 convertQJsonArrayToGlmVec3(QJsonArray obj);
+        static glm::vec4 convertQJsonArrayToGlmVec4(QJsonArray obj);
 
 
-    std::shared_ptr<Texture> m_texture;
+    protected:
+        // Automatically invoked when the user
+        // presses a key on the keyboard
+        void keyPressEvent(QKeyEvent* e);
+        void keyReleaseEvent(QKeyEvent* e);
+        // Automatically invoked when the user
+        // moves the mouse
+        void mouseMoveEvent(QMouseEvent* e);
+        // Automatically invoked when the user
+        // presses a mouse button
+        void mousePressEvent(QMouseEvent* e);
 
-public:
-    explicit MyGL(QWidget *parent = nullptr);
-    ~MyGL();
-
-    Player m_player;
-
-    BlockType currBlock = EMPTY;
-
-    // Called once when MyGL is initialized.
-    // Once this is called, all OpenGL function
-    // invocations are valid (before this, they
-    // will cause segfaults)
-    void initializeGL() override;
-    // Called whenever MyGL is resized.
-    void resizeGL(int w, int h) override;
-    // Called whenever MyGL::update() is called.
-    // In the base code, update() is called from tick().
-    void paintGL() override;
-    void createRenderBuffers();
-
-    // Called from paintGL().
-    // Calls Terrain::draw().
-    void renderTerrain();
-
-    bool isInventoryOpen;
-
-
-protected:
-    // Automatically invoked when the user
-    // presses a key on the keyboard
-    void keyPressEvent(QKeyEvent *e);
-    void keyReleaseEvent(QKeyEvent *e);
-    // Automatically invoked when the user
-    // moves the mouse
-    void mouseMoveEvent(QMouseEvent *e);
-    // Automatically invoked when the user
-    // presses a mouse button
-    void mousePressEvent(QMouseEvent *e);
-
-private slots:
-    void tick(); // Slot that gets called ~60 times per second by m_timer firing.
+    private slots:
+        void tick(); // Slot that gets called ~60 times per second by m_timer firing.
 
 signals:
     void sig_sendPlayerPos(QString) const;

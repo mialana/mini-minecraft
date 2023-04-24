@@ -1,9 +1,9 @@
-#include "screenquadrangle.h"
+#include "quad.h"
 
-ScreenQuadrangle::ScreenQuadrangle(OpenGLContext *context) : Drawable(context)
+Quad::Quad(OpenGLContext *context) : Drawable(context)
 {}
 
-void ScreenQuadrangle::createVBOdata()
+void Quad::createVBOdata()
 {
     std::vector<GLuint> indices = {0, 1, 2, 0, 2, 3};
     std::vector<glm::vec4> positions = {glm::vec4(-1.f, -1.f, 0.99f, 1.f),
