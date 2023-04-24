@@ -21,6 +21,7 @@ FORMS += forms/mainwindow.ui \
     forms/playerinfo.ui
 
 RESOURCES += glsl.qrc \
+    data.qrc \
     texture.qrc
 
 *-clang*|*-g++* {
@@ -51,7 +52,9 @@ address_sanitizer {
 
 DISTFILES += \
     ../README.md \
+    geom3dData.json \
     help-log-amy.txt \
+    nodeData.json \
     textures/custom_minecraft_textures.png \
     textures/minecraft_normals_all.png \
     textures/minecraft_textures_all.png \

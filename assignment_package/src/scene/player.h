@@ -1,6 +1,7 @@
 #pragma once
 #include "entity.h"
 #include "camera.h"
+#include "scene/node.h"
 #include "terrain.h"
 
 const static std::vector<float> playerDimensions = {
@@ -8,60 +9,69 @@ const static std::vector<float> playerDimensions = {
 };
 
 class Player : public Entity {
-private:
-    glm::vec3 m_velocity, m_acceleration;
-    Camera m_camera;
-    const Terrain &mcr_terrain;
+    private:
+        glm::vec3 m_velocity, m_acceleration;
+        Camera m_camera;
+        Camera m_thirdPersonCamera;
+        const Terrain& mcr_terrain;
 
-    int infAxis;
+        int infAxis;
 
-    void processInputs(InputBundle &inputs);
-    void computePhysics(float dT, InputBundle& inputs);
+        void processInputs(InputBundle& inputs);
+        void computePhysics(float dT, InputBundle& inputs);
 
-public:
-    // Readonly public reference to our camera
-    // for easy access from MyGL
-    const Camera& mcr_camera;
+    public:
+        uPtr<Node> bodyT;
+        std::unordered_map<QString, Node*> nodePointerMap;
 
-    Player(glm::vec3 pos, const Terrain &terrain);
-    virtual ~Player() override;
+        void constructSceneGraph(QJsonArray data) override;
+        void calculateThirdPersonCameraRotation();
+        void changeCamera(bool thirdPerson);
 
-    void setCameraWidthHeight(unsigned int w, unsigned int h);
+        // Readonly public reference to our camera
+        // for easy access from MyGL
+        Camera* mcr_camera;
 
-    void tick(float dT, InputBundle &input) override;
+        Player(glm::vec3 pos, const Terrain& terrain,
+               OpenGLContext* context);
+        virtual ~Player() override;
 
-    void isInLiquid(InputBundle& input);
-    void isUnderLiquid(InputBundle& input);
-    void isOnGround(InputBundle& input);
-    void detectCollision();
+        void setCameraWidthHeight(unsigned int w, unsigned int h);
 
-    bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection,
-                   float *out_dist, glm::ivec3* out_blockHit);
+        void tick(float dT, InputBundle& input) override;
 
-    BlockType placeBlock(Terrain* terrain, BlockType currBlock);
-    BlockType removeBlock(Terrain* terrain);
+        void isInLiquid(InputBundle& input);
+        void isUnderLiquid(InputBundle& input);
+        void isOnGround(InputBundle& input);
+        void detectCollision();
 
-    // Player overrides all of Entity's movement
-    // functions so that it transforms its camera
-    // by the same amount as it transforms itself.
-    void moveAlongVector(glm::vec3 dir) override;
-    void moveForwardLocal(float amount) override;
-    void moveRightLocal(float amount) override;
-    void moveUpLocal(float amount) override;
-    void moveForwardGlobal(float amount) override;
-    void moveRightGlobal(float amount) override;
-    void moveUpGlobal(float amount) override;
-    void rotateOnForwardLocal(float degrees) override;
-    void rotateOnRightLocal(float degrees) override;
-    void rotateOnUpLocal(float degrees) override;
-    void rotateOnForwardGlobal(float degrees) override;
-    void rotateOnRightGlobal(float degrees) override;
-    void rotateOnUpGlobal(float degrees) override;
+        bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection,
+                       float* out_dist, glm::ivec3* out_blockHit);
 
-    // For sending the Player's data to the GUI
-    // for display
-    QString posAsQString() const;
-    QString velAsQString() const;
-    QString accAsQString() const;
-    QString lookAsQString() const;
+        BlockType placeBlock(Terrain* terrain, BlockType currBlock);
+        BlockType removeBlock(Terrain* terrain);
+
+        // Player overrides all of Entity's movement
+        // functions so that it transforms its camera
+        // by the same amount as it transforms itself.
+        void moveAlongVector(glm::vec3 dir) override;
+        void moveForwardLocal(float amount) override;
+        void moveRightLocal(float amount) override;
+        void moveUpLocal(float amount) override;
+        void moveForwardGlobal(float amount) override;
+        void moveRightGlobal(float amount) override;
+        void moveUpGlobal(float amount) override;
+        void rotateOnForwardLocal(float degrees) override;
+        void rotateOnRightLocal(float degrees) override;
+        void rotateOnUpLocal(float degrees) override;
+        void rotateOnForwardGlobal(float degrees) override;
+        void rotateOnRightGlobal(float degrees) override;
+        void rotateOnUpGlobal(float degrees) override;
+
+        // For sending the Player's data to the GUI
+        // for display
+        QString posAsQString() const;
+        QString velAsQString() const;
+        QString accAsQString() const;
+        QString lookAsQString() const;
 };

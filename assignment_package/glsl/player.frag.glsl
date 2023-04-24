@@ -11,5 +11,12 @@ in vec4 fs_Nor;
 out vec4 out_Col;
 
 void main() {
-    out_Col = vec4(1, 0, 0, 1);
+    out_Col = vec4(texture(u_PlayerTexture, fs_UV.xy));
+//    float alpha = texture(u_PlayerTexture, fs_UV.xy).a;
+//    out_Col = vec4(out_Col.xyz, alpha);
+
+//    if (out_Col.a == 0.f) {
+//        discard;
+//    }
+
 }

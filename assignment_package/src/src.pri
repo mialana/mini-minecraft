@@ -8,6 +8,8 @@ SOURCES += \
     $$PWD/mainwindow.cpp \
     $$PWD/mygl.cpp \
     $$PWD/scene/biome.cpp \
+    $$PWD/scene/geometry3d.cpp \
+    $$PWD/scene/node.cpp \
     $$PWD/scene/pig.cpp \
     $$PWD/scene/quad.cpp \
     $$PWD/shaderprogram.cpp \
@@ -30,6 +32,8 @@ HEADERS += \
     $$PWD/mainwindow.h \
     $$PWD/mygl.h \
     $$PWD/scene/biome.h \
+    $$PWD/scene/geometry3d.h \
+    $$PWD/scene/node.h \
     $$PWD/scene/pig.h \
     $$PWD/scene/quad.h \
     $$PWD/shaderprogram.h \

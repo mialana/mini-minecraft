@@ -1,15 +1,11 @@
-#ifndef PIG_H
-#define PIG_H
+#pragma once
 
 #include "entity.h"
 #include "drawable.h"
 
-class Pig : public Entity, Drawable
-{
-public:
-    Pig(OpenGLContext*);
+class Pig : public Entity {
+    public:
+        Pig(OpenGLContext*);
 
 
 };
-
-#endif // PIG_H
