@@ -135,7 +135,7 @@ void MyGL::tick() {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
     }
 
-    m_terrain.multithreadedWork(m_player.mcr_position, prevPlayerPos, dT);
+    m_terrain.multithreadedWork(m_player.m_position, prevPlayerPos, dT);
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
@@ -212,8 +212,8 @@ void MyGL::paintGL() {
 // for more info)
 void MyGL::renderTerrain() {
 
-    int xFloor = static_cast<int>(glm::floor(m_player.mcr_position.x / 16.f));
-    int zFloor = static_cast<int>(glm::floor(m_player.mcr_position.z / 16.f));
+    int xFloor = static_cast<int>(glm::floor(m_player.m_position.x / 16.f));
+    int zFloor = static_cast<int>(glm::floor(m_player.m_position.z / 16.f));
     int x = 16 * xFloor;
     int z = 16 * zFloor;
 
