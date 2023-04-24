@@ -93,8 +93,18 @@ void Entity::constructSceneGraph(QJsonArray) {
     return;
 }
 
+void Entity::animate(float, InputBundle&) {
+    return;
+}
+
 void Entity::drawSceneGraph(const uPtr<Node>& currNode, glm::mat4 currTransformation, ShaderProgram& progShader) {
-    currTransformation *= currNode->transformMatrix();
+    if (currNode->name == "BodyR") {
+        currTransformation *= currNode->overriddenTransformMatrix;
+    } else if (currNode->name == "HeadR") {
+        currTransformation = currNode->overriddenTransformMatrix;
+    } {
+        currTransformation *= currNode->transformMatrix();
+    }
 
     for (const auto& n : currNode->getChildren()) {
         drawSceneGraph(n, currTransformation, progShader);

@@ -10,7 +10,5 @@
         <file>glsl/player.vert.glsl</file>
         <file>glsl/instanced.frag.glsl</file>
         <file>glsl/instanced.vert.glsl</file>
-        <file>test.frag.glsl</file>
-        <file>test.vert.glsl</file>
     </qresource>
 </RCC>

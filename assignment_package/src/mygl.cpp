@@ -15,12 +15,10 @@
 
 MyGL::MyGL(QWidget* parent)
     : OpenGLContext(parent), m_worldAxes(this), m_progLambert(this),
-      m_terrain(this),
-      m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain, this),
+      m_progPlayer(this), m_progFlat(this), m_terrain(this),
       m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f),
-      m_frameBuffer(this, this->width(), this->height(),
-                    this->devicePixelRatio()),
-      m_screenQuad(this), m_progLiquid(this), m_progPlayer(this), isInventoryOpen(false) {
+      m_frameBuffer(this, this->width(), this->height(), this->devicePixelRatio()),
+      m_screenQuad(this), m_progLiquid(this), isInventoryOpen(false), m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain, this) {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
     // Tell the timer to redraw 60 times per second
@@ -72,9 +70,9 @@ void MyGL::initializeGL() {
     m_player.m_geom3D.createVBOdata();
     m_player.constructSceneGraph(nodeDataJsonObject["PlayerNodes"].toArray());
 
-    // Create and set up the diffuse shader
     m_progLambert.create(":/glsl/lambert.vert.glsl", ":/glsl/lambert.frag.glsl");
     // Create and set up the flat lighting shader
+    m_progFlat.create(":/glsl/flat.vert.glsl", ":/glsl/flat.frag.glsl");
     m_progLiquid.create(":/glsl/liquid.vert.glsl", ":/glsl/liquid.frag.glsl");
     m_progPlayer.create(":/glsl/player.vert.glsl", ":/glsl/player.frag.glsl");
 
@@ -105,6 +103,7 @@ void MyGL::resizeGL(int w, int h) {
     // Upload the view-projection matrix to our shaders (i.e. onto the graphics card)
 
     m_progLambert.setViewProjMatrix(viewproj);
+    m_progFlat.setViewProjMatrix(viewproj);
     m_progPlayer.setViewProjMatrix(viewproj);
 
     // resize framebuffer
@@ -187,8 +186,10 @@ void MyGL::paintGL() {
     m_progPlayer.setTexture(2);
 
     if (m_inputs.inThirdPerson) {
+        glDisable(GL_CULL_FACE);
         m_progPlayer.setModelMatrix(glm::mat4());
         m_player.drawSceneGraph(m_player.bodyT, glm::mat4(), m_progPlayer);
+        glEnable(GL_CULL_FACE);
     }
 
     renderTerrain();
@@ -199,12 +200,11 @@ void MyGL::paintGL() {
 
     m_progLiquid.draw(m_screenQuad);
 
-    //    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
 
-    //    m_progLambert.setModelMatrix(glm::mat4());
-    //    m_progFlat.draw(m_worldAxes);
+//    m_progFlat.draw(m_worldAxes);
 
-    //    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 }
 
 // TODO: Change this so it renders the nine zones of generated
@@ -235,9 +235,7 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
     }
 
     if (e->key() == Qt::Key_5) {
-        m_inputs.inThirdPerson = !m_inputs.inThirdPerson;
-        m_player.calculateThirdPersonCameraRotation();
-        m_player.changeCamera(m_inputs.inThirdPerson);
+        m_player.changeCamera(m_inputs);
     }
     
     if (e->key() == Qt::Key_I) {

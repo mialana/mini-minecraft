@@ -70,18 +70,11 @@
       "parent": "BodyR"
     },
     {
-      "name": "RightForearmR",
-      "nodeType": "rotation",
-      "degrees": 0,
-      "axisOfRotation": [0, 1, 0],
-      "parent": "RightArmT"
-    },
-    {
       "name": "RightArmR",
       "nodeType": "rotation",
-      "degrees": 90,
+      "degrees": 0,
       "axisOfRotation": [1, 0, 0],
-      "parent": "RightForearmR"
+      "parent": "RightArmT"
     },
     {
       "name": "RightForearmT",

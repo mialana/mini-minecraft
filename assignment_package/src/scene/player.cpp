@@ -7,8 +7,9 @@
 Player::Player(glm::vec3 pos, const Terrain& terrain, OpenGLContext* context)
     : Entity(pos, context), m_velocity(0, 0, 0), m_acceleration(0, 0, 0),
       m_camera(pos + glm::vec3(0, 1.5f, 0), context),
-      m_thirdPersonCamera(pos + glm::normalize(m_camera.m_up) * 3.f + glm::normalize(
+      m_thirdPersonCamera(pos + glm::normalize(m_camera.m_up) * 2.f + glm::normalize(
                               m_camera.m_forward) * -5.f, context),
+      m_frontViewCamera(pos + glm::normalize(m_camera.m_forward) * 5.f, context),
       mcr_terrain(terrain), infAxis(-1), mcr_camera(&m_camera) {}
 
 Player::~Player() {}
@@ -39,6 +40,7 @@ void Player::constructSceneGraph(QJsonArray data) {
             newNode->geomType = obj["geomType"].toString();
         }
 
+        newNode->name = key;
         nodePointerMap.insert({key, newNode.get()});
 
         QString parent = obj["parent"].toString();
@@ -46,21 +48,30 @@ void Player::constructSceneGraph(QJsonArray data) {
     }
 }
 
-void Player::changeCamera(bool thirdPerson) {
-    if (thirdPerson) {
+void Player::changeCamera(InputBundle& inputs) {
+    if (mcr_camera == &m_camera) {
         mcr_camera = &m_thirdPersonCamera;
+        this->calculateThirdPersonCameraRotation();
+        inputs.inThirdPerson = true;
+    } else if (mcr_camera == &m_thirdPersonCamera) {
+        mcr_camera = &m_frontViewCamera;
+        this->calculateFrontViewCameraRotation();
+        inputs.inThirdPerson = true;
     } else {
         mcr_camera = &m_camera;
+        inputs.inThirdPerson = false;
     }
 
 }
 
-void Player::tick(float dT, InputBundle& input) {
-    isOnGround(input);
-    isInLiquid(input);
-    isUnderLiquid(input);
-    processInputs(input);
-    computePhysics(dT, input);
+
+void Player::tick(float dT, InputBundle& inputs) {
+    isOnGround(inputs);
+    isInLiquid(inputs);
+    isUnderLiquid(inputs);
+    processInputs(inputs);
+    computePhysics(dT, inputs);
+    animate(dT, inputs);
 }
 
 void Player::processInputs(InputBundle& inputs) {
@@ -121,6 +132,57 @@ void Player::processInputs(InputBundle& inputs) {
     m_acceleration *= 20.f;
 }
 
+void Player::animate(float dT, InputBundle& inputs) {
+    m_timer += (dT);
+    if (m_timer > 50.f * M_PI) {
+        m_timer = 0.f;
+    }
+    float maxAngle = 30.f;
+    if (inputs.inThirdPerson) {
+        if (inputs.isMoving) {
+            if (nodePointerMap["LeftArmR"] != nullptr) {
+                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+            }
+            if (nodePointerMap["RightArmR"] != nullptr) {
+                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
+            }
+            if (nodePointerMap["LeftLegR"] != nullptr) {
+                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
+            }
+            if (nodePointerMap["RightLegR"] != nullptr) {
+                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+            }
+        } else {
+            if (nodePointerMap["LeftArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees) >= 3.f) {
+                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+            } else {
+                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = 0.f;
+            }
+            if (nodePointerMap["RightArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees) >= 3.f) {
+                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
+            } else {
+                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = 0.f;
+            }
+            if (nodePointerMap["LeftLegR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees) >= 3.f) {
+                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
+            } else {
+                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = 0.f;
+            }
+            if (nodePointerMap["RightLegR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees) >= 3.f) {
+                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+            } else {
+                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = 0.f;
+            }
+        }
+
+        glm::mat4 bodyRotateMatrix = glm::lookAt(glm::vec3(), glm::normalize(glm::vec3(m_forward.x, 0, m_forward.z)), glm::vec3(0, 1, 0));
+        (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->overriddenTransformMatrix = glm::inverse(bodyRotateMatrix);
+
+        glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 1.65f, 0.f), m_position + glm::vec3(0.f, 1.65f, 0.f) + m_forward, glm::vec3(0, 1, 0));
+        (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
+    }
+}
+
 void Player::computePhysics(float dT, InputBundle& inputs) {
     glm::vec3 rayDirection = glm::vec3();
 
@@ -130,7 +192,7 @@ void Player::computePhysics(float dT, InputBundle& inputs) {
         m_velocity.z *= friction;
         float airFriction = 0.95f;
         m_velocity.y *= airFriction;
-        glm::vec3 gravity = glm::vec3(0.f, -15.f, 0.f);
+        glm::vec3 gravity = glm::vec3(0.f, -12.f, 0.f);
         m_acceleration += gravity;
 
         if (inputs.inLiquid) {
@@ -148,6 +210,7 @@ void Player::computePhysics(float dT, InputBundle& inputs) {
     }
 
     this->moveAlongVector(m_velocity);
+    inputs.isMoving = (glm::abs(m_velocity.x / (dT / 1000.f)) >= 3.f) || (glm::abs(m_velocity.z / (dT / 1000.f)) >= 3.f);
 }
 
 void Player::isInLiquid(InputBundle& input) {
@@ -408,94 +471,109 @@ BlockType Player::placeBlock(Terrain* terrain, BlockType currBlockType) {
 void Player::setCameraWidthHeight(unsigned int w, unsigned int h) {
     m_camera.setWidthHeight(w, h);
     m_thirdPersonCamera.setWidthHeight(w, h);
+    m_frontViewCamera.setWidthHeight(w, h);
 }
 
 void Player::moveAlongVector(glm::vec3 dir) {
     Entity::moveAlongVector(dir);
     m_camera.moveAlongVector(dir);
     m_thirdPersonCamera.moveAlongVector(dir);
-//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += dir;
+    m_frontViewCamera.moveAlongVector(dir);
+    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += dir;
 }
 void Player::moveForwardLocal(float amount) {
     Entity::moveForwardLocal(amount);
     m_camera.moveForwardLocal(amount);
     m_thirdPersonCamera.moveForwardLocal(amount);
-//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_forward * amount;
+    m_frontViewCamera.moveForwardLocal(amount);
+    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_forward * amount;
 }
 void Player::moveRightLocal(float amount) {
     Entity::moveRightLocal(amount);
     m_camera.moveRightLocal(amount);
     m_thirdPersonCamera.moveRightLocal(amount);
-//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_right * amount;
+    m_frontViewCamera.moveRightLocal(amount);
+    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_right * amount;
 }
 void Player::moveUpLocal(float amount) {
     Entity::moveUpLocal(amount);
     m_camera.moveUpLocal(amount);
     m_thirdPersonCamera.moveUpLocal(amount);
-//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_up * amount;
+    m_frontViewCamera.moveUpLocal(amount);
+    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_up * amount;
 }
 void Player::moveForwardGlobal(float amount) {
     Entity::moveForwardGlobal(amount);
     m_camera.moveForwardGlobal(amount);
     m_thirdPersonCamera.moveForwardGlobal(amount);
-//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(0, 0, amount);
+    m_frontViewCamera.moveForwardGlobal(amount);
+    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(0, 0, amount);
 }
 void Player::moveRightGlobal(float amount) {
     Entity::moveRightGlobal(amount);
     m_camera.moveRightGlobal(amount);
     m_thirdPersonCamera.moveRightGlobal(amount);
-//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(amount, 0, 0);
+    m_frontViewCamera.moveRightGlobal(amount);
+    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(amount, 0, 0);
 }
 void Player::moveUpGlobal(float amount) {
     Entity::moveUpGlobal(amount);
     m_camera.moveUpGlobal(amount);
     m_thirdPersonCamera.moveUpGlobal(amount);
-//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(0, amount, 0);
+    m_frontViewCamera.moveUpGlobal(amount);
+    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(0, amount, 0);
 }
 
 void Player::calculateThirdPersonCameraRotation() {
     m_thirdPersonCamera.m_position = m_camera.m_position + glm::normalize(
-                                         m_camera.m_up) * 3.f + glm::normalize(m_camera.m_forward) * -5.f;
+                                         m_camera.m_up) * 2.f + glm::normalize(m_camera.m_forward) * -5.f;
     m_thirdPersonCamera.m_forward = glm::normalize(m_camera.m_position -
                                                    m_thirdPersonCamera.m_position);
     m_thirdPersonCamera.m_right = m_camera.m_right;
     m_thirdPersonCamera.m_up = -glm::cross(m_thirdPersonCamera.m_forward, m_thirdPersonCamera.m_right);
 }
+void Player::calculateFrontViewCameraRotation() {
+    m_frontViewCamera.m_position = m_camera.m_position + glm::normalize(m_camera.m_forward) * 5.f;
+    m_frontViewCamera.m_forward = glm::normalize(m_camera.m_position - m_frontViewCamera.m_position);
+    m_frontViewCamera.m_right = -m_camera.m_right;
+    m_frontViewCamera.m_up = -glm::cross(m_frontViewCamera.m_forward, m_frontViewCamera.m_right);
+}
+
 void Player::rotateOnForwardLocal(float degrees) {
     Entity::rotateOnForwardLocal(degrees);
     m_camera.rotateOnForwardLocal(degrees);
     this->calculateThirdPersonCameraRotation();
-//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+    this->calculateFrontViewCameraRotation();
 }
 void Player::rotateOnRightLocal(float degrees) {
     Entity::rotateOnRightLocal(degrees);
     m_camera.rotateOnRightLocal(degrees);
     this->calculateThirdPersonCameraRotation();
-//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+    this->calculateFrontViewCameraRotation();
 }
 void Player::rotateOnUpLocal(float degrees) {
     Entity::rotateOnUpLocal(degrees);
     m_camera.rotateOnUpLocal(degrees);
     this->calculateThirdPersonCameraRotation();
-//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+    this->calculateFrontViewCameraRotation();
 }
 void Player::rotateOnForwardGlobal(float degrees) {
     Entity::rotateOnForwardGlobal(degrees);
     m_camera.rotateOnForwardGlobal(degrees);
     this->calculateThirdPersonCameraRotation();
-//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+    this->calculateFrontViewCameraRotation();
 }
 void Player::rotateOnRightGlobal(float degrees) {
     Entity::rotateOnRightGlobal(degrees);
     m_camera.rotateOnRightGlobal(degrees);
     this->calculateThirdPersonCameraRotation();
-//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+    this->calculateFrontViewCameraRotation();
 }
 void Player::rotateOnUpGlobal(float degrees) {
     Entity::rotateOnUpGlobal(degrees);
     m_camera.rotateOnUpGlobal(degrees);
     this->calculateThirdPersonCameraRotation();
-//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+    this->calculateFrontViewCameraRotation();
 }
 
 QString Player::posAsQString() const {

@@ -9,13 +9,13 @@ struct InputBundle {
     bool wPressed, aPressed, sPressed, dPressed, ePressed, fPressed, qPressed,
          spacePressed;
     float mouseX, mouseY;
-    bool flightMode, onGround, inLiquid, underWater, underLava, inThirdPerson;
+    bool flightMode, onGround, inLiquid, underWater, underLava, inThirdPerson, isMoving;
 
     InputBundle()
         : wPressed(false), aPressed(false), sPressed(false),
           dPressed(false), ePressed(false), fPressed(false),
           qPressed(false), spacePressed(false),
-          mouseX(0.f), mouseY(0.f), flightMode(true), onGround(false),
+          mouseX(0.f), mouseY(0.f), flightMode(true), onGround(false), isMoving(false),
           inLiquid(false), underWater(false), underLava(false), inThirdPerson(false)
     {}
 };
@@ -61,4 +61,7 @@ class Entity {
         virtual void constructSceneGraph(QJsonArray);
         void drawSceneGraph(const uPtr<Node>& currNode, glm::mat4 currTransformation,
                             ShaderProgram& m_progLambert);
+        virtual void animate(float dT, InputBundle& inputs);
+
+        float m_timer;
 };

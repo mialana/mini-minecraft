@@ -14,12 +14,14 @@ class Player : public Entity {
         glm::vec3 m_velocity, m_acceleration;
         Camera m_camera;
         Camera m_thirdPersonCamera;
+        Camera m_frontViewCamera;
         const Terrain& mcr_terrain;
 
         int infAxis;
 
         void processInputs(InputBundle& inputs);
         void computePhysics(float dT, InputBundle& inputs);
+        void animate(float dT, InputBundle& inputs) override;
 
     public:
         uPtr<Node> bodyT;
@@ -27,7 +29,8 @@ class Player : public Entity {
 
         void constructSceneGraph(QJsonArray data) override;
         void calculateThirdPersonCameraRotation();
-        void changeCamera(bool thirdPerson);
+        void calculateFrontViewCameraRotation();
+        void changeCamera(InputBundle& inputs);
         InventoryManager inventory;
 
         Player(glm::vec3 pos, const Terrain &terrain);
@@ -37,20 +40,18 @@ class Player : public Entity {
         // for easy access from MyGL
         Camera* mcr_camera;
 
-        Player(glm::vec3 pos, const Terrain& terrain,
-               OpenGLContext* context);
+        Player(glm::vec3 pos, const Terrain& terrain, OpenGLContext* context);
 
         void setCameraWidthHeight(unsigned int w, unsigned int h);
 
-        void tick(float dT, InputBundle& input) override;
+        void tick(float dT, InputBundle& inputs) override;
 
         void isInLiquid(InputBundle& input);
         void isUnderLiquid(InputBundle& input);
         void isOnGround(InputBundle& input);
         void detectCollision();
 
-        bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection,
-                       float* out_dist, glm::ivec3* out_blockHit);
+        bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit);
 
         BlockType placeBlock(Terrain* terrain, BlockType currBlock);
         BlockType removeBlock(Terrain* terrain);
