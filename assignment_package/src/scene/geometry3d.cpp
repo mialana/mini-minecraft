@@ -2,6 +2,9 @@
 #include <QJsonArray>
 #include "mygl.h"
 
+static const int CUB_IDX_COUNT = 36;
+static const int CUB_VERT_COUNT = 24;
+
 Geometry3D::Geometry3D(OpenGLContext* context)
     : Drawable(context) {
     QJsonObject dataObj = MyGL::importJson(":/data/geom3dData.json");
@@ -30,69 +33,139 @@ void Geometry3D::addType(QString t) {
     this->m_uvs = this->m_uvObj[t];
 }
 
-void Geometry3D::createIndices(std::vector<GLuint>& indices) {
-    for (int i = 0; i < 6; i++) {
-        indices.push_back(i * 4);
-        indices.push_back(i * 4 + 1);
-        indices.push_back(i * 4 + 2);
-        indices.push_back(i * 4);
-        indices.push_back(i * 4 + 2);
-        indices.push_back(i * 4 + 3);
+//These are functions that are only defined in this cpp file. They're used for organizational purposes
+//when filling the arrays used to hold the vertex and index data.
+void createCubeVertexPositions(glm::vec4 (&cub_vert_pos)[CUB_VERT_COUNT])
+{
+    int idx = 0;
+    //Front face
+    //UR
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    //LR
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
+    //LL
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+    //UL
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 1.0f, 1.0f, 1.0f);
+
+    //Right face
+    //UR
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+    //LR
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    //LL
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
+    //UL
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+    //Left face
+    //UR
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 1.0f, 1.0f, 1.0f);
+    //LR
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+    //LL
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    //UL
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+
+    //Back face
+    //UR
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+    //LR
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    //LL
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    //UL
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+
+    //Top face
+    //UR
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+    //LR
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    //LL
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 1.0f, 1.0f, 1.0f);
+    //UL
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+
+    //Bottom face
+    //UR
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
+    //LR
+    cub_vert_pos[idx++] = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    //LL
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    //UL
+    cub_vert_pos[idx++] = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+
+    for (glm::vec4 pos : cub_vert_pos) {
+        pos -= 0.5;
     }
 }
 
-void Geometry3D::createNormals(std::vector<glm::vec4>& normals) {
-    for (int i = 0; i < 4; i++) {
-        normals.push_back(glm::vec4(0.f, 0.f, -1.f, 0.f));
-    }
 
-    for (int i = 0; i < 4; i++) {
-        normals.push_back(glm::vec4(1.f, 0.f, 0.f, 0.f));
+void createCubeVertexNormals(glm::vec4 (&cub_vert_nor)[CUB_VERT_COUNT])
+{
+    int idx = 0;
+    //Front
+    for(int i = 0; i < 4; i++){
+        cub_vert_nor[idx++] = glm::vec4(0,0,-1,0);
     }
-
-    for (int i = 0; i < 4; i++) {
-        normals.push_back(glm::vec4(-1.f, 0.f, 0.f, 0.f));
+    //Right
+    for(int i = 0; i < 4; i++){
+        cub_vert_nor[idx++] = glm::vec4(1,0,0,0);
     }
-
-    for (int i = 0; i < 4; i++) {
-        normals.push_back(glm::vec4(0.f, 0.f, 1.f, 0.f));
+    //Left
+    for(int i = 0; i < 4; i++){
+        cub_vert_nor[idx++] = glm::vec4(-1,0,0,0);
     }
-
-    for (int i = 0; i < 4; i++) {
-        normals.push_back(glm::vec4(0.f, 1.f, 0.f, 0.f));
-        ;
+    //Back
+    for(int i = 0; i < 4; i++){
+        cub_vert_nor[idx++] = glm::vec4(0,0,1,0);
     }
+    //Top
+    for(int i = 0; i < 4; i++){
+        cub_vert_nor[idx++] = glm::vec4(0,1,0,0);
+    }
+    //Bottom
+    for(int i = 0; i < 4; i++){
+        cub_vert_nor[idx++] = glm::vec4(0,-1,0,0);
+    }
+}
 
-    for (int i = 0; i < 4; i++) {
-        normals.push_back(glm::vec4(0.f, -1.f, 0.f, 0.f));
+void createCubeIndices(GLuint (&cub_idx)[CUB_IDX_COUNT])
+{
+    int idx = 0;
+    for(int i = 0; i < 6; i++){
+        cub_idx[idx++] = i*4;
+        cub_idx[idx++] = i*4+1;
+        cub_idx[idx++] = i*4+2;
+        cub_idx[idx++] = i*4;
+        cub_idx[idx++] = i*4+2;
+        cub_idx[idx++] = i*4+3;
     }
 }
 
 void Geometry3D::createVBOdata() {
-    std::vector<GLuint> indices;
-    std::vector<glm::vec4> normals;
-    Geometry3D::createIndices(indices);
-    Geometry3D::createNormals(normals);
+    GLuint sph_idx[CUB_IDX_COUNT];
+    glm::vec4 sph_vert_nor[CUB_VERT_COUNT];
 
-    m_oCount = indices.size();
+    createCubeVertexNormals(sph_vert_nor);
+    createCubeIndices(sph_idx);
+
+    m_oCount = CUB_IDX_COUNT;
 
     generateOIdx();
     mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(),
-                             GL_STATIC_DRAW);
-
+    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, CUB_IDX_COUNT * sizeof(GLuint), sph_idx, GL_STATIC_DRAW);
     generateOPos();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
-    mp_context->glBufferData(GL_ARRAY_BUFFER,
-                             m_positions.size() * sizeof(glm::vec4),
-                             m_positions.data(), GL_STATIC_DRAW);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), m_positions.data(), GL_STATIC_DRAW);
     generateONor();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufNor);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec4),
-                             normals.data(), GL_STATIC_DRAW);
-    generateOUVs();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufUVs);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec4),
-                             m_uvs.data(), GL_STATIC_DRAW);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), sph_vert_nor, GL_STATIC_DRAW);
+    generateOCol();
+    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), m_uvs.data(), GL_STATIC_DRAW);
 
 }

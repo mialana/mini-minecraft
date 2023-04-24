@@ -50,6 +50,7 @@ class MyGL : public OpenGLContext {
         std::shared_ptr<Texture> m_playerTexture;
 
     public:
+        bool isInventoryOpen;
         Player m_player;
 
         BlockType currBlock = EMPTY;

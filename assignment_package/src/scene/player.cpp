@@ -21,6 +21,7 @@ void Player::constructSceneGraph(QJsonArray data) {
     for (auto i = data.begin(), end = data.end(); i != end; i++) {
         QJsonObject obj = i->toObject();
         QString key = obj["name"].toString();
+
         uPtr<Node> newNode;
 
         if (obj["nodeType"].toString() == "translation") {
@@ -150,7 +151,7 @@ void Player::computePhysics(float dT, InputBundle& inputs) {
 }
 
 void Player::isInLiquid(InputBundle& input) {
-    glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, -1.f, 0.5f);
+    glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, 0.f, 0.5f);
     bool acc = false;
 
     for (int x = 0; x <= 1; x++) {
@@ -209,6 +210,9 @@ void Player::isOnGround(InputBundle& input) {
                                     bottomLeftVertex.z + playerDimensions[z]);
 
             if (mcr_terrain.getBlockAt(p) != EMPTY &&
+                !Chunk::isHPlane(mcr_terrain.getBlockAt(p)) &&
+                !Chunk::isCross2(mcr_terrain.getBlockAt(p)) &&
+                !Chunk::isCross4(mcr_terrain.getBlockAt(p)) &&
                 mcr_terrain.getBlockAt(p) != WATER &&
                 mcr_terrain.getBlockAt(p) != LAVA) {
                 acc = acc || true;
@@ -326,7 +330,8 @@ bool Player::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_d
         currCell = glm::ivec3(glm::floor(rayOrigin)) + offset;
         BlockType cellType = mcr_terrain.getBlockAt(currCell.x, currCell.y, currCell.z);
 
-        if (cellType != EMPTY && cellType != WATER && cellType != LAVA) {
+        if (cellType != EMPTY && !Chunk::isHPlane(cellType) && !Chunk::isCross2(cellType)
+                && !Chunk::isCross4(cellType) && cellType != WATER && cellType != LAVA) {
             *out_blockHit = currCell;
             *out_dist = glm::min(maxLen, curr_t);
             return true;
@@ -409,43 +414,43 @@ void Player::moveAlongVector(glm::vec3 dir) {
     Entity::moveAlongVector(dir);
     m_camera.moveAlongVector(dir);
     m_thirdPersonCamera.moveAlongVector(dir);
-    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += dir;
+//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += dir;
 }
 void Player::moveForwardLocal(float amount) {
     Entity::moveForwardLocal(amount);
     m_camera.moveForwardLocal(amount);
     m_thirdPersonCamera.moveForwardLocal(amount);
-    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_forward * amount;
+//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_forward * amount;
 }
 void Player::moveRightLocal(float amount) {
     Entity::moveRightLocal(amount);
     m_camera.moveRightLocal(amount);
     m_thirdPersonCamera.moveRightLocal(amount);
-    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_right * amount;
+//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_right * amount;
 }
 void Player::moveUpLocal(float amount) {
     Entity::moveUpLocal(amount);
     m_camera.moveUpLocal(amount);
     m_thirdPersonCamera.moveUpLocal(amount);
-    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_up * amount;
+//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_up * amount;
 }
 void Player::moveForwardGlobal(float amount) {
     Entity::moveForwardGlobal(amount);
     m_camera.moveForwardGlobal(amount);
     m_thirdPersonCamera.moveForwardGlobal(amount);
-    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(0, 0, amount);
+//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(0, 0, amount);
 }
 void Player::moveRightGlobal(float amount) {
     Entity::moveRightGlobal(amount);
     m_camera.moveRightGlobal(amount);
     m_thirdPersonCamera.moveRightGlobal(amount);
-    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(amount, 0, 0);
+//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(amount, 0, 0);
 }
 void Player::moveUpGlobal(float amount) {
     Entity::moveUpGlobal(amount);
     m_camera.moveUpGlobal(amount);
     m_thirdPersonCamera.moveUpGlobal(amount);
-    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(0, amount, 0);
+//    (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(0, amount, 0);
 }
 
 void Player::calculateThirdPersonCameraRotation() {
@@ -460,37 +465,37 @@ void Player::rotateOnForwardLocal(float degrees) {
     Entity::rotateOnForwardLocal(degrees);
     m_camera.rotateOnForwardLocal(degrees);
     this->calculateThirdPersonCameraRotation();
-    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
 }
 void Player::rotateOnRightLocal(float degrees) {
     Entity::rotateOnRightLocal(degrees);
     m_camera.rotateOnRightLocal(degrees);
     this->calculateThirdPersonCameraRotation();
-    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
 }
 void Player::rotateOnUpLocal(float degrees) {
     Entity::rotateOnUpLocal(degrees);
     m_camera.rotateOnUpLocal(degrees);
     this->calculateThirdPersonCameraRotation();
-    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
 }
 void Player::rotateOnForwardGlobal(float degrees) {
     Entity::rotateOnForwardGlobal(degrees);
     m_camera.rotateOnForwardGlobal(degrees);
     this->calculateThirdPersonCameraRotation();
-    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
 }
 void Player::rotateOnRightGlobal(float degrees) {
     Entity::rotateOnRightGlobal(degrees);
     m_camera.rotateOnRightGlobal(degrees);
     this->calculateThirdPersonCameraRotation();
-    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
 }
 void Player::rotateOnUpGlobal(float degrees) {
     Entity::rotateOnUpGlobal(degrees);
     m_camera.rotateOnUpGlobal(degrees);
     this->calculateThirdPersonCameraRotation();
-    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
+//    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->degrees += degrees;
 }
 
 QString Player::posAsQString() const {

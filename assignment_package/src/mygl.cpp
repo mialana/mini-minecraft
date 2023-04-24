@@ -125,8 +125,6 @@ void MyGL::tick() {
     m_player.tick(dT, m_inputs);
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
-
-
     if (m_inputs.underWater) {
         m_progLiquid.setPlayerPosBiomeWts(m_terrain.getBiomeAt(prevPlayerPos.x, prevPlayerPos.z));
         m_progLiquid.setPlayerPos(prevPlayerPos);
@@ -173,17 +171,16 @@ void MyGL::paintGL() {
     m_progLambert.setTexture(0);
 
     m_progLambert.setViewProjMatrix(m_player.mcr_camera->getViewProj());
-    m_progPlayer.setViewProjMatrix(m_player.mcr_camera->getViewProj());
-
     m_progLambert.setModelMatrix(glm::mat4());
+
+    m_progPlayer.setViewProjMatrix(m_player.mcr_camera->getViewProj());
     m_progPlayer.setModelMatrix(glm::mat4());
+    m_progPlayer.setCamPos(m_player.mcr_camera->m_position);
 
     m_frameBuffer.bindFrameBuffer();
     glViewport(0, 0, this->width() * this->devicePixelRatio(),
                this->height() * this->devicePixelRatio());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
 
     m_playerTexture->load(2);
     m_playerTexture->bind(2);
@@ -222,7 +219,7 @@ void MyGL::renderTerrain() {
 
 //    m_terrain.draw(x - 256, x + 256, z - 256, z + 256, &m_progLambert);
 
-    glm::vec2 pPos(m_player.mcr_position.x, m_player.mcr_position.z);
+    glm::vec2 pPos(m_player.m_position.x, m_player.m_position.z);
     glm::ivec2 chunk(16 * glm::ivec2(glm::floor(pPos / 16.f)));
 
     //m_terrain.getChunkAt(m_player.mcr_position.x, m_player.mcr_position.z).get();

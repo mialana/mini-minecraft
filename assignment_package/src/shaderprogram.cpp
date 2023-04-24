@@ -9,12 +9,12 @@
 
 
 ShaderProgram::ShaderProgram(OpenGLContext* context)
-    : vertShader(), fragShader(), prog(),
-      attrPos(-1), attrNor(-1), attrCol(-1), attrUV(-1), attrBT(-1), attrBWts(-1),
-      unifModel(-1), unifModelInvTr(-1), unifViewProj(-1), unifColor(-1),
-      unifPlayerPosBWts(-1), unifPlayerPos(-1), unifTime(-1), 
-      unifFrameBufferTexture(-1),  unifPlayerTexture(-1), unifTexture(-1), 
-      context(context)
+    : context(context), vertShader(), fragShader(),
+      prog(), attrPos(-1), attrNor(-1), attrCol(-1), attrUV(-1), attrBT(-1),
+      attrBWts(-1), unifModel(-1), unifModelInvTr(-1), unifViewProj(-1),
+      unifColor(-1), unifPlayerPosBWts(-1), unifPlayerPos(-1),
+      unifTexture(-1),  unifTime(-1), unifFrameBufferTexture(-1),
+      unifPlayerTexture(-1), unifCamPos(-1)
 {}
 
 void ShaderProgram::create(const char* vertfile, const char* fragfile) {
@@ -92,6 +92,7 @@ void ShaderProgram::create(const char* vertfile, const char* fragfile) {
 
     unifFrameBufferTexture    = context->glGetUniformLocation(prog, "u_FrameBufferTexture");
     unifPlayerTexture    = context->glGetUniformLocation(prog, "u_PlayerTexture");
+    unifCamPos      = context->glGetUniformLocation(prog, "u_CamPos");
 }
 
 void ShaderProgram::useMe() {
@@ -194,6 +195,16 @@ void ShaderProgram::setTime(int t) {
     }
 }
 
+void ShaderProgram::setCamPos(glm::vec3 pos)
+{
+    useMe();
+
+    if(unifCamPos != -1)
+    {
+        context->glUniform3fv(unifCamPos, 1, &pos[0]);
+    }
+}
+
 //This function, as its name implies, uses the passed in GL widget
 void ShaderProgram::draw(Drawable& d) {
     useMe();
@@ -218,12 +229,6 @@ void ShaderProgram::draw(Drawable& d) {
         context->glVertexAttribPointer(attrCol, 4, GL_FLOAT, false, 0, NULL);
     }
 
-    if (attrUV != -1 && d.bindOUVs()) {
-        context->glEnableVertexAttribArray(attrUV);
-        context->glVertexAttribPointer(attrUV, 4, GL_FLOAT, false, 0, NULL);
-        context->glVertexAttribDivisor(attrUV, 1);
-    }
-
     // Bind the index buffer and then draw shapes from it.
     // This invokes the shader program, which accesses the vertex buffers.
     d.bindOIdx();
@@ -240,10 +245,6 @@ void ShaderProgram::draw(Drawable& d) {
 
     if (attrCol != -1) {
         context->glDisableVertexAttribArray(attrCol);
-    }
-
-    if (attrUV != -1) {
-        context->glDisableVertexAttribArray(attrUV);
     }
 }
 
@@ -401,7 +402,7 @@ char* ShaderProgram::textFileRead(const char* fileName) {
     char* text;
 
     if (fileName != NULL) {
-        FILE* file = fopen(fileName, "rt");
+        FILE *file = fopen(fileName, "rt");
 
         if (file != NULL) {
             fseek(file, 0, SEEK_END);
@@ -411,26 +412,24 @@ char* ShaderProgram::textFileRead(const char* fileName) {
             if (count > 0) {
                 text = (char*)malloc(sizeof(char) * (count + 1));
                 count = fread(text, sizeof(char), count, file);
-                text[count] = '\0'; //cap off the string with a terminal symbol, fixed by Cory
+                text[count] = '\0';	//cap off the string with a terminal symbol, fixed by Cory
             }
-
             fclose(file);
         }
     }
-
     return text;
 }
 
-QString ShaderProgram::qTextFileRead(const char* fileName) {
+QString ShaderProgram::qTextFileRead(const char *fileName)
+{
     QString text;
     QFile file(fileName);
-
-    if (file.open(QFile::ReadOnly)) {
+    if(file.open(QFile::ReadOnly))
+    {
         QTextStream in(&file);
         text = in.readAll();
         text.append('\0');
     }
-
     return text;
 }
 

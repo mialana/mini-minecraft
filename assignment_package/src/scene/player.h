@@ -39,7 +39,6 @@ class Player : public Entity {
 
         Player(glm::vec3 pos, const Terrain& terrain,
                OpenGLContext* context);
-        virtual ~Player() override;
 
         void setCameraWidthHeight(unsigned int w, unsigned int h);
 
