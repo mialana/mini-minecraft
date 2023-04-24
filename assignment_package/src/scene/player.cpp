@@ -282,9 +282,14 @@ BlockType Player::removeBlock(Terrain* terrain) {
         BlockType blockType = terrain->getBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z);
         inventory.addItem(blockType);
         terrain->setBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z, EMPTY);
-        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
-        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
-        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
+        Chunk* ch = terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get();
+        ch->destroyVBOdata();
+        ch->generateVBOData();
+        ch->loadVBO();
+        //terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
+        //terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
+        //terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
+
         return blockType;
     }
     return EMPTY;

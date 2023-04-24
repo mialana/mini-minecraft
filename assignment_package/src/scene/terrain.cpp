@@ -194,9 +194,8 @@ void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos) {
     // If previous zones are no longer there, remove their vbo data
     for (long long zone : borderingPrev) {
         if (!borderingCurr.contains(zone)) {
-            std::cout << "hello world";
             glm::ivec2 coord = toCoords(zone);
-
+            std::cout<<"got into deleting \n";
             for (int x = coord.x; x < coord.x + 64; x += 16) {
                 for (int z = coord.y; z < coord.y + 64; z += 16) {
                     auto& c = getChunkAt(x, z);
@@ -459,15 +458,11 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
         for (int z = minZ; z < maxZ; z += 16) {
 
 
-            /*  const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-                currChunk->generateVBOData();
-                currChunk->loadVBO();
-                shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
-                shaderProgram->drawInterleavedO(*currChunk);*/
+
 
 
             if (hasChunkAt(x, z)) {
-                //std::cout << x << ", " << z << std::endl;
+
                 const uPtr<Chunk>& currChunk = getChunkAt(x, z);
 
                 if (currChunk->hasVBOData && currChunk->hasBinded) {
@@ -475,8 +470,7 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
                     shaderProgram->drawInterleavedO(*currChunk);
                 }
 
-                //currChunk->loadVBO();
-                //std::cout << currChunk->m_oCount << std::endl;
+
 
             }
         }
@@ -486,17 +480,13 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
         for (int z = minZ; z < maxZ; z += 16) {
 
 
-            /*  const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-                currChunk->generateVBOData();
-                currChunk->loadVBO();
-                shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
-                shaderProgram->drawInterleavedO(*currChunk);*/
+
 
 
             if (hasChunkAt(x, z)) {
                 const uPtr<Chunk>& currChunk = getChunkAt(x, z);
 
-                //currChunk->loadVBO();
+
                 if (currChunk->hasVBOData && currChunk->hasBinded) {
                     shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
                     shaderProgram->drawInterleavedT(*currChunk);
