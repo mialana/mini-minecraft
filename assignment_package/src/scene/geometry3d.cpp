@@ -1,23 +1,36 @@
-#include "cube.h"
-#include <glm_includes.h>
-#include <iostream>
+#include "geometry3d.h"
+#include <QJsonArray>
+#include "mygl.h"
 
 static const int CUB_IDX_COUNT = 36;
 static const int CUB_VERT_COUNT = 24;
 
-glm::vec4 GetCubeNormal(const glm::vec4& P)
-{
-    int idx = 0;
-    float val = -1;
-    for(int i = 0; i < 3; i++){
-        if(glm::abs(P[i]) > val){
-            idx = i;
-            val = glm::abs(P[i]);
-        }
+Geometry3D::Geometry3D(OpenGLContext* context)
+    : Drawable(context) {
+    QJsonObject dataObj = MyGL::importJson(":/data/geom3dData.json");
+    QJsonArray jsonPosArr = dataObj["Geometry3DPositions"].toArray();
+    QJsonObject jsonUVObj = dataObj["PlayerUVCoordinates"].toObject();
+
+    for (int i = 0; i < 24; i++) {
+        QJsonArray posVectorArr = jsonPosArr[i].toArray();
+        this->m_positions.push_back(MyGL::convertQJsonArrayToGlmVec4(posVectorArr));
     }
-    glm::vec4 N(0,0,0,0);
-    N[idx] = glm::sign(P[idx]);
-    return N;
+
+    for (auto geomType : jsonUVObj.keys()) {
+        QJsonArray uvVectorArr = jsonUVObj[geomType].toArray();
+        std::vector<glm::vec4> newArr;
+
+        for (int i = 0; i < 24; i++) {
+            newArr.push_back(MyGL::convertQJsonArrayToGlmVec4(uvVectorArr[i].toArray()));
+        }
+
+        this->m_uvObj.insert({geomType, newArr});
+    }
+}
+
+void Geometry3D::addType(QString t) {
+    this->m_type = t;
+    this->m_uvs = this->m_uvObj[t];
 }
 
 //These are functions that are only defined in this cpp file. They're used for organizational purposes
@@ -84,6 +97,10 @@ void createCubeVertexPositions(glm::vec4 (&cub_vert_pos)[CUB_VERT_COUNT])
     cub_vert_pos[idx++] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     //UL
     cub_vert_pos[idx++] = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+
+    for (glm::vec4 pos : cub_vert_pos) {
+        pos -= 0.5;
+    }
 }
 
 
@@ -92,7 +109,7 @@ void createCubeVertexNormals(glm::vec4 (&cub_vert_nor)[CUB_VERT_COUNT])
     int idx = 0;
     //Front
     for(int i = 0; i < 4; i++){
-        cub_vert_nor[idx++] = glm::vec4(0,0,1,0);
+        cub_vert_nor[idx++] = glm::vec4(0,0,-1,0);
     }
     //Right
     for(int i = 0; i < 4; i++){
@@ -104,7 +121,7 @@ void createCubeVertexNormals(glm::vec4 (&cub_vert_nor)[CUB_VERT_COUNT])
     }
     //Back
     for(int i = 0; i < 4; i++){
-        cub_vert_nor[idx++] = glm::vec4(0,0,-1,0);
+        cub_vert_nor[idx++] = glm::vec4(0,0,1,0);
     }
     //Top
     for(int i = 0; i < 4; i++){
@@ -129,49 +146,26 @@ void createCubeIndices(GLuint (&cub_idx)[CUB_IDX_COUNT])
     }
 }
 
-void Cube::createVBOdata()
-{
+void Geometry3D::createVBOdata() {
     GLuint sph_idx[CUB_IDX_COUNT];
-    glm::vec4 sph_vert_pos[CUB_VERT_COUNT];
     glm::vec4 sph_vert_nor[CUB_VERT_COUNT];
 
-    createCubeVertexPositions(sph_vert_pos);
     createCubeVertexNormals(sph_vert_nor);
     createCubeIndices(sph_idx);
 
     m_oCount = CUB_IDX_COUNT;
 
-    // Create a VBO on our GPU and store its handle in bufIdx
     generateOIdx();
-    // Tell OpenGL that we want to perform subsequent operations on the VBO referred to by bufIdx
-    // and that it will be treated as an element array buffer (since it will contain triangle indices)
     mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    // Pass the data stored in cyl_idx into the bound buffer, reading a number of bytes equal to
-    // SPH_IDX_COUNT multiplied by the size of a GLuint. This data is sent to the GPU to be read by shader programs.
     mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, CUB_IDX_COUNT * sizeof(GLuint), sph_idx, GL_STATIC_DRAW);
-
-    // The next few sets of function calls are basically the same as above, except bufPos and bufNor are
-    // array buffers rather than element array buffers, as they store vertex attributes like position.
     generateOPos();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), sph_vert_pos, GL_STATIC_DRAW);
-
+    mp_context->glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), m_positions.data(), GL_STATIC_DRAW);
     generateONor();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufNor);
     mp_context->glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), sph_vert_nor, GL_STATIC_DRAW);
-
-}
-
-
-void Cube::createInstancedVBOdata(std::vector<glm::vec3> &offsets, std::vector<glm::vec3> &colors) {
-    m_numInstances = offsets.size();
-
-    generateOffsetBuf();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_bufPosOffset);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, offsets.size() * sizeof(glm::vec3), offsets.data(), GL_STATIC_DRAW);
-
-
     generateOCol();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec3), colors.data(), GL_STATIC_DRAW);
+    mp_context->glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), m_uvs.data(), GL_STATIC_DRAW);
+
 }
