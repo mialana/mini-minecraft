@@ -107,6 +107,13 @@ float Biome::worley(glm::vec2 uv) {
     } return minDist;
 }
 
+glm::vec2 Biome::voronoi(glm::vec2 uv, int scale) {
+    uv *= scale;
+    glm::vec2 uvInt = glm::floor(uv);
+    glm::vec2 point = noise2D(uvInt); // Get the Voronoi centerpoint for this cell
+    return point;
+}
+
 float Biome::surflet1(glm::vec2 P, glm::vec2 gridPoint) {
     // Compute falloff function by converting linear distance to a polynomial
     float distX = abs(P.x - gridPoint.x);
