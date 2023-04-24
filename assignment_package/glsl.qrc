@@ -1,12 +1,16 @@
 <RCC>
     <qresource prefix="/">
-        <file>glsl/lambert.frag.glsl</file>
-        <file>glsl/lambert.vert.glsl</file>
         <file>glsl/flat.frag.glsl</file>
         <file>glsl/flat.vert.glsl</file>
-        <file>glsl/instanced.vert.glsl</file>
-        <file>glsl/liquid.vert.glsl</file>
+        <file>glsl/lambert.frag.glsl</file>
+        <file>glsl/lambert.vert.glsl</file>
         <file>glsl/liquid.frag.glsl</file>
+        <file>glsl/liquid.vert.glsl</file>
+        <file>glsl/player.frag.glsl</file>
+        <file>glsl/player.vert.glsl</file>
         <file>glsl/instanced.frag.glsl</file>
+        <file>glsl/instanced.vert.glsl</file>
+        <file>test.frag.glsl</file>
+        <file>test.vert.glsl</file>
     </qresource>
 </RCC>
