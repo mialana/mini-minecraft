@@ -217,7 +217,7 @@ void MyGL::renderTerrain() {
     int x = 16 * xFloor;
     int z = 16 * zFloor;
 
-    m_terrain.draw(x - 512, x + 512, z - 512, z + 512, &m_progLambert);
+    m_terrain.draw(x - 1024, x + 1024, z - 1024, z + 1024, &m_progLambert);
 }
 
 void MyGL::keyPressEvent(QKeyEvent* e) {
