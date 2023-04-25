@@ -393,6 +393,7 @@ void ShaderProgram::drawInterleavedT(Drawable& d) {
     if (attrBWts != -1) {
         context->glDisableVertexAttribArray(attrBWts);
     }
+    }
 
     context->printGLErrorLog();
     }

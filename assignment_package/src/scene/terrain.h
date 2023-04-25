@@ -7,12 +7,9 @@
 #include "shaderprogram.h"
 #include "scene/mob.h"
 #include "biome.h"
-#include <mutex>
-#include <thread>
 #include <QMutex>
+#include <QThreadPool>
 #include "workers.h"
-
-//using namespace std;
 
 const static std::vector<glm::ivec2> directionHelper = {
     glm::ivec2(16, 0),
@@ -32,22 +29,13 @@ glm::ivec2 toCoords(int64_t k);
 class Terrain {
 private:
 
-    std::unordered_map<int64_t, uPtr<Chunk>> newChunks;
-
-    std::unordered_map<int64_t, uPtr<Chunk>> chunksWithBlockData;
-    std::mutex chunksWithBlockDataMutex;
-
-    std::unordered_map<int64_t, uPtr<Chunk>> chunksWithVBOData;
-    std::mutex chunksWithVBODataMutex;
-
 
     // Set and mutex of chunks that have block data
-        std::unordered_set<Chunk*> m_blockDataChunks;
-        QMutex m_blockDataChunksLock;
-        // Vector and mutex of chunks that have VBO data
-        std::vector<Chunk*> m_vboDataChunks;
-        QMutex m_VBODataChunksLock;
-
+    std::unordered_set<Chunk*> m_blockDataChunks;
+    QMutex m_blockDataChunksLock;
+    // Vector and mutex of chunks that have VBO data
+    std::vector<Chunk*> m_vboDataChunks;
+    QMutex m_VBODataChunksLock;
 
     // Stores every Chunk according to the location of its lower-left corner
     // in world space.
@@ -79,9 +67,6 @@ private:
     // inefficient, and will cause your game to run very slowly until
     // milestone 1's Chunk VBO setup is completed.
 
-    std::vector<std::thread> blockWorkerThreads;
-    std::vector<std::thread> vboWorkerThreads;
-
     bool firstTick = true;
 
     OpenGLContext* mp_context;
@@ -94,36 +79,14 @@ public:
 
     float m_chunkTimer = 0.0f;
 
-    QSet<long long> borderingZone(glm::ivec2 coords, int radius, bool atEdge);
-
-    void tryNewChunk(glm::vec3 pos, glm::vec3 prevPos);
-
-    bool hasTerrainGenerationZoneAt(glm::ivec2);
-
-    bool hasNewChunkAt(int x, int z) const;
-
-    uPtr<Chunk>& getNewChunkAt(int x, int z);
-    const uPtr<Chunk>& getNewChunkAt(int x, int z) const;
-
     void multithreadedWork(glm::vec3, glm::vec3, float);
 
-    void tryExpansion(glm::vec3, glm::vec3);
-    void checkThreadResults();
-
-    void blockWorker(uPtr<Chunk>);
-    //void VBOWorker(uPtr<Chunk>);
-
+    QSet<long long> borderingZone(glm::ivec2 coords, int radius, bool atEdge);
+    void tryExpansion(glm::vec3 pos, glm::vec3 prevPos);
     void createVBOWorker(Chunk* chunk);
     void createVBOWorkers(const std::unordered_set<Chunk*> &chunks);
     void createBDWorker(long long zone);
-    void createBDWorkers(const QSet<long long> &zones);
-    void checkthreadResults();
-
-    uPtr<Chunk> instantiateNewChunkAt(int x, int z);
-
-    void setNewBlockAt(int x, int y, int z, BlockType t);
-
-    BlockType generateBlockTypeByHeight(int, bool);
+    void checkThreadResults();
 
     // Instantiates a new Chunk and stores it in
     // our chunk map at the given coordinates.

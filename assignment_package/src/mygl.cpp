@@ -270,16 +270,7 @@ void MyGL::renderTerrain() {
     int x = 16 * xFloor;
     int z = 16 * zFloor;
 
-    m_terrain.draw(x - 256, x + 256, z - 256, z + 256, &m_progLambert, m_mobs);
-
-    glm::vec2 pPos(m_player.m_position.x, m_player.m_position.z);
-    glm::ivec2 chunk(16 * glm::ivec2(glm::floor(pPos / 16.f)));
-
-    //m_terrain.getChunkAt(m_player.mcr_position.x, m_player.mcr_position.z).get();
-
-
-
-    //m_terrain.draw(pPos.x - 32, pPos.x + 32, pPos.y - 32, pPos.y + 32, &m_progLambert);
+    m_terrain.draw(x - 1024, x + 1024, z - 1024, z + 1024, &m_progLambert, m_mobs);
 }
 
 void MyGL::keyPressEvent(QKeyEvent* e) {
@@ -438,4 +429,8 @@ glm::vec3 MyGL::convertQJsonArrayToGlmVec3(QJsonArray obj) {
 
 glm::vec4 MyGL::convertQJsonArrayToGlmVec4(QJsonArray obj) {
     return glm::vec4(obj[0].toDouble(), obj[1].toDouble(), obj[2].toDouble(), obj[3].toDouble());
+}
+
+void MyGL::showRecipe() {
+    emit sig_sendRecipeWindow();
 }

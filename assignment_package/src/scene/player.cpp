@@ -9,8 +9,12 @@ Player::Player(glm::vec3 pos, const Terrain& terrain, OpenGLContext* context)
       m_camera(pos + glm::vec3(0, 1.5f, 0), context),
       m_thirdPersonCamera(pos + glm::normalize(m_camera.m_up) * 2.f + glm::normalize(
                               m_camera.m_forward) * -5.f, context),
+<<<<<<< HEAD
       m_frontViewCamera(pos + glm::normalize(m_camera.m_forward) * 5.f, context),
       mcr_terrain(terrain), mcr_camera(&m_camera) {}
+=======
+      mcr_terrain(terrain), infAxis(-1), mcr_camera(&m_camera), cntx(context) {}
+>>>>>>> master
 
 Player::~Player() {}
 
@@ -104,14 +108,245 @@ void Player::processInputs() {
     m_acceleration *= 20.f;
 }
 
+<<<<<<< HEAD
+=======
+void Player::computePhysics(float dT, InputBundle& inputs) {
+    glm::vec3 rayDirection = glm::vec3();
+
+    if (!inputs.flightMode) {
+        float friction = 0.7f;
+        m_velocity.x *= friction;
+        m_velocity.z *= friction;
+        float airFriction = 0.95f;
+        m_velocity.y *= airFriction;
+        glm::vec3 gravity = glm::vec3(0.f, -15.f, 0.f);
+        m_acceleration += gravity;
+
+        if (inputs.inLiquid) {
+            m_velocity *= 0.5f;
+        }
+    } else {
+        float friction = 0.9f;
+        m_velocity *= friction;
+    }
+
+    m_velocity += m_acceleration * (dT / 10.f);
+
+    if (!inputs.flightMode) {
+        detectCollision();
+    }
+
+    this->moveAlongVector(m_velocity);
+}
+
+void Player::isInLiquid(InputBundle& input) {
+    glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, 0.f, 0.5f);
+    bool acc = false;
+
+    for (int x = 0; x <= 1; x++) {
+        for (int z = 2; z <= 3; z++) {
+            for (int y = 0; y <= 1; y++) {
+                glm::vec3 p = glm::vec3(bottomLeftVertex.x + playerDimensions[x],
+                                        bottomLeftVertex.y + y,
+                                        bottomLeftVertex.z + playerDimensions[z]);
+
+                if (mcr_terrain.getBlockAt(p) == WATER || mcr_terrain.getBlockAt(p) == LAVA) {
+                    acc = acc || true;
+                } else {
+                    acc = acc || false;
+                }
+            }
+        }
+    }
+
+    input.inLiquid = acc;
+}
+
+void Player::isUnderLiquid(InputBundle& input) {
+    glm::vec3 middleLeftVertex = this->m_position - glm::vec3(0.5f, 0.f, 0.5f);
+    bool underWater = false;
+    bool underLava = false;
+
+    for (int x = 0; x <= 1; x++) {
+        for (int z = 2; z <= 3; z++) {
+            glm::vec3 p = glm::vec3(middleLeftVertex.x + playerDimensions[x],
+                                    middleLeftVertex.y + 1.f,
+                                    middleLeftVertex.z + playerDimensions[z]);
+
+            if (mcr_terrain.getBlockAt(p) == WATER) {
+                underWater = underWater || true;
+            } else if (mcr_terrain.getBlockAt(p) == LAVA) {
+                underLava = underLava || true;
+            } else {
+                underWater = underWater || false;
+                underLava = underLava || false;
+            }
+        }
+    }
+
+    input.underWater = underWater;
+    input.underLava = underLava;
+}
+
+void Player::isOnGround(InputBundle& input) {
+    glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, 0, 0.5f);
+    bool acc = false;
+
+    for (int x = 0; x <= 1; x++) {
+        for (int z = 2; z <= 3; z++) {
+            glm::vec3 p = glm::vec3(bottomLeftVertex.x + playerDimensions[x],
+                                    bottomLeftVertex.y - 0.05f,
+                                    bottomLeftVertex.z + playerDimensions[z]);
+
+            if (mcr_terrain.getBlockAt(p) != EMPTY &&
+                !Chunk::isHPlane(mcr_terrain.getBlockAt(p)) &&
+                !Chunk::isCross2(mcr_terrain.getBlockAt(p)) &&
+                !Chunk::isCross4(mcr_terrain.getBlockAt(p)) &&
+                mcr_terrain.getBlockAt(p) != WATER &&
+                mcr_terrain.getBlockAt(p) != LAVA) {
+                acc = acc || true;
+            } else {
+                acc = acc || false;
+            }
+        }
+    }
+
+    input.onGround = acc;
+}
+
+void Player::detectCollision() {
+    glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, 0.f, 0.5f);
+    glm::vec3 rayDirectionX = glm::vec3(m_velocity.x, 0.f, 0.f);
+    glm::vec3 rayDirectionY = glm::vec3(0.f, m_velocity.y, 0.f);
+    glm::vec3 rayDirectionZ = glm::vec3(0.f, 0.f, m_velocity.z);
+    float minOutDistY = std::numeric_limits<float>::infinity();
+    float minOutDistX = std::numeric_limits<float>::infinity();
+    float minOutDistZ = std::numeric_limits<float>::infinity();
+
+    for (int x = 0; x <= 1; x++) {
+        for (int z = 2; z <= 3; z++) {
+            for (int y = 4; y <= 5; y++) {
+                glm::ivec3 outBlockHitX = glm::ivec3();
+                glm::ivec3 outBlockHitY = glm::ivec3();
+                glm::ivec3 outBlockHitZ = glm::ivec3();
+                float outDistX = 0.f;
+                float outDistY = 0.f;
+                float outDistZ = 0.f;
+                glm::vec3 rayOrigin = bottomLeftVertex + glm::vec3(playerDimensions[x],
+                                                                   playerDimensions[y],
+                                                                   playerDimensions[z]);
+
+                if (gridMarch(rayOrigin, rayDirectionX, &outDistX, &outBlockHitX) && (outDistX < minOutDistX)) {
+                    minOutDistX = outDistX;
+                }
+
+                if (gridMarch(rayOrigin, rayDirectionY, &outDistY, &outBlockHitY) && (outDistY < minOutDistY)) {
+                    minOutDistY = outDistY;
+                }
+
+                if (gridMarch(rayOrigin, rayDirectionZ, &outDistZ, &outBlockHitZ) && (outDistZ < minOutDistZ)) {
+                    minOutDistZ = outDistZ;
+                }
+            }
+        }
+    }
+
+    float threshold = 0.005f;
+
+    if (minOutDistY < std::numeric_limits<float>::infinity()) {
+        if (minOutDistY < threshold) {
+            m_velocity.y = 0.f;
+        } else {
+            m_velocity.y = (minOutDistY * 0.8) * glm::sign(m_velocity.y);
+        }
+    }
+
+    if (minOutDistX < std::numeric_limits<float>::infinity()) {
+        if (minOutDistX < threshold) {
+            m_velocity.x = 0.f;
+        } else {
+            m_velocity.x = (minOutDistX * 0.8) * glm::sign(m_velocity.x);
+        }
+    }
+
+    if (minOutDistZ < std::numeric_limits<float>::infinity()) {
+        if (minOutDistZ < threshold) {
+            m_velocity.z = 0.f;
+        } else {
+            m_velocity.z = (minOutDistZ * 0.8) * glm::sign(m_velocity.z);
+        }
+    }
+}
+
+bool Player::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit, BlockType* out_type) {
+    float maxLen = glm::length(rayDirection);
+    glm::ivec3 currCell = glm::ivec3(glm::floor(rayOrigin));
+    rayDirection = glm::normalize(rayDirection);
+    float curr_t = 0.f;
+
+    while (curr_t < maxLen) {
+        float min_t = glm::sqrt(3.f);
+        float interfaceAxis = -1;
+
+        for (int i = 0; i < 3; ++i) {
+            if (rayDirection[i] != 0) {
+                float offset = glm::max(0.f, glm::sign(rayDirection[i]));
+
+                if (currCell[i] == rayOrigin[i] && offset == 0.f) {
+                    offset = -1.f;
+                }
+
+                int nextIntercept = currCell[i] + offset;
+                float axis_t = (nextIntercept - rayOrigin[i]) / rayDirection[i];
+                axis_t = glm::min(axis_t, maxLen);
+
+                if (axis_t < min_t) {
+                    min_t = axis_t;
+                    interfaceAxis = i;
+                }
+            }
+        }
+
+        if (interfaceAxis == -1) {
+            throw std::out_of_range( "interfaceAxis was -1 after the for loop in gridMarch!");
+        }
+
+        infAxis = interfaceAxis;
+        curr_t += min_t;
+        rayOrigin += rayDirection * min_t;
+        glm::ivec3 offset = glm::ivec3(0, 0, 0);
+        offset[interfaceAxis] = glm::min(0.f, glm::sign(rayDirection[interfaceAxis]));
+        currCell = glm::ivec3(glm::floor(rayOrigin)) + offset;
+        BlockType cellType = mcr_terrain.getBlockAt(currCell.x, currCell.y, currCell.z);
+
+        if (cellType != EMPTY &&  cellType != WATER && cellType != LAVA) {
+            if (out_type) {
+                *out_type = cellType;
+            }
+            *out_blockHit = currCell;
+            *out_dist = glm::min(maxLen, curr_t);
+            return true;
+        }
+    }
+
+    *out_dist = glm::min(maxLen, curr_t);
+    return false;
+}
+
+>>>>>>> master
 BlockType Player::removeBlock(Terrain* terrain) {
     glm::vec3 rayOrigin = m_camera.m_position;
     glm::vec3 rayDirection = 3.f * glm::normalize(this->m_forward);
     float outDist = 0.f;
     glm::ivec3 outBlockHit = glm::ivec3();
 
+<<<<<<< HEAD
     if (gridMarch(rayOrigin, rayDirection, &outDist, &outBlockHit, *terrain)) {
         std::cout<<"remove \n";
+=======
+    if (gridMarch(rayOrigin, rayDirection, &outDist, &outBlockHit)) {
+
+>>>>>>> master
         BlockType blockType = terrain->getBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z);
         inventory.addItem(blockType);
         terrain->setBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z, EMPTY);
@@ -119,10 +354,6 @@ BlockType Player::removeBlock(Terrain* terrain) {
         ch->destroyVBOdata();
         ch->generateVBOData();
         ch->loadVBO();
-        //terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
-        //terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
-        //terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
-
         return blockType;
     }
 
@@ -134,41 +365,48 @@ BlockType Player::placeBlock(Terrain* terrain, BlockType currBlockType) {
     glm::vec3 rayDirection = 3.f * glm::normalize(this->m_forward);
     float outDist = 0.f;
     glm::ivec3 outBlockHit = glm::ivec3();
+    BlockType outType = EMPTY;
 
-    if (gridMarch(rayOrigin, rayDirection, &outDist, &outBlockHit, *terrain)) {
-        if (inventory.removeItem(currBlockType)) {
-            std::cout << inventory.items[currBlockType].count << std::endl;
-            if (infAxis == 2) {
-                BlockType foundBlock = terrain->getBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z - glm::sign(rayDirection.z));
-                if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
-                    terrain->setBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z - glm::sign(rayDirection.z), currBlockType);
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
-                    return currBlockType;
+    if (gridMarch(rayOrigin, rayDirection, &outDist, &outBlockHit, &outType)) {
+        if (outType == CLOTH_1) {
+            MyGL* g = static_cast<MyGL*>(cntx);
+            if (g) {
+                g->showRecipe();
+            }
+        }
+        else {
+            if (inventory.removeItem(currBlockType)) {
+                if (infAxis == 2) {
+                    BlockType foundBlock = terrain->getBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z - glm::sign(rayDirection.z));
+                    if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
+                        terrain->setBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z - glm::sign(rayDirection.z), currBlockType);
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
+                        return currBlockType;
+                    }
+                } else if (infAxis == 1) {
+                    BlockType foundBlock = terrain->getBlockAt(outBlockHit.x, outBlockHit.y - glm::sign(rayDirection.y), outBlockHit.z);
+                    if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
+                        terrain->setBlockAt(outBlockHit.x, outBlockHit.y - glm::sign(rayDirection.y), outBlockHit.z, currBlockType);
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
+                        return currBlockType;
+                    }
+                } else if (infAxis == 0) {
+                    BlockType foundBlock = terrain->getBlockAt(outBlockHit.x - glm::sign(rayDirection.x), outBlockHit.y, outBlockHit.z);
+                    if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
+                        terrain->setBlockAt(outBlockHit.x - glm::sign(rayDirection.x), outBlockHit.y, outBlockHit.z, currBlockType);
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
+                        return currBlockType;
+                     }
                 }
-            } else if (infAxis == 1) {
-                BlockType foundBlock = terrain->getBlockAt(outBlockHit.x, outBlockHit.y - glm::sign(rayDirection.y), outBlockHit.z);
-                if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
-                    terrain->setBlockAt(outBlockHit.x, outBlockHit.y - glm::sign(rayDirection.y), outBlockHit.z, currBlockType);
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
-                    return currBlockType;
-                }
-            } else if (infAxis == 0) {
-                BlockType foundBlock = terrain->getBlockAt(outBlockHit.x - glm::sign(rayDirection.x), outBlockHit.y, outBlockHit.z);
-                if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
-                    terrain->setBlockAt(outBlockHit.x - glm::sign(rayDirection.x), outBlockHit.y, outBlockHit.z, currBlockType);
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
-                    return currBlockType;
-                 }
             }
         }
     }
-
     return EMPTY;
 }
 

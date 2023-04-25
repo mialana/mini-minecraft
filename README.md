@@ -14,7 +14,7 @@ For the `draw()` function in `Terrain`, I simply iterated through the chunks in 
 To implement this feature, I looped through the 4 directions and checked whether the player was currently less than 16 blocks from an unloaded chunk. If they are, I calculated the correct chunk origin and instantiated a new chunk in that direction.
 
 
-### Game Engine Tick Function and Player Physics - Abhinav Srivastava
+### Game Engine Tick Function and Player Physics (MILESTONE 1) - Abhinav Srivastava
 
 For player movement and physics: Added pressed/released events in mygl.cpp to keep track of which keys are preessed at any tick. Then in processInput, I calculated the total accereleration. Then in computePhysics, I calculated velocity using newtons equations of motion. 1 gameplay tweek I made was to only add gravity acc if the player was in air. If the player is in fly mode, both gravity and collisions are not calculated.
 
@@ -28,6 +28,34 @@ Simillarly for placement, I used gridMarch to get the block 3 units away from me
 
 Fly mode: pressing the F key allows the player to enable fly mode, in which the player can move freely throughout the world without the restrictions of collisions and gravity.
 
+
+### Multithreading (MILESTONE 2) - Abhinav Srivastava
+
+For multithreading, I decided to use the structure that Adam advised in lecture. Which was to follow the tryExpand + CheckThreadResults procedure. Implementing multithreading actually turned out to be quite the challenge, this was primarily due to merge conflicts the team used to run into, which sometimes resulted in code being unintentionally deleted. Definitely a learning experience :)
+
+As for the actual implementation, I use QThread and QMutex for the mutex and threads. I also use a vboWorker and a BlockWorker class to handle generation and binding of VBOs. The toughest part of the implementation was actually the math behind getting the different terrain zones and rendering the chunks according to player position.
+
+In the current implementattion, the multithreading algorithm will expand every tick, and the MyGL::RenderTerrain function will determine what to finally render based on Player position. This is simillar to Minecraft's implementation for chunk loading. The program lags a little bit at the start as multithreading runs in the background to get all the chunk data setup, to ensure a smooth and nearly flawless player experience for the rest of the session.
+
+### Inventory system (MILESTONE 3) - Abhinav Srivastava
+
+For the inventory system, I went for usability over GUI looks. I created a new widget file in QTCreator for the inventoryWindow, which opens when pressed "I". The inventory window houses a list of all the blocks the player currently posseses as well as the quantity the player possesses. The player can simply click and select any list item and then close the inventory to place the selected block.
+
+The implementation part was relatively straightforward. I created a new class called inventoryManager and added it to the player class. Essentially the inventory manager class object handles all the inventory related actions such as adding a player removed block to the inventory, and subsequently lowering the quantity owned when placing a block from the inventory.
+
+The main hurdle I ran into was considering all the different cases the player could run into when using the inventory for example, what happens when an owned block's quantity goes to 0, how to handle a case like that was really interesting.
+
+### Crafting system (MILESTONE 3) - Abhinav Srivastava
+
+For crafting, I again went with a simple usable UI instead of a more flashy one. I extended the inventoryWindow to allow for crafting UI elements, this meant that the player could access crafting at all times through the inventory. But to make sure that the player doesn't abuse the mechanic, I decided to hide the recipes for crafting in an item called the "Recipe Book". The player will have to equip and place the recipe book and then interact with it to see the different recipes in the game, then use the crafting menu in the inventory UI to craft the new blocks.
+
+Implementing crafting was really fun. I first created the new UI for the crafting menu in InventoryWindow, this extension allowed me to control everything from one class. Next was to right the logic behind crafting. I had to write several functions to cater to all the different cases that could occur during crafting, for eg. using a recipe that requires 2 of the same blocks, and then cheking if the player actually has enough of the same type to craft.
+
+The next challenge was to save the recipe data, I opted for an unordered_map to store the data with a pair of BlockTypes being the key and a BlockType being the value. A hurdle I had to solve was writing my own simple hash function for the pair of BlockTypes being used as a key.
+
+For the recipe book, I created a new UI file and class. This was done to show the recipes in another standalone UI window. I essentially replaced the crafting table with a recipe book. This also meant modifying parts of player.cpp to make sure that interaction with blocks other than removing and placing was possible.
+
+I had a lot of fun writing different recipes for the game, with the help of my teammates, we have come up with some hillarious recipes. To ensure every player views them, all players start off with 2 recipe books.
 
 ### Procedural Terrain - Rachel Lin
 
@@ -103,5 +131,5 @@ As mentioned previously, each time blendMultipleBiomes() is called for an xz coo
 
 A TV static noise function based on the xz coordinate is used to scatter assets across the terrain. 
 
-Tall grass is scattered at varying frequencies across all biomes. In the mountains biome, lanterns are placed at varying heights above bodies of water, and cedar trees, teak trees, and cottages are placed occasionally on land. In the hills biome, rice and wheat is placed at different heights to create the appearance of terrace farms, and simple huts are placed at low frequencies. In the forest biome, tea houses and cherry trees are placed at low frequencies, and bamboo is placed at higher frequencies. In the islands biome, maple and pine trees are placed at low frequencies on land, and a fbm noise function is used to create patches of aquatic plant life. In the caves biome, wisteria trees and blue flowers are placed regularly. For kelp and bamboo, a second TV static noise function that takes in an additional y coordinate is used to make the plants grow at different heights. 
+Tall grass is scattered at varying frequencies across all biomes. In the mountains biome, lanterns are placed at varying heights above bodies of water, and cedar trees, teak trees, and cottages are placed occasionally on land. In the hills biome, rice and wheat is placed at different heights to create the appearance of terrace farms, and simple huts are placed at low frequencies. In the forest biome, tea houses and cherry trees are placed at low frequencies, and bamboo is placed at higher frequencies. In the islands biome, maple and pine trees are placed at low frequencies on land, and a fbm noise function is used to create patches of aquatic plant life. In the caves biome, wisteria trees and blue flowers are placed regularly. For kelp and bamboo, a second TV static noise function that takes in an additional y coordinate is used to make the plants grow at different heights. I also wrote functions to build trees and houses given a set of xyz coordinates, which were called based on Voronoi points to partition them and keep them from intersecting each other.
 
