@@ -3,7 +3,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <QThreadPool>
-#include "scene/zombie.h"
 #include "workers.h"
 
 Terrain::Terrain(OpenGLContext* context)
@@ -139,11 +138,11 @@ bool Terrain::hasTerrainGenerationZoneAt(glm::ivec2 zone) {
     return m_generatedTerrain.find(toKey(zone.x, zone.y)) != m_generatedTerrain.end();
 }
 
-void Terrain::multithreadedWork(glm::vec3 currPlayerPos, glm::vec3 prevPlayerPos, float dt) {
+void Terrain::multithreadedWork(glm::vec3 currPlayerPos, glm::vec3 prevPlayerPos, float dt, std::vector<uPtr<Zombie>>& currZombies) {
     m_chunkTimer += dt;
 
     if (m_chunkTimer >= 0.5f) {
-        tryNewChunk(currPlayerPos, prevPlayerPos);
+        tryNewChunk(currPlayerPos, prevPlayerPos, currZombies);
         m_chunkTimer = 0.0f;
     }
 
@@ -184,7 +183,7 @@ std::vector<glm::ivec2> isSameVector(std::vector<glm::ivec2> a, std::vector<glm:
     return diff;
 }
 
-void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos, std::vector<Zombie*>& currZombies) {
+void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos, std::vector<uPtr<Zombie>>& currZombies) {
     // Find the 64 x 64 zone the player is on
     glm::ivec2 curr(64.f * floor(pos.x / 64.f), 64.f * floor(pos.z / 64.f));
     glm::ivec2 prev(64.f * floor(prevPos.x / 64.f), 64.f * floor(prevPos.z / 64.f));
@@ -198,9 +197,9 @@ void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos, std::vector<Zombie*>
             glm::ivec2 coord = toCoords(zone);
             std::cout<<"got into deleting \n";
 
-            for (Zombie* zomb : currZombies) {
+            for (auto& zomb : currZombies) {
                 if (zomb->m_position.x >= coord.x && zomb->m_position.x < coord.x + 64
-                        && zomb.m_position.z >= coord.y && zomb->m_position.z < coord.y + 64) {
+                        && zomb->m_position.z >= coord.y && zomb->m_position.z < coord.y + 64) {
                     zomb->needsRespawn = true;
                 }
             }
@@ -455,7 +454,7 @@ Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
     return cPtr;
 }
 
-void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shaderProgram, std::vector<Zombie*>& currZombies) {
+void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shaderProgram, std::vector<uPtr<Zombie>>& currZombies) {
     chunksWithBlockDataMutex.lock();
     chunksWithVBODataMutex.lock();
     m_blockDataChunksLock.lock();
@@ -494,9 +493,9 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
 
     std::vector<Zombie*> zombiesToRespawn;
 
-    for (Zombie* zomb : currZombies) {
+    for (auto& zomb : currZombies) {
         if (zomb->needsRespawn) {
-            zombiesToRespawn.push_back(zomb);
+            zombiesToRespawn.push_back(zomb.get());
         }
     }
 
@@ -509,19 +508,21 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
                 if (hasChunkAt(x, z)) {
                     const uPtr<Chunk>& currChunk = getChunkAt(x, z);
 
-                    if (currChunk->hasVBOData && currChunk->hasBinded) {
+                    if (currChunk->hasVBOData && currChunk->hasBinded && currChunk->viableSpawnBlocks.size() > 0) {
                         availableChunks.push_back(currChunk.get());
                     }
                 }
             }
         }
+        if (availableChunks.size() > 0) {
+            for (Zombie* zomb : zombiesToRespawn) {
+                int randomChunk = Biome::getRandomIntInRange(0, availableChunks.size() - 1);
 
-        for (Zombie* zomb : zombiesToRespawn) {
-            int randomChunk = Biome::getRandomIntInRange(0, availableChunks.size() - 1);
-            std::cout << randomChunk << std::endl;
-
-            zomb->respawn(availableChunks[randomChunk]);
+                zomb->respawn(availableChunks[randomChunk]);
+            }
         }
+
+
 
 
 

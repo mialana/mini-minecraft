@@ -256,7 +256,7 @@ void ShaderProgram::drawInterleavedO(Drawable& d) {
                                     d.elemCount()) + "!");
     }
 
-    if (d.bindOVertData()) {
+    if (d.bindOVertData() && d.m_oCount > 0) {
         if (attrPos != -1) {
             context->glEnableVertexAttribArray(attrPos);
             context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 6 * sizeof(glm::vec4), (void*) 0);
@@ -291,7 +291,6 @@ void ShaderProgram::drawInterleavedO(Drawable& d) {
             context->glVertexAttribPointer(attrBWts, 4, GL_FLOAT, false, 6 * sizeof(glm::vec4),
                                            (void*)(5 * sizeof(glm::vec4)));
         }
-    }
 
     d.bindOIdx();
     context->glDrawElements(d.drawMode(), d.elemCount(), GL_UNSIGNED_INT, 0);
@@ -321,6 +320,7 @@ void ShaderProgram::drawInterleavedO(Drawable& d) {
     }
 
     context->printGLErrorLog();
+    }
 }
 
 void ShaderProgram::drawInterleavedT(Drawable& d) {
@@ -331,7 +331,7 @@ void ShaderProgram::drawInterleavedT(Drawable& d) {
                                     d.elemCount()) + "!");
     }
 
-    if (d.bindTVertData()) {
+    if (d.bindTVertData() && d.m_tCount > 0) {
         if (attrPos != -1) {
             context->glEnableVertexAttribArray(attrPos);
             context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 6 * sizeof(glm::vec4), (void*) 0);
@@ -366,7 +366,6 @@ void ShaderProgram::drawInterleavedT(Drawable& d) {
             context->glVertexAttribPointer(attrBWts, 4, GL_FLOAT, false, 6 * sizeof(glm::vec4),
                                            (void*)(5 * sizeof(glm::vec4)));
         }
-    }
 
     d.bindTIdx();
     context->glDrawElements(d.drawMode(), d.elemCount(), GL_UNSIGNED_INT, 0);
@@ -396,6 +395,7 @@ void ShaderProgram::drawInterleavedT(Drawable& d) {
     }
 
     context->printGLErrorLog();
+    }
 }
 
 char* ShaderProgram::textFileRead(const char* fileName) {

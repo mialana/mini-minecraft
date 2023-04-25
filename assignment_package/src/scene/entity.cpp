@@ -1,5 +1,6 @@
 #include "entity.h"
 #include <QJsonArray>
+#include <iostream>
 #include "mygl.h"
 
 Entity::Entity(OpenGLContext* context)
@@ -7,11 +8,11 @@ Entity::Entity(OpenGLContext* context)
 {}
 
 Entity::Entity(glm::vec3 pos, OpenGLContext* context)
-    : m_position(pos), m_forward(0, 0, -1), m_right(1, 0, 0), m_up(0, 1, 0), m_geom3D(context)
+    : m_velocity(0, 0, 0), m_acceleration(0, 0, 0), m_forward(0, 0, -1), m_right(1, 0, 0), m_up(0, 1, 0), m_position(pos), m_geom3D(context)
 {}
 
 Entity::Entity(const Entity& e, OpenGLContext* context)
-    : m_position(e.m_position), m_forward(e.m_forward), m_right(e.m_right), m_up(e.m_up),
+    : m_velocity(0, 0, 0), m_acceleration(0, 0, 0), m_forward(e.m_forward), m_right(e.m_right), m_up(e.m_up), m_position(e.m_position),
       m_geom3D(context)
 {}
 
@@ -180,7 +181,7 @@ void Entity::drawSceneGraph(const uPtr<Node>& currNode, glm::mat4 currTransforma
     if (currNode->name == "BodyR") {
         currTransformation *= currNode->overriddenTransformMatrix;
     } else if (currNode->name == "HeadR") {
-        currTransformation = currNode->overriddenTransformMatrix;
+        currTransformation = glm::translate(this->m_position + glm::vec3(0.f, 1.65f, 0.f)) * currNode->overriddenTransformMatrix;
     } {
         currTransformation *= currNode->transformMatrix();
     }

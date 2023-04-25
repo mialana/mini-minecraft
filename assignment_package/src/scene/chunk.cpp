@@ -819,8 +819,6 @@ void Chunk::createVBOdata() {
         }
     }
 
-    hasVBOData = true;
-
     m_oCount = oIndices.size();
 
     generateOIdx();
@@ -844,6 +842,8 @@ void Chunk::createVBOdata() {
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufVertData);
     mp_context->glBufferData(GL_ARRAY_BUFFER, tVertData.size() * sizeof(glm::vec4), tVertData.data(),
                              GL_STATIC_DRAW);
+
+    hasVBOData = true;
     hasBinded = true;
 }
 
@@ -1268,6 +1268,7 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                     } else {
                         setBlockAt(x, h, z, SNOW_3);
                     }
+                    this->viableSpawnBlocks.push_back(glm::vec3(x, h + 16, z));
                 }
             } else if (b == HILLS) {
                 for (int y = 0; y < h - 3 - numDirtBlocks; ++y) {
@@ -1288,6 +1289,7 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                     }
                 } else if (h <= 130) {
                     setBlockAt(x, h - 1, z, GRASS);
+                    this->viableSpawnBlocks.push_back(glm::vec3(x, h + 16, z));
                 } else if (h > 130 && h <= 130 + 10 * p3) {
                     setBlockAt(x, h - 1, z, TILLED_DIRT);
                     if (p4 < 0.1) {
@@ -1307,6 +1309,7 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                     } else {
                         setBlockAt(x, h, z, WHEAT_8);
                     }
+                    this->viableSpawnBlocks.push_back(glm::vec3(x, h + 16, z));
                 } else {
                     setBlockAt(x, h - 1, z, IRRIGATED_SOIL);
                     if (p4 < 0.3) {
@@ -1322,6 +1325,7 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                     } else {
                         setBlockAt(x, h, z, RICE_6);
                     }
+                    this->viableSpawnBlocks.push_back(glm::vec3(x, h + 16, z));
                 }
             } else if (b == FOREST) {
                 for (int y = 0; y < h - numDirtBlocks - 1; ++y) {
@@ -1339,6 +1343,7 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                     }
                 } else {
                     setBlockAt(x, h - 1, z, GRASS);
+                    this->viableSpawnBlocks.push_back(glm::vec3(x, h + 16, z));
                 }
             } else if (b == ISLANDS) {
                 for (int y = 0; y < 80; ++y) {
@@ -1351,6 +1356,8 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                     for (int y = h; y < 120; ++y) {
                         setBlockAt(x, y, z, WATER);
                     }
+                } else {
+                    this->viableSpawnBlocks.push_back(glm::vec3(x, h + 16, z));
                 }
             }
 

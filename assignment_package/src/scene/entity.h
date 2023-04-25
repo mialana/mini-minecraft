@@ -22,6 +22,7 @@ struct InputBundle {
 
 class Entity {
     public:
+        glm::vec3 m_velocity, m_acceleration;
         glm::vec3 m_forward, m_right, m_up;
         glm::vec3 m_position;
         Geometry3D m_geom3D;

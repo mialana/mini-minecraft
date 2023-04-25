@@ -28,8 +28,7 @@ MyGL::MyGL(QWidget* parent)
     setCursor(Qt::BlankCursor); // Make the cursor invisible
 
     for (int i = 0; i < 5; i++) {
-        Zombie newZombie = Zombie(this);
-        m_zombies.push_back(&newZombie);
+        m_zombies.push_back(mkU<Zombie>(this));
     }
 }
 
@@ -74,6 +73,12 @@ void MyGL::initializeGL() {
     m_player.m_geom3D.destroyVBOdata();
     m_player.m_geom3D.createVBOdata();
     m_player.constructSceneGraph(nodeDataJsonObject["PlayerNodes"].toArray());
+
+    for (auto& zomb : m_zombies) {
+        zomb->m_geom3D.destroyVBOdata();
+        zomb->m_geom3D.createVBOdata();
+        zomb->constructSceneGraph(nodeDataJsonObject["PlayerNodes"].toArray());
+    }
 
     m_progLambert.create(":/glsl/lambert.vert.glsl", ":/glsl/lambert.frag.glsl");
     // Create and set up the flat lighting shader
@@ -139,7 +144,7 @@ void MyGL::tick() {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
     }
 
-    m_terrain.multithreadedWork(m_player.m_position, prevPlayerPos, dT);
+    m_terrain.multithreadedWork(m_player.m_position, prevPlayerPos, dT, m_zombies);
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
@@ -197,6 +202,15 @@ void MyGL::paintGL() {
         glEnable(GL_CULL_FACE);
     }
 
+    for (auto& zomb : m_zombies) {
+        if (!zomb->needsRespawn) {
+            glDisable(GL_CULL_FACE);
+            m_progPlayer.setModelMatrix(glm::mat4());
+            zomb->drawSceneGraph(zomb->bodyT, glm::translate(zomb->m_position), m_progPlayer);
+            glEnable(GL_CULL_FACE);
+        }
+    }
+
     renderTerrain();
 
     glBindFramebuffer(GL_FRAMEBUFFER, this->defaultFramebufferObject());
@@ -222,7 +236,7 @@ void MyGL::renderTerrain() {
     int x = 16 * xFloor;
     int z = 16 * zFloor;
 
-    m_terrain.draw(x - 256, x + 256, z - 256, z + 256, &m_progLambert);
+    m_terrain.draw(x - 256, x + 256, z - 256, z + 256, &m_progLambert, m_zombies);
 
     glm::vec2 pPos(m_player.m_position.x, m_player.m_position.z);
     glm::ivec2 chunk(16 * glm::ivec2(glm::floor(pPos / 16.f)));

@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "shaderprogram.h"
+#include "scene/zombie.h"
 #include "biome.h"
 #include <mutex>
 #include <thread>
@@ -95,7 +96,7 @@ public:
 
     QSet<long long> borderingZone(glm::ivec2 coords, int radius, bool atEdge);
 
-    void tryNewChunk(glm::vec3 pos, glm::vec3 prevPos);
+    void tryNewChunk(glm::vec3 pos, glm::vec3 prevPos, std::vector<uPtr<Zombie>>& currZombies);
 
     bool hasTerrainGenerationZoneAt(glm::ivec2);
 
@@ -104,7 +105,7 @@ public:
     uPtr<Chunk>& getNewChunkAt(int x, int z);
     const uPtr<Chunk>& getNewChunkAt(int x, int z) const;
 
-    void multithreadedWork(glm::vec3, glm::vec3, float);
+    void multithreadedWork(glm::vec3, glm::vec3, float, std::vector<uPtr<Zombie>>& currZombies);
 
     void tryExpansion(glm::vec3, glm::vec3);
     void checkThreadResults();
@@ -155,7 +156,7 @@ public:
     // Draws every Chunk that falls within the bounding box
     // described by the min and max coords, using the provided
     // ShaderProgram
-    void draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shaderProgram);
+    void draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shaderProgram, std::vector<uPtr<Zombie>>& currZombies);
 
     // Initializes the Chunks that store the 64 x 256 x 64 block scene you
     // see when the base code is run.

@@ -14,7 +14,6 @@
       "geomType": "BODY",
       "parent": "BodyR"
     },
-
     {
       "name": "HeadT",
       "nodeType": "translation",

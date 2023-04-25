@@ -55,7 +55,7 @@ class MyGL : public OpenGLContext {
         bool isInventoryOpen;
         Player m_player;
 
-        std::vector<Zombie*> m_zombies;
+        std::vector<uPtr<Zombie>> m_zombies;
 
         BlockType currBlock = EMPTY;
 

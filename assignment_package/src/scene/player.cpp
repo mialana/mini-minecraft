@@ -5,7 +5,7 @@
 #include "../mygl.h"
 
 Player::Player(glm::vec3 pos, const Terrain& terrain, OpenGLContext* context)
-    : Entity(pos, context), m_velocity(0, 0, 0), m_acceleration(0, 0, 0),
+    : Entity(pos, context),
       m_camera(pos + glm::vec3(0, 1.5f, 0), context),
       m_thirdPersonCamera(pos + glm::normalize(m_camera.m_up) * 2.f + glm::normalize(
                               m_camera.m_forward) * -5.f, context),

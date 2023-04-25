@@ -11,7 +11,6 @@ const static std::vector<float> playerDimensions = {
 
 class Player : public Entity {
     private:
-        glm::vec3 m_velocity, m_acceleration;
         Camera m_camera;
         Camera m_thirdPersonCamera;
         Camera m_frontViewCamera;
