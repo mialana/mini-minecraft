@@ -222,7 +222,7 @@ void MyGL::renderTerrain() {
     int x = 16 * xFloor;
     int z = 16 * zFloor;
 
-    m_terrain.draw(x - 128, x + 128, z - 128, z + 128, &m_progLambert);
+    m_terrain.draw(x - 256, x + 256, z - 256, z + 256, &m_progLambert);
 
     glm::vec2 pPos(m_player.m_position.x, m_player.m_position.z);
     glm::ivec2 chunk(16 * glm::ivec2(glm::floor(pPos / 16.f)));
