@@ -331,7 +331,7 @@ void ShaderProgram::drawInterleavedT(Drawable& d) {
                                     d.elemCount()) + "!");
     }
 
-    if (d.bindTVertData()) {
+    if (d.bindTVertData() && d.m_tCount > 0) {
         if (attrPos != -1) {
             context->glEnableVertexAttribArray(attrPos);
             context->glVertexAttribPointer(attrPos, 4, GL_FLOAT, false, 6 * sizeof(glm::vec4), (void*) 0);
