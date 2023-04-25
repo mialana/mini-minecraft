@@ -5,7 +5,7 @@
 #include "cameracontrolshelp.h"
 #include "playerinfo.h"
 #include "inventorywindow.h"
-
+#include "recipewindow.h"
 
 namespace Ui {
 class MainWindow;
@@ -27,11 +27,15 @@ private slots:
 
     void slot_actionToggleInventory(bool);
 
+    void slot_showRecipeWindow();
+
 private:
     Ui::MainWindow *ui;
     CameraControlsHelp cHelp;
     PlayerInfo playerInfoWindow;
     InventoryWindow inventoryWindow;
+    RecipeWindow recipeWindow;
+
 };
 
 

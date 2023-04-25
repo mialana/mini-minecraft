@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->mygl, SIGNAL(sig_sendPlayerTerrainZone(QString)), &playerInfoWindow, SLOT(slot_setZoneText(QString)));
 
     connect(ui->mygl, SIGNAL(sig_sendInventoryToggle(bool)), this, SLOT(slot_actionToggleInventory(bool)));
+    connect(ui->mygl, SIGNAL(sig_sendRecipeWindow()), this, SLOT(slot_showRecipeWindow()));
 }
 
 MainWindow::~MainWindow()
@@ -50,4 +51,9 @@ void MainWindow::slot_actionToggleInventory(bool status) {
     else {
         this->inventoryWindow.close();
     }
+}
+
+void MainWindow::slot_showRecipeWindow() {
+    this->recipeWindow.populateTable();
+    this->recipeWindow.show();
 }

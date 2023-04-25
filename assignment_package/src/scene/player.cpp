@@ -9,7 +9,7 @@ Player::Player(glm::vec3 pos, const Terrain& terrain, OpenGLContext* context)
       m_camera(pos + glm::vec3(0, 1.5f, 0), context),
       m_thirdPersonCamera(pos + glm::normalize(m_camera.m_up) * 3.f + glm::normalize(
                               m_camera.m_forward) * -5.f, context),
-      mcr_terrain(terrain), infAxis(-1), mcr_camera(&m_camera) {}
+      mcr_terrain(terrain), infAxis(-1), mcr_camera(&m_camera), cntx(context) {}
 
 Player::~Player() {}
 
@@ -289,7 +289,7 @@ void Player::detectCollision() {
     }
 }
 
-bool Player::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit) {
+bool Player::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit, BlockType* out_type) {
     float maxLen = glm::length(rayDirection);
     glm::ivec3 currCell = glm::ivec3(glm::floor(rayOrigin));
     rayDirection = glm::normalize(rayDirection);
@@ -330,8 +330,10 @@ bool Player::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_d
         currCell = glm::ivec3(glm::floor(rayOrigin)) + offset;
         BlockType cellType = mcr_terrain.getBlockAt(currCell.x, currCell.y, currCell.z);
 
-        if (cellType != EMPTY && !Chunk::isHPlane(cellType) && !Chunk::isCross2(cellType)
-                && !Chunk::isCross4(cellType) && cellType != WATER && cellType != LAVA) {
+        if (cellType != EMPTY &&  cellType != WATER && cellType != LAVA) {
+            if (out_type) {
+                *out_type = cellType;
+            }
             *out_blockHit = currCell;
             *out_dist = glm::min(maxLen, curr_t);
             return true;
@@ -349,7 +351,7 @@ BlockType Player::removeBlock(Terrain* terrain) {
     glm::ivec3 outBlockHit = glm::ivec3();
 
     if (gridMarch(rayOrigin, rayDirection, &outDist, &outBlockHit)) {
-        std::cout<<"remove \n";
+
         BlockType blockType = terrain->getBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z);
         inventory.addItem(blockType);
         terrain->setBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z, EMPTY);
@@ -357,10 +359,6 @@ BlockType Player::removeBlock(Terrain* terrain) {
         ch->destroyVBOdata();
         ch->generateVBOData();
         ch->loadVBO();
-        //terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
-        //terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
-        //terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
-
         return blockType;
     }
 
@@ -372,41 +370,48 @@ BlockType Player::placeBlock(Terrain* terrain, BlockType currBlockType) {
     glm::vec3 rayDirection = 3.f * glm::normalize(this->m_forward);
     float outDist = 0.f;
     glm::ivec3 outBlockHit = glm::ivec3();
+    BlockType outType = EMPTY;
 
-    if (gridMarch(rayOrigin, rayDirection, &outDist, &outBlockHit)) {
-        if (inventory.removeItem(currBlockType)) {
-            std::cout << inventory.items[currBlockType].count << std::endl;
-            if (infAxis == 2) {
-                BlockType foundBlock = terrain->getBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z - glm::sign(rayDirection.z));
-                if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
-                    terrain->setBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z - glm::sign(rayDirection.z), currBlockType);
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
-                    return currBlockType;
+    if (gridMarch(rayOrigin, rayDirection, &outDist, &outBlockHit, &outType)) {
+        if (outType == CLOTH_1) {
+            MyGL* g = static_cast<MyGL*>(cntx);
+            if (g) {
+                g->showRecipe();
+            }
+        }
+        else {
+            if (inventory.removeItem(currBlockType)) {
+                if (infAxis == 2) {
+                    BlockType foundBlock = terrain->getBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z - glm::sign(rayDirection.z));
+                    if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
+                        terrain->setBlockAt(outBlockHit.x, outBlockHit.y, outBlockHit.z - glm::sign(rayDirection.z), currBlockType);
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
+                        return currBlockType;
+                    }
+                } else if (infAxis == 1) {
+                    BlockType foundBlock = terrain->getBlockAt(outBlockHit.x, outBlockHit.y - glm::sign(rayDirection.y), outBlockHit.z);
+                    if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
+                        terrain->setBlockAt(outBlockHit.x, outBlockHit.y - glm::sign(rayDirection.y), outBlockHit.z, currBlockType);
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
+                        return currBlockType;
+                    }
+                } else if (infAxis == 0) {
+                    BlockType foundBlock = terrain->getBlockAt(outBlockHit.x - glm::sign(rayDirection.x), outBlockHit.y, outBlockHit.z);
+                    if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
+                        terrain->setBlockAt(outBlockHit.x - glm::sign(rayDirection.x), outBlockHit.y, outBlockHit.z, currBlockType);
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
+                        terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
+                        return currBlockType;
+                     }
                 }
-            } else if (infAxis == 1) {
-                BlockType foundBlock = terrain->getBlockAt(outBlockHit.x, outBlockHit.y - glm::sign(rayDirection.y), outBlockHit.z);
-                if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
-                    terrain->setBlockAt(outBlockHit.x, outBlockHit.y - glm::sign(rayDirection.y), outBlockHit.z, currBlockType);
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
-                    return currBlockType;
-                }
-            } else if (infAxis == 0) {
-                BlockType foundBlock = terrain->getBlockAt(outBlockHit.x - glm::sign(rayDirection.x), outBlockHit.y, outBlockHit.z);
-                if (foundBlock == EMPTY || foundBlock == WATER || foundBlock == LAVA) {
-                    terrain->setBlockAt(outBlockHit.x - glm::sign(rayDirection.x), outBlockHit.y, outBlockHit.z, currBlockType);
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->destroyVBOdata();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->generateVBOData();
-                    terrain->getChunkAt(outBlockHit.x, outBlockHit.z).get()->loadVBO();
-                    return currBlockType;
-                 }
             }
         }
     }
-
     return EMPTY;
 }
 

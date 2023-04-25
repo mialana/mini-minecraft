@@ -2,8 +2,6 @@
 #include <stdexcept>
 #include <iostream>
 #include <cstdlib>
-#include <QThreadPool>
-#include "workers.h"
 
 Terrain::Terrain(OpenGLContext* context)
     : m_chunks(), m_generatedTerrain(), mp_context(context)
@@ -101,12 +99,6 @@ bool Terrain::hasChunkAt(int x, int z) const {
     return m_chunks.find(toKey(16 * xFloor, 16 * zFloor)) != m_chunks.end();
 }
 
-bool Terrain::hasNewChunkAt(int x, int z) const {
-    int xFloor = static_cast<int>(glm::floor(x / 16.f));
-    int zFloor = static_cast<int>(glm::floor(z / 16.f));
-
-    return newChunks.find(toKey(16 * xFloor, 16 * zFloor)) != newChunks.end();
-}
 
 uPtr<Chunk>& Terrain::getChunkAt(int x, int z) {
     int xFloor = static_cast<int>(glm::floor(x / 16.f));
@@ -120,112 +112,14 @@ const uPtr<Chunk>& Terrain::getChunkAt(int x, int z) const {
     return m_chunks.at(toKey(16 * xFloor, 16 * zFloor));
 }
 
-uPtr<Chunk>& Terrain::getNewChunkAt(int x, int z) {
-    int xFloor = static_cast<int>(glm::floor(x / 16.f));
-    int zFloor = static_cast<int>(glm::floor(z / 16.f));
-
-    return newChunks[toKey(16 * xFloor, 16 * zFloor)];
-}
-
-const uPtr<Chunk>& Terrain::getNewChunkAt(int x, int z) const {
-    int xFloor = static_cast<int>(glm::floor(x / 16.f));
-    int zFloor = static_cast<int>(glm::floor(z / 16.f));
-
-    return newChunks.at(toKey(16 * xFloor, 16 * zFloor));
-}
-
-bool Terrain::hasTerrainGenerationZoneAt(glm::ivec2 zone) {
-    return m_generatedTerrain.find(toKey(zone.x, zone.y)) != m_generatedTerrain.end();
-}
 
 void Terrain::multithreadedWork(glm::vec3 currPlayerPos, glm::vec3 prevPlayerPos, float dt) {
     m_chunkTimer += dt;
-
     if (m_chunkTimer >= 0.5f) {
-        tryNewChunk(currPlayerPos, prevPlayerPos);
+        tryExpansion(currPlayerPos, prevPlayerPos);
         m_chunkTimer = 0.0f;
     }
-
-    checkthreadResults();
-}
-
-std::vector<glm::ivec2> getNearTerrainGenZones(glm::vec2 pos, int n) {
-    std::vector<glm::ivec2> tgzs = {};
-    int halfWidth = glm::floor(n / 2.f) * 64;
-
-    for (int i = pos.x - halfWidth; i <= pos.x + halfWidth; i += 64) {
-        for (int j = pos.y - halfWidth; j <= pos.y + halfWidth; j += 64) {
-            tgzs.push_back(glm::ivec2(i, j));
-        }
-    }
-
-    return tgzs;
-}
-
-std::vector<glm::ivec2> isSameVector(std::vector<glm::ivec2> a, std::vector<glm::ivec2> b) {
-    std::vector<glm::ivec2> diff;
-
-    for (glm::ivec2 vecB : b) {
-        bool match = false;
-
-        for (glm::ivec2 vecA : a) {
-            if (vecA.x == vecB.x && vecA.y == vecB.y) {
-                match = true;
-                break;
-            }
-        }
-
-        if (!match) {
-            diff.push_back(vecB);
-        }
-    }
-
-    return diff;
-}
-
-void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos) {
-    // Find the 64 x 64 zone the player is on
-    glm::ivec2 curr(64.f * floor(pos.x / 64.f), 64.f * floor(pos.z / 64.f));
-    glm::ivec2 prev(64.f * floor(prevPos.x / 64.f), 64.f * floor(prevPos.z / 64.f));
-    // Figure out which zones border this zone and the previous zone
-    QSet<long long> borderingCurr = borderingZone(curr, 3, false);
-    QSet<long long> borderingPrev = borderingZone(prev, 3, false);
-
-    // If previous zones are no longer there, remove their vbo data
-    for (long long zone : borderingPrev) {
-        if (!borderingCurr.contains(zone)) {
-            glm::ivec2 coord = toCoords(zone);
-            std::cout<<"got into deleting \n";
-            for (int x = coord.x; x < coord.x + 64; x += 16) {
-                for (int z = coord.y; z < coord.y + 64; z += 16) {
-                    auto& c = getChunkAt(x, z);
-                    c->destroyVBOdata();
-                    c->hasVBOData = false;
-                    c->hasBinded = false;
-                    //c->isBuffered = false;
-                }
-            }
-        }
-    }
-
-    // Figure out if the current zones need VBO data or Block data
-    for (long long zone : borderingCurr) {
-        if (m_chunks.find(zone) != m_chunks.end()) {
-            if (!borderingPrev.contains(zone)) {
-                glm::ivec2 coord = toCoords(zone);
-
-                for (int x = coord.x; x < coord.x + 64; x += 16) {
-                    for (int z = coord.y; z < coord.y + 64; z += 16) {
-                        auto& c = getChunkAt(x, z);
-                        createVBOWorker(c.get());
-                    }
-                }
-            }
-        } else {
-            //std::cout<<"I am bd worker \n";
-            createBDWorker(zone);
-        }
-    }
+    checkThreadResults();
 }
 
 QSet<long long> Terrain::borderingZone(glm::ivec2 coords, int radius, bool atEdge) {
@@ -249,145 +143,91 @@ QSet<long long> Terrain::borderingZone(glm::ivec2 coords, int radius, bool atEdg
             }
         }
     }
-
     return result;
 }
 
-void Terrain::tryExpansion(glm::vec3 currPlayerPos, glm::vec3 prevPlayerPos) {
+void Terrain::tryExpansion(glm::vec3 pos, glm::vec3 prevPos) {
+    // Find the 64 x 64 zone the player is on
+    glm::ivec2 curr(64.f * floor(pos.x / 64.f), 64.f * floor(pos.z / 64.f));
+    glm::ivec2 prev(64.f * floor(prevPos.x / 64.f), 64.f * floor(prevPos.z / 64.f));
+    // Figure out which zones border this zone and the previous zone
+    QSet<long long> borderingCurr = borderingZone(curr, 3, false);
+    QSet<long long> borderingPrev = borderingZone(prev, 3, false);
 
-    //std::cout<<"itry  \n";
+    // Figure out if the current zones need VBO data or Block data
+    for (long long zone : borderingCurr) {
+        if (m_chunks.find(zone) != m_chunks.end()) {
+            if (!borderingPrev.contains(zone)) {
+                glm::ivec2 coord = toCoords(zone);
 
-    glm::ivec2 currZone = glm::ivec2(glm::floor(currPlayerPos.x / 64.f) * 64.f,
-                                     glm::floor(currPlayerPos.z / 64.f) * 64.f);
-
-    glm::ivec2 prevZone = glm::ivec2(glm::floor(prevPlayerPos.x / 64.f) * 64.f,
-                                     glm::floor(prevPlayerPos.z / 64.f) * 64.f);
-
-    std::vector<glm::ivec2> currTGZs = getNearTerrainGenZones(currZone, 1);
-    std::vector<glm::ivec2> prevTGZs = getNearTerrainGenZones(prevZone, 1);
-
-    std::vector<glm::ivec2> newZones = firstTick ? currTGZs : isSameVector(currTGZs, prevTGZs);
-    std::vector<glm::ivec2> oldZones = isSameVector(currTGZs, prevTGZs);
-
-    for (glm::ivec2 newZone : newZones) {
-        if (!hasTerrainGenerationZoneAt(newZone)) {
-            m_generatedTerrain.insert(toKey(newZone.x, newZone.y));
-
-            for (int x = 0; x < 64; x += 16) {
-                for (int z = 0; z < 64; z += 16) {
-                    std::cout << "i am add new chunk \n";
-                    newChunks[toKey(newZone.x + x, newZone.y + z)] = instantiateNewChunkAt(newZone.x + x,
-                                                                                           newZone.y + z);
+                for (int x = coord.x; x < coord.x + 64; x += 16) {
+                    for (int z = coord.y; z < coord.y + 64; z += 16) {
+                        auto& c = getChunkAt(x, z);
+                        createVBOWorker(c.get());
+                    }
                 }
             }
+        } else {
+            createBDWorker(zone);
         }
     }
-
-    for (auto & [ key, chunk ] : newChunks) {
-        int x = chunk->getWorldPos().x;
-        int z = chunk->getWorldPos().y;
-
-        if (hasChunkAt(x, z + 16)) {
-            auto& chunkNorth = getChunkAt(x, z + 16);
-            chunk->linkNeighbor(chunkNorth, ZPOS);
-        }
-
-        if (hasChunkAt(x, z - 16)) {
-            auto& chunkSouth = getChunkAt(x, z - 16);
-            chunk->linkNeighbor(chunkSouth, ZNEG);
-        }
-
-        if (hasChunkAt(x + 16, z)) {
-            auto& chunkEast = getChunkAt(x + 16, z);
-            chunk->linkNeighbor(chunkEast, XPOS);
-        }
-
-        if (hasChunkAt(x - 16, z)) {
-            auto& chunkWest = getChunkAt(x - 16, z);
-            chunk->linkNeighbor(chunkWest, XNEG);
-        }
-    }
-
-    for (auto & [ key, chunk ] : newChunks) {
-        blockWorkerThreads.push_back(std::thread(&Terrain::blockWorker, this, move(chunk)));
-    }
-
-    newChunks.clear();
-    firstTick = false;
-}
-
-uPtr<Chunk> Terrain::instantiateNewChunkAt(int x, int z) {
-    uPtr<Chunk> chunk = mkU<Chunk>(mp_context);
-    chunk.get()->setWorldPos(x, z);
-
-    return chunk;
-}
-
-BlockType Terrain::generateBlockTypeByHeight(int height, bool isTop) {
-
-    if (height < 120) {
-        return STONE;
-    }
-
-    if (height < 140) {
-        return STONE;
-    }
-
-    if (height < 160) {
-        return isTop ? GRASS : STONE;
-    }
-
-    if (height > 200) {
-        return isTop ? GRASS : STONE;
-    }
-
-    return STONE;
-}
-
-void Terrain::blockWorker(uPtr<Chunk> chunk) {
-    chunksWithBlockDataMutex.lock();
-    glm::ivec2 chunkWorldPos = chunk->getWorldPos();
-
-    for (int x = 0; x < 16; x++) {
-        for (int z = 0; z < 16; z++) {
-            int height = std::rand() % 250;
-
-            for (int k = 0; k <= height; k++) {
-                chunk->setBlockAt(x, k, z, generateBlockTypeByHeight(height, k == height));
-            }
-        }
-    }
-
-    chunksWithBlockData[toKey(chunk->getWorldPos().x, chunk->getWorldPos().y)] = move(chunk);
-    chunksWithBlockDataMutex.unlock();
 }
 
 void Terrain::checkThreadResults() {
-    /*  //std::cout<<"i am cjecl tjread load \n";
-        chunksWithBlockDataMutex.lock();
-        for (auto & [ key, chunk ] : chunksWithBlockData) {
-         std::cout<<"i am here at vbo worker \n";
-         vboWorkerThreads.push_back(std::thread(&Terrain::VBOWorker, this, std::move(chunk)));
-        }
-        chunksWithBlockData.clear();
-        chunksWithBlockDataMutex.unlock();
+    // First, send chunks processed by BlockWorkers to VBOWorkers
+    if (!m_blockDataChunks.empty()) {
+        m_blockDataChunksLock.lock();
 
-        chunksWithVBODataMutex.lock();
-        for (auto & [ key, chunk ] : chunksWithVBOData) {
-         chunk->loadVBO();
-         std::cout<<"i am here at load \n";
-         m_chunks[key] = move(chunk);
+        for (auto& c : m_blockDataChunks) {
+            for (auto& n : c->m_neighbors) {
+                if (n.second) {
+                    m_blockDataChunks.insert(n.second);
+                }
+            }
         }
-        chunksWithVBOData.clear();
-        chunksWithVBODataMutex.unlock();*/
+
+        createVBOWorkers(m_blockDataChunks);
+        m_blockDataChunks.clear();
+        m_blockDataChunksLock.unlock();
+    }
+
+    // Second, take the chunks that have VBO data and send data to GPU
+    m_VBODataChunksLock.lock();
+
+    for (auto& data : m_vboDataChunks) {
+        data->loadVBO();
+    }
+
+    m_vboDataChunks.clear();
+    m_VBODataChunksLock.unlock();
 }
 
-/*  void Terrain::VBOWorker(uPtr<Chunk> chunk) {
-    chunksWithVBODataMutex.lock();
-    chunk->generateVBOData();
-    chunksWithVBOData[toKey(chunk->getWorldPos().x, chunk->getWorldPos().y)] = move(chunk);
-    chunksWithVBODataMutex.unlock();
-    }*/
+void Terrain::createBDWorker(long long zone) {
+    std::vector<Chunk*> toDo;
+    int x = toCoords(zone).x;
+    int z = toCoords(zone).y;
+
+    for (int i = x; i < x + 64; i += 16) {
+        for (int j = z; j < z + 64; j += 16) {
+            toDo.push_back(instantiateChunkAt(i, j));
+        }
+    }
+
+    BDWorker* worker = new BDWorker(x, z, toDo,
+                                    &m_blockDataChunks, &m_blockDataChunksLock);
+    QThreadPool::globalInstance()->start(worker);
+}
+
+void Terrain::createVBOWorkers(const std::unordered_set<Chunk*>& chunks) {
+    for (Chunk* chunk : chunks) {
+        createVBOWorker(chunk);
+    }
+}
+
+void Terrain::createVBOWorker(Chunk* chunk) {
+    VBOWorker* werk = new VBOWorker(chunk, &m_vboDataChunks, &m_VBODataChunksLock);
+    QThreadPool::globalInstance()->start(werk);
+}
 
 void Terrain::setBlockAt(int x, int y, int z, BlockType t) {
     if (hasChunkAt(x, z)) {
@@ -448,19 +288,10 @@ Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
 }
 
 void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shaderProgram) {
-    chunksWithBlockDataMutex.lock();
-    chunksWithVBODataMutex.lock();
     m_blockDataChunksLock.lock();
-
     m_VBODataChunksLock.lock();
-
     for (int x = minX; x < maxX; x += 16) {
         for (int z = minZ; z < maxZ; z += 16) {
-
-
-
-
-
             if (hasChunkAt(x, z)) {
 
                 const uPtr<Chunk>& currChunk = getChunkAt(x, z);
@@ -469,24 +300,13 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
                     shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
                     shaderProgram->drawInterleavedO(*currChunk);
                 }
-
-
-
             }
         }
     }
-
     for (int x = minX; x < maxX; x += 16) {
         for (int z = minZ; z < maxZ; z += 16) {
-
-
-
-
-
             if (hasChunkAt(x, z)) {
                 const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-
-
                 if (currChunk->hasVBOData && currChunk->hasBinded) {
                     shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
                     shaderProgram->drawInterleavedT(*currChunk);
@@ -494,39 +314,27 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
             }
         }
     }
-
     m_blockDataChunksLock.unlock();
-
     m_VBODataChunksLock.unlock();
-    chunksWithBlockDataMutex.unlock();
-    chunksWithVBODataMutex.unlock();
 }
-
-
 
 void Terrain::CreateTestScene() {
     // Create the Chunks that will
     // store the blocks for our
     // initial world space
-
     for (int x = 0; x < 64; x += 16) {
         for (int z = 0; z < 64; z += 16) {
             Chunk* c = instantiateChunkAt(x, z);
-
             c->helperCreate(x, z);
-
         }
     }
 
     for (int x = 0; x < 64; x += 16) {
         for (int z = 0; z < 64; z += 16) {
             Chunk* c = getChunkAt(x, z).get();
-
             c->createVBOdata();
-
         }
     }
-
     // Tell our existing terrain set that
     // the "generated terrain zone" at (0,0)
     // now exists.
@@ -586,64 +394,831 @@ std::pair<float, BiomeEnum> Terrain::blendMultipleBiomes(glm::vec2 xz, float for
         return std::pair(h, b);
 }
 
-void Terrain::checkthreadResults() {
-    // First, send chunks processed by BlockWorkers to VBOWorkers
-    if (!m_blockDataChunks.empty()) {
-        m_blockDataChunksLock.lock();
+void Terrain::createToriiGate(int x, int y, int z, int rot) {
+    if (rot == 0) {
+        setBlockAt(x, y, z, BLACK_PAINTED_WOOD);
+        setBlockAt(x + 6, y, z, BLACK_PAINTED_WOOD);
 
-        for (auto& c : m_blockDataChunks) {
-            for (auto& n : c->m_neighbors) {
-                if (n.second) {
-                    m_blockDataChunks.insert(n.second);
-                }
+        for (int y1 = y + 1; y1 <= y + 5; y1++) {
+            setBlockAt(x, y1, z, RED_PAINTED_WOOD);
+            setBlockAt(x + 6, y1, z, RED_PAINTED_WOOD);
+        }
+
+        for (int x1 = x - 1; x1 <= x + 7; x1++) {
+            setBlockAt(x1, y + 6, z, RED_PAINTED_WOOD);
+            setBlockAt(x1, y + 8, z, RED_PAINTED_WOOD);
+        }
+        setBlockAt(x, y + 7, z, RED_PAINTED_WOOD);
+        setBlockAt(x + 3, y + 7, z, RED_PAINTED_WOOD);
+        setBlockAt(x + 6, y + 7, z, RED_PAINTED_WOOD);
+
+        for (int x2 = x - 2; x2 <= x + 8; x2++) {
+            setBlockAt(x2, y + 9, z, ROOF_TILES_1);
+        }
+    } else {
+        setBlockAt(x, y, z, BLACK_PAINTED_WOOD);
+        setBlockAt(x, y, z + 6, BLACK_PAINTED_WOOD);
+
+        for (int y1 = y + 1; y1 <= y + 5; y1++) {
+            setBlockAt(x, y1, z, RED_PAINTED_WOOD);
+            setBlockAt(x, y1, z + 6, RED_PAINTED_WOOD);
+        }
+
+        for (int z1 = z - 1; z1 <= z + 7; z1++) {
+            setBlockAt(x, y + 6, z1, RED_PAINTED_WOOD);
+            setBlockAt(x, y + 8, z1, RED_PAINTED_WOOD);
+        }
+        setBlockAt(x, y + 7, z, RED_PAINTED_WOOD);
+        setBlockAt(x, y + 7, z + 3, RED_PAINTED_WOOD);
+        setBlockAt(x, y + 7, z + 6, RED_PAINTED_WOOD);
+
+        for (int z2 = z - 2; z2 <= z + 8; z2++) {
+            setBlockAt(x, y + 9, z2, ROOF_TILES_1);
+        }
+    }
+}
+
+void Terrain::createHut(int x, int y, int z) {
+    for (int y1 = y; y1 <= y + 3; y1++) {
+        setBlockAt(x, y1, z, MAPLE_WOOD_Y);
+        setBlockAt(x + 8, y1, z, MAPLE_WOOD_Y);
+        setBlockAt(x, y1, z + 8, MAPLE_WOOD_Y);
+        setBlockAt(x + 8, y1, z + 8, MAPLE_WOOD_Y);
+    }
+    for (int x1 = x - 1; x1 <= x + 9; x1++) {
+        for (int z1 = z - 1; z1 <= z + 9; z1++) {
+            setBlockAt(x1, y + 4, z1, MAPLE_WOOD_Z);
+        }
+        setBlockAt(x1, y + 4, z - 2, MAPLE_WOOD_X);
+        setBlockAt(x1, y + 4, z + 10, MAPLE_WOOD_X);
+    }
+    setBlockAt(x - 3, y + 4, z - 2, MAPLE_WOOD_X);
+    setBlockAt(x - 3, y + 4, z + 10, MAPLE_WOOD_X);
+    setBlockAt(x - 2, y + 4, z - 2, MAPLE_WOOD_X);
+    setBlockAt(x - 2, y + 4, z + 10, MAPLE_WOOD_X);
+    setBlockAt(x + 10, y + 4, z - 2, MAPLE_WOOD_X);
+    setBlockAt(x + 10, y + 4, z + 10, MAPLE_WOOD_X);
+    setBlockAt(x + 11, y + 4, z - 2, MAPLE_WOOD_X);
+    setBlockAt(x + 11, y + 4, z + 10, MAPLE_WOOD_X);
+
+
+    for (int y2 = y + 5; y2 <= y + 10; y2++) {
+        for (int x2 = x; x2 <= x + 8; x2++) {
+            setBlockAt(x2, y2, z, CHERRY_PLANKS);
+            setBlockAt(x2, y2, z + 8, CHERRY_PLANKS);
+        }
+        for (int z2 = z + 1; z2 <= z + 7; z2++) {
+            setBlockAt(x, y2, z2, CHERRY_PLANKS);
+            setBlockAt(x + 8, y2, z2, CHERRY_PLANKS);
+        }
+    }
+    for (int x2 = x + 2; x2 <= x + 6; x2++) {
+        setBlockAt(x2, y + 11, z, CHERRY_PLANKS);
+        setBlockAt(x2, y + 11, z + 8, CHERRY_PLANKS);
+    }
+    setBlockAt(x + 4, y + 12, z, CHERRY_PLANKS);
+    setBlockAt(x + 4, y + 12, z + 8, CHERRY_PLANKS);
+
+    // roof
+    for (int z3 = z - 1; z3 <= z + 9; z3++) {
+        int dx = -2;
+        for (int y3 = y + 10; y3 <= y + 12; y3++) {
+            setBlockAt(x + dx, y3, z3, STRAW_1);
+            setBlockAt(x + 8 - dx, y3, z3, STRAW_1);
+            dx++;
+            setBlockAt(x + dx, y3, z3, STRAW);
+            setBlockAt(x + 8 - dx, y3, z3, STRAW);
+            dx++;
+        }
+        setBlockAt(x + 4, y + 13, z3, STRAW_1);
+    }
+
+    setBlockAt(x + 4, y + 5, z, EMPTY);
+    setBlockAt(x + 4, y + 6, z, EMPTY);
+
+//    setBlockAt(x + 4, y + 5, z + 8, EMPTY);
+//    setBlockAt(x + 4, y + 6, z + 8, EMPTY);
+
+//    setBlockAt(x, y + 5, z + 4, EMPTY);
+//    setBlockAt(x, y + 6, z + 4, EMPTY);
+
+    setBlockAt(x + 8, y + 5, z + 4, EMPTY);
+    setBlockAt(x + 8, y + 6, z + 4, EMPTY);
+}
+
+void Terrain::createCottage1(int x, int y, int z) {
+    // floor 1 walls
+    for (int y1 = y; y1 <= y + 3; y1++) {
+        for (int x1 = x; x1 <= x + 10; x1++) {
+            setBlockAt(x1, y1, z, CHERRY_PLANKS);
+            setBlockAt(x1, y1, z + 7, CHERRY_PLANKS);
+        }
+        for (int z1 = z; z1 <= z + 7; z1++) {
+            setBlockAt(x, y1, z1, CHERRY_PLANKS);
+            setBlockAt(x + 10, y1, z1, CHERRY_PLANKS);
+        }
+    }
+    for (int x1 = x; x1 <= x + 4; x1++) {
+        for (int y1 = y; y1 <= y + 2; y1++) {
+            setBlockAt(x1, y1, z + 7, EMPTY);
+            setBlockAt(x1, y1, z + 6, CHERRY_PLANKS);
+        }
+    }
+
+    // floor 1 decor
+    for (int x1 = x + 1; x1 < x + 10; x1 += 2) {
+        setBlockAt(x1, y + 6, z - 1, PAPER_LANTERN);
+        setBlockAt(x1, y + 6, z + 8, PAPER_LANTERN);
+    }
+    setBlockAt(x + 2, y, z + 6, CHERRY_WINDOW_Z);
+    setBlockAt(x + 2, y + 1, z + 6, CHERRY_WINDOW_Z);
+    setBlockAt(x + 3, y, z + 6, EMPTY);
+    setBlockAt(x + 3, y + 1, z + 6, EMPTY);
+    setBlockAt(x + 4, y + 2, z + 7, PAPER_LANTERN);
+    setBlockAt(x + 2, y, z + 5, WOOD_LANTERN);
+    setBlockAt(x + 2, y + 1, z + 5, MAPLE_IKEBANA);
+    setBlockAt(x + 3, y + 1, z + 1, PAINTING_4_ZP);
+
+    setBlockAt(x + 10, y, z + 3, EMPTY);
+    setBlockAt(x + 10, y + 1, z + 3, EMPTY);
+    setBlockAt(x + 10, y, z + 4, CHERRY_WINDOW_X);
+    setBlockAt(x + 10, y + 1, z + 4, CHERRY_WINDOW_X);
+
+    // floor 2 walls
+    for (int y2 = y + 4; y2 <= y + 7; y2++) {
+        for (int x1 = x; x1 <= x + 10; x1++) {
+            setBlockAt(x1, y2, z, PINE_PLANKS);
+            setBlockAt(x1, y2, z + 7, PINE_PLANKS);
+        }
+        for (int z2 = z; z2 <= z + 7; z2++) {
+            setBlockAt(x, y2, z2, PINE_PLANKS);
+            setBlockAt(x + 10, y2, z2, PINE_PLANKS);
+        }
+    }
+    for (int z2 = z + 2; z2 <= z + 5; z2++) {
+        setBlockAt(x, y + 8, z2, PINE_PLANKS);
+        setBlockAt(x + 10, y + 8, z2, PINE_PLANKS);
+    }
+
+    // floor 2 decor
+    setBlockAt(x + 9, y + 4, z + 6, WOOD_LANTERN);
+    setBlockAt(x + 9, y + 5, z + 6, DAFFODIL_IKEBANA);
+    setBlockAt(x + 1, y + 4, z + 1, WOOD_LANTERN);
+    setBlockAt(x + 1, y + 5, z + 1, ONCIDIUM_IKEBANA);
+
+    setBlockAt(x + 2, y + 4, z + 3, WISTERIA_WOOD_Z);
+    setBlockAt(x + 3, y + 4, z + 3, WISTERIA_WOOD_Z);
+    setBlockAt(x + 2, y + 4, z + 4, WISTERIA_WOOD_Z);
+    setBlockAt(x + 3, y + 4, z + 4, WISTERIA_WOOD_Z);
+    setBlockAt(x + 2, y + 4, z + 5, WISTERIA_WOOD_Z);
+    setBlockAt(x + 3, y + 4, z + 5, WISTERIA_WOOD_Z);
+
+    setBlockAt(x + 2, y + 5, z + 4, CHRYSANTHEMUM_IKEBANA);
+    setBlockAt(x + 2, y + 5, z + 5, PAPER_LANTERN);
+
+
+    // floor
+    for (int x2 = x; x2 <= x + 10; x2++) {
+        for (int z2 = z; z2 <= z + 7; z2++) {
+            setBlockAt(x2, y - 1, z2, PINE_PLANKS);
+            setBlockAt(x2, y + 3, z2, CHERRY_PLANKS);
+        }
+    }
+
+    // balcony
+    for (int x3 = x - 1; x3 <= x + 11; x3++) {
+        setBlockAt(x3, y + 3, z + 8, ROOF_TILES);
+        setBlockAt(x3, y + 3, z + 9, ROOF_TILES_1);
+        setBlockAt(x3, y + 3, z - 1, ROOF_TILES_2);
+        setBlockAt(x3, y + 3, z - 2, ROOF_TILES_2);
+    }
+    for (int z3 = z; z3 <= z + 7; z3++) {
+        setBlockAt(x - 1, y + 3, z3, ROOF_TILES_2);
+        setBlockAt(x + 11, y + 3, z3, ROOF_TILES_2);
+    }
+
+    // roof
+    for (int x3 = x - 1; x3 <= z + 12; x3++) {
+        int dx = -2;
+        for (int y3 = y + 7; y3 <= y + 9; y3++) {
+            setBlockAt(x3, y3, z + dx, ROOF_TILES_1);
+            setBlockAt(x3, y3, z + 7 - dx, ROOF_TILES_1);
+            dx++;
+            setBlockAt(x3, y3, z + dx, ROOF_TILES);
+            setBlockAt(x3, y3, z + 7 - dx, ROOF_TILES);
+            dx++;
+        }
+    }
+
+    // stairs
+    setBlockAt(x + 5, y, z + 1, CHERRY_PLANKS_2);
+    setBlockAt(x + 5, y, z + 2, CHERRY_PLANKS_2);
+    setBlockAt(x + 6, y + 1, z + 1, CHERRY_PLANKS_2);
+    setBlockAt(x + 6, y + 1, z + 2, CHERRY_PLANKS_2);
+    setBlockAt(x + 7, y + 2, z + 1, CHERRY_PLANKS_2);
+    setBlockAt(x + 7, y + 2, z + 2, CHERRY_PLANKS_2);
+
+    setBlockAt(x + 5, y + 3, z + 1, EMPTY);
+    setBlockAt(x + 5, y + 3, z + 2, EMPTY);
+    setBlockAt(x + 6, y + 3, z + 1, EMPTY);
+    setBlockAt(x + 6, y + 3, z + 2, EMPTY);
+    setBlockAt(x + 7, y + 3, z + 1, EMPTY);
+    setBlockAt(x + 7, y + 3, z + 2, EMPTY);
+}
+
+void Terrain::createCottage2(int x, int y, int z) {
+    // platform
+    for (int x1 = x - 2; x1 <= x + 12; x1++) {
+        for (int z1 = z - 2; z1 <= z + 11; z1++) {
+            setBlockAt(x1, y, z1, PINE_PLANKS_1);
+        }
+    }
+    for (int y1 = y - 1; y1 >= y - 4; y1--) {
+        setBlockAt(x - 2, y1, z - 2, MAPLE_WOOD_Y);
+        setBlockAt(x + 12, y1, z - 2, MAPLE_WOOD_Y);
+        setBlockAt(x - 2, y1, z + 11, MAPLE_WOOD_Y);
+        setBlockAt(x + 12, y1, z + 11, MAPLE_WOOD_Y);
+    }
+
+    // floor
+    for (int x1 = x; x1 <= x + 10; x1++) {
+        for (int z1 = z; z1 <= z + 9; z1++) {
+            setBlockAt(x1, y, z1, PINE_WOOD_X);
+        }
+    }
+    for (int z1 = z; z1 <= z + 9; z1++) {
+        setBlockAt(x, y, z1, PINE_WOOD_Z);
+        setBlockAt(x + 10, y, z1, PINE_WOOD_Z);
+    }
+
+
+    // walls
+    for (int y1 = y + 1; y1 <= y + 7; y1++) {
+        for (int x1 = x; x1 <= x + 10; x1++) {
+            setBlockAt(x1, y1, z, PLASTER);
+            setBlockAt(x1, y1, z + 9, PLASTER);
+        }
+        for (int z1 = z; z1 <= z + 9; z1++) {
+            setBlockAt(x, y1, z1, PLASTER);
+            setBlockAt(x + 10, y1, z1, PLASTER);
+        }
+    }
+
+    setBlockAt(x, y + 8, z + 4, PLASTER);
+    setBlockAt(x + 10, y + 8, z + 4, PLASTER);
+    setBlockAt(x, y + 8, z + 5, PLASTER);
+    setBlockAt(x + 10, y + 8, z + 5, PLASTER);
+
+    for (int y1 = y + 1; y1 <= y + 2; y1++) {
+        for (int z1 = z + 1; z1 <= z + 8; z1++) {
+            setBlockAt(x, y1, z1, MAPLE_PLANKS);
+            setBlockAt(x + 10, y1, z1, MAPLE_PLANKS);
+        }
+    }
+    setBlockAt(x + 1, y + 1, z, MAPLE_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 9, MAPLE_PLANKS);
+    setBlockAt(x + 2, y + 1, z, MAPLE_PLANKS);
+    setBlockAt(x + 2, y + 1, z + 9, MAPLE_PLANKS);
+    setBlockAt(x + 8, y + 1, z, MAPLE_PLANKS);
+    setBlockAt(x + 8, y + 1, z + 9, MAPLE_PLANKS);
+    setBlockAt(x + 9, y + 1, z, MAPLE_PLANKS);
+    setBlockAt(x + 9, y + 1, z + 9, MAPLE_PLANKS);
+
+    setBlockAt(x + 1, y + 2, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 1, y + 3, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 2, y + 2, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 2, y + 3, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 8, y + 2, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 8, y + 3, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 9, y + 2, z, MAPLE_WINDOW_Z);
+    setBlockAt(x + 9, y + 3, z, MAPLE_WINDOW_Z);
+
+    setBlockAt(x + 1, y + 2, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 1, y + 3, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 2, y + 2, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 2, y + 3, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 8, y + 2, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 8, y + 3, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 9, y + 2, z + 9, MAPLE_WINDOW_Z);
+    setBlockAt(x + 9, y + 3, z + 9, MAPLE_WINDOW_Z);
+
+    for (int y1 = y; y1 <= y + 7; y1++) {
+        setBlockAt(x, y1, z, WISTERIA_WOOD_Y);
+        setBlockAt(x + 10, y1, z, WISTERIA_WOOD_Y);
+        setBlockAt(x, y1, z + 9, WISTERIA_WOOD_Y);
+        setBlockAt(x + 10, y1, z + 9, WISTERIA_WOOD_Y);
+
+        setBlockAt(x, y1, z + 3, WISTERIA_WOOD_Y);
+        setBlockAt(x, y1, z + 6, WISTERIA_WOOD_Y);
+        setBlockAt(x + 10, y1, z + 3, WISTERIA_WOOD_Y);
+        setBlockAt(x + 10, y1, z + 6, WISTERIA_WOOD_Y);
+
+        setBlockAt(x + 3, y1, z, WISTERIA_WOOD_Y);
+        setBlockAt(x + 7, y1, z, WISTERIA_WOOD_Y);
+        setBlockAt(x + 3, y1, z + 9, WISTERIA_WOOD_Y);
+        setBlockAt(x + 7, y1, z + 9, WISTERIA_WOOD_Y);
+    }
+    for (int x1 = x + 1; x1 <= x + 9; x1++) {
+        setBlockAt(x1, y + 4, z, WISTERIA_WOOD_X);
+        setBlockAt(x1, y + 4, z + 9, WISTERIA_WOOD_X);
+        setBlockAt(x1, y + 6, z, WISTERIA_WOOD_X);
+        setBlockAt(x1, y + 6, z + 9, WISTERIA_WOOD_X);
+    }
+    for (int z1 = z + 1; z1 <= z + 8; z1++) {
+        setBlockAt(x, y + 4, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x + 10, y + 4, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x, y + 6, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x + 10, y + 6, z1, WISTERIA_WOOD_Z);
+
+        setBlockAt(x + 2, y + 6, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x + 4, y + 6, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x + 6, y + 6, z1, WISTERIA_WOOD_Z);
+        setBlockAt(x + 8, y + 6, z1, WISTERIA_WOOD_Z);
+    }
+    setBlockAt(x + 10, y + 1, z + 1, EMPTY);
+    setBlockAt(x + 10, y + 2, z + 1, EMPTY);
+    setBlockAt(x + 10, y + 1, z + 2, WISTERIA_WINDOW_X);
+    setBlockAt(x + 10, y + 2, z + 2, WISTERIA_WINDOW_X);
+
+    // roof
+    for (int x3 = x - 1; x3 <= z + 11; x3++) {
+        int dx = -2;
+        for (int y3 = y + 6; y3 <= y + 9; y3++) {
+            setBlockAt(x3, y3, z + dx, ROOF_TILES_1);
+            setBlockAt(x3, y3, z + 9 - dx, ROOF_TILES_1);
+            dx++;
+            setBlockAt(x3, y3, z + dx, ROOF_TILES);
+            setBlockAt(x3, y3, z + 9 - dx, ROOF_TILES);
+            dx++;
+        }
+    }
+
+    // bed
+    for (int x1 = x + 1; x1 <= x + 5; x1++) {
+        for (int z1 = z + 1; z1 <= z + 6; z1++) {
+            setBlockAt(x1, y + 1, z1, WISTERIA_PLANKS_1);
+        }
+    }
+    setBlockAt(x + 1, y + 1, z + 1, WISTERIA_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 2, WISTERIA_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 3, WISTERIA_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 4, WISTERIA_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 5, WISTERIA_PLANKS);
+    setBlockAt(x + 1, y + 1, z + 6, WISTERIA_PLANKS);
+
+    setBlockAt(x + 1, y + 2, z + 4, WISTERIA_PLANKS_1);
+    setBlockAt(x + 1, y + 2, z + 5, WISTERIA_PLANKS_1);
+    setBlockAt(x + 1, y + 2, z + 6, WISTERIA_PLANKS_1);
+    setBlockAt(x + 1, y + 2, z + 7, WISTERIA_PLANKS_1);
+    setBlockAt(x + 1, y + 2, z + 8, WISTERIA_PLANKS_1);
+
+    setBlockAt(x + 2, y + 1, z + 4, CLOTH_7);
+    setBlockAt(x + 2, y + 1, z + 5, CLOTH_7);
+    setBlockAt(x + 3, y + 1, z + 4, CLOTH_6);
+    setBlockAt(x + 3, y + 1, z + 5, CLOTH_6);
+    setBlockAt(x + 4, y + 1, z + 4, CLOTH_6);
+    setBlockAt(x + 4, y + 1, z + 5, CLOTH_6);
+
+    setBlockAt(x + 1, y + 2, z + 1, PLUM_BLOSSOM_IKEBANA);
+    setBlockAt(x + 1, y + 3, z + 4, PAINTING_6R_XP);
+    setBlockAt(x + 1, y + 3, z + 5, PAINTING_6L_XP);
+    setBlockAt(x + 1, y + 2, z + 3, PAPER_LANTERN);
+
+    setBlockAt(x + 9, y + 1, z + 8, WOOD_LANTERN);
+    setBlockAt(x + 9, y + 2, z + 8, LOTUS_IKEBANA);
+}
+
+void Terrain::createTeaHouse(int x, int y, int z) {
+    // platform
+    for (int x1 = x - 2; x1 <= x + 16; x1++) {
+        for (int z1 = z - 2; z1 <= z + 11; z1++) {
+            setBlockAt(x1, y, z1, PINE_PLANKS);
+        }
+    }
+
+    // floor
+    for (int x2 = x + 1; x2 <= x + 13; x2++) {
+        for (int z2 = z + 1; z2 <= z + 8; z2++) {
+            setBlockAt(x2, y + 1, z2, CEDAR_PLANKS);
+        }
+    }
+
+    // walls
+    for (int y3 = y + 2; y3 <= y + 7; y3++) {
+        for (int x3 = x + 1; x3 <= x + 13; x3++) {
+            setBlockAt(x3, y3, z, PLASTER);
+            setBlockAt(x3, y3, z + 9, CEDAR_WINDOW_Z);
+        }
+        for (int z3 = z + 1; z3 <= z + 8; z3++) {
+            setBlockAt(x, y3, z3, PLASTER);
+            setBlockAt(x + 14, y3, z3, CEDAR_WINDOW_X);
+        }
+    }
+    setBlockAt(x + 10, y + 2, z + 9, PLASTER);
+    setBlockAt(x + 11, y + 2, z + 9, PLASTER);
+    setBlockAt(x + 12, y + 2, z + 9, PLASTER);
+    setBlockAt(x + 13, y + 2, z + 9, PLASTER);
+    setBlockAt(x + 10, y + 3, z + 9, PLASTER);
+    setBlockAt(x + 10, y + 4, z + 9, PLASTER);
+    setBlockAt(x + 13, y + 3, z + 9, PLASTER);
+    setBlockAt(x + 13, y + 4, z + 9, PLASTER);
+    setBlockAt(x + 10, y + 5, z + 9, PLASTER);
+    setBlockAt(x + 11, y + 5, z + 9, PLASTER);
+    setBlockAt(x + 12, y + 5, z + 9, PLASTER);
+    setBlockAt(x + 13, y + 5, z + 9, PLASTER);
+
+    for (int x3 = x + 1; x3 <= x + 13; x3++) {
+        setBlockAt(x3, y + 1, z, CEDAR_PLANKS);
+        setBlockAt(x3, y + 1, z + 9, CEDAR_PLANKS);
+        setBlockAt(x3, y + 6, z, CEDAR_PLANKS);
+        setBlockAt(x3, y + 6, z + 9, CEDAR_PLANKS);
+        setBlockAt(x3, y + 8, z, CEDAR_PLANKS);
+        setBlockAt(x3, y + 8, z + 9, CEDAR_PLANKS);
+    }
+    for (int z3 = z + 1; z3 <= z + 8; z3++) {
+        setBlockAt(x, y + 1, z3, CEDAR_PLANKS);
+        setBlockAt(x + 14, y + 1, z3, CEDAR_PLANKS);
+        setBlockAt(x, y + 6, z3, CEDAR_PLANKS);
+        setBlockAt(x + 14, y + 6, z3, CEDAR_PLANKS);
+        setBlockAt(x, y + 8, z3, CEDAR_PLANKS);
+        setBlockAt(x + 14, y + 8, z3, CEDAR_PLANKS);
+    }
+    for (int y3 = y + 1; y3 <= y + 8; y3++) {
+        setBlockAt(x, y3, z, CEDAR_PLANKS);
+        setBlockAt(x + 14, y3, z, CEDAR_PLANKS);
+        setBlockAt(x, y3, z + 9, CEDAR_PLANKS);
+        setBlockAt(x + 14, y3, z + 9, CEDAR_PLANKS);
+        setBlockAt(x + 9, y3, z, CEDAR_PLANKS);
+        setBlockAt(x + 9, y3, z + 9, CEDAR_PLANKS);
+    }
+
+    for (int z3 = z + 2; z3 <= z + 7; z3++) {
+        setBlockAt(x, y + 9, z3, PLASTER);
+        setBlockAt(x + 14, y + 9, z3, PLASTER);
+    }
+    setBlockAt(x, y + 10, z + 4, PLASTER);
+    setBlockAt(x, y + 10, z + 5, PLASTER);
+    setBlockAt(x + 14, y + 10, z + 4, PLASTER);
+    setBlockAt(x + 14, y + 10, z + 5, PLASTER);
+
+    // door
+    for (int y3 = y + 2; y3 <= y + 5; y3++) {
+        for (int z3 = z + 5; z3 <= z + 6; z3++) {
+            setBlockAt(x + 14, y3, z3, TEAK_WINDOW_X);
+        }
+        for (int z3 = z + 3; z3 <= z + 4; z3++) {
+            setBlockAt(x + 14, y3, z3, EMPTY);
+        }
+    }
+
+    // decor
+    setBlockAt(x + 3, y + 4, z + 1, PAINTING_1_ZP);
+    setBlockAt(x + 4, y + 4, z + 1, PAINTING_2_ZP);
+    setBlockAt(x + 5, y + 4, z + 1, PAINTING_3_ZP);
+    setBlockAt(x + 8, y + 2, z + 1, PAPER_LANTERN);
+
+    setBlockAt(x + 7, y + 4, z + 1, PAINTING_5_ZP);
+
+    setBlockAt(x + 10, y + 2, z + 1, TEAK_PLANKS);
+    setBlockAt(x + 11, y + 2, z + 1, TEAK_PLANKS);
+    setBlockAt(x + 12, y + 2, z + 1, WOOD_LANTERN);
+
+    float p1 = Biome::noise1D(glm::vec3(x + 10, y + 3, z + 1));
+    if (p1 < 0.1) {
+        setBlockAt(x + 10, y + 3, z + 1, CHERRY_BLOSSOM_IKEBANA);
+    } else if (p1 < 0.2) {
+        setBlockAt(x + 10, y + 3, z + 1, MAGNOLIA_BUD_IKEBANA);
+    } else if (p1 < 0.3) {
+        setBlockAt(x + 10, y + 3, z + 1, TULIP_IKEBANA);
+    } else if (p1 < 0.4) {
+        setBlockAt(x + 10, y + 3, z + 1, MAPLE_IKEBANA);
+    } else if (p1 < 0.5) {
+        setBlockAt(x + 10, y + 3, z + 1, ONCIDIUM_IKEBANA);
+    } else if (p1 < 0.6) {
+        setBlockAt(x + 10, y + 3, z + 1, DAFFODIL_IKEBANA);
+    } else if (p1 < 0.7) {
+        setBlockAt(x + 10, y + 3, z + 1, POPPY_IKEBANA);
+    } else if (p1 < 0.8) {
+        setBlockAt(x + 10, y + 3, z + 1, BLUE_HYDRANGEA_IKEBANA);
+    } else if (p1 < 0.9) {
+        setBlockAt(x + 10, y + 3, z + 1, GREEN_HYDRANGEA_IKEBANA);
+    } else {
+        setBlockAt(x + 10, y + 3, z + 1, LOTUS_IKEBANA);
+    }
+
+    setBlockAt(x + 9, y + 2, z + 8, WOOD_LANTERN);
+    setBlockAt(x + 9, y + 3, z + 8, BONSAI_TREE);
+
+    setBlockAt(x + 11, y + 3, z + 1, PAINTING_7B_ZP);
+    setBlockAt(x + 11, y + 4, z + 1, PAINTING_7T_ZP);
+    setBlockAt(x + 9, y + 2, z + 1, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 2, z + 2, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 2, z + 3, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 3, z + 1, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 3, z + 2, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 3, z + 3, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 4, z + 1, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 4, z + 2, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 4, z + 3, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 5, z + 1, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 5, z + 2, TEAK_WINDOW_X);
+    setBlockAt(x + 9, y + 5, z + 3, TEAK_WINDOW_X);
+
+    setBlockAt(x + 1, y + 2, z + 1, TATAMI_ZT);
+    setBlockAt(x + 2, y + 2, z + 1, TATAMI_ZB);
+    setBlockAt(x + 3, y + 2, z + 1, TATAMI_ZT);
+    setBlockAt(x + 4, y + 2, z + 1, TATAMI_ZB);
+    setBlockAt(x + 5, y + 2, z + 1, TATAMI_ZT);
+    setBlockAt(x + 6, y + 2, z + 1, TATAMI_ZB);
+
+    setBlockAt(x + 1, y + 2, z + 8, TATAMI_ZT);
+    setBlockAt(x + 2, y + 2, z + 8, TATAMI_ZB);
+    setBlockAt(x + 3, y + 2, z + 8, TATAMI_ZT);
+    setBlockAt(x + 4, y + 2, z + 8, TATAMI_ZB);
+    setBlockAt(x + 5, y + 2, z + 8, TATAMI_ZT);
+    setBlockAt(x + 6, y + 2, z + 8, TATAMI_ZB);
+
+    setBlockAt(x + 1, y + 2, z + 2, TATAMI_XR);
+    setBlockAt(x + 1, y + 2, z + 3, TATAMI_XL);
+    setBlockAt(x + 1, y + 2, z + 4, TATAMI_XR);
+    setBlockAt(x + 1, y + 2, z + 5, TATAMI_XL);
+    setBlockAt(x + 1, y + 2, z + 6, TATAMI_XR);
+    setBlockAt(x + 1, y + 2, z + 7, TATAMI_XL);
+
+    setBlockAt(x + 6, y + 2, z + 2, TATAMI_XR);
+    setBlockAt(x + 6, y + 2, z + 3, TATAMI_XL);
+    setBlockAt(x + 6, y + 2, z + 4, TATAMI_XR);
+    setBlockAt(x + 6, y + 2, z + 5, TATAMI_XL);
+    setBlockAt(x + 6, y + 2, z + 6, TATAMI_XR);
+    setBlockAt(x + 6, y + 2, z + 7, TATAMI_XL);
+
+    setBlockAt(x + 2, y + 2, z + 2, TATAMI_ZT);
+    setBlockAt(x + 3, y + 2, z + 2, TATAMI_ZB);
+    setBlockAt(x + 4, y + 2, z + 2, TATAMI_ZT);
+    setBlockAt(x + 5, y + 2, z + 2, TATAMI_ZB);
+
+    setBlockAt(x + 2, y + 2, z + 7, TATAMI_ZT);
+    setBlockAt(x + 3, y + 2, z + 7, TATAMI_ZB);
+    setBlockAt(x + 4, y + 2, z + 7, TATAMI_ZT);
+    setBlockAt(x + 5, y + 2, z + 7, TATAMI_ZB);
+
+    setBlockAt(x + 2, y + 2, z + 3, TATAMI_XR);
+    setBlockAt(x + 2, y + 2, z + 4, TATAMI_XL);
+    setBlockAt(x + 2, y + 2, z + 5, TATAMI_XR);
+    setBlockAt(x + 2, y + 2, z + 6, TATAMI_XL);
+
+    setBlockAt(x + 5, y + 2, z + 3, TATAMI_XR);
+    setBlockAt(x + 5, y + 2, z + 4, TATAMI_XL);
+    setBlockAt(x + 5, y + 2, z + 5, TATAMI_XR);
+    setBlockAt(x + 5, y + 2, z + 6, TATAMI_XL);
+
+    setBlockAt(x + 3, y + 2, z + 3, TATAMI_ZT);
+    setBlockAt(x + 4, y + 2, z + 3, TATAMI_ZB);
+
+    setBlockAt(x + 3, y + 2, z + 6, TATAMI_ZT);
+    setBlockAt(x + 4, y + 2, z + 6, TATAMI_ZB);
+
+    setBlockAt(x + 3, y + 2, z + 4, TATAMI_XR);
+    setBlockAt(x + 3, y + 2, z + 5, TATAMI_XL);
+
+    setBlockAt(x + 4, y + 2, z + 4, TATAMI_XR);
+    setBlockAt(x + 4, y + 2, z + 5, TATAMI_XL);
+
+    // roof
+    for (int x3 = x - 1; x3 <= z + 15; x3++) {
+        int dx = -2;
+        for (int y3 = y + 8; y3 <= y + 11; y3++) {
+            setBlockAt(x3, y3, z + dx, ROOF_TILES_1);
+            setBlockAt(x3, y3, z + 9 - dx, ROOF_TILES_1);
+            dx++;
+            setBlockAt(x3, y3, z + dx, ROOF_TILES);
+            setBlockAt(x3, y3, z + 9 - dx, ROOF_TILES);
+            dx++;
+        }
+    }
+}
+
+void Terrain::createConifer1(int x, int y, int z, BlockType leaf, BlockType wood) {
+    // leaves
+    for (int x1 = x - 3; x1 <= x + 3; x1++) {
+        for (int z1 = z - 3; z1 <= z + 3; z1++) {
+            setBlockAt(x1, y + 1, z1, leaf);
+        }
+    }
+    setBlockAt(x - 3, y + 1, z - 3, EMPTY);
+    setBlockAt(x - 3, y + 1, z + 3, EMPTY);
+    setBlockAt(x + 3, y + 1, z - 3, EMPTY);
+    setBlockAt(x + 3, y + 1, z + 3, EMPTY);
+
+    for (int x2 = x - 2; x2 <= x + 2; x2++) {
+        for (int z2 = z - 2; z2 <= z + 2; z2++) {
+            setBlockAt(x2, y + 2, z2, leaf);
+            setBlockAt(x2, y + 4, z2, leaf);
+        }
+    }
+    setBlockAt(x - 2, y + 2, z - 2, EMPTY);
+    setBlockAt(x - 2, y + 2, z + 2, EMPTY);
+    setBlockAt(x + 2, y + 2, z - 2, EMPTY);
+    setBlockAt(x + 2, y + 2, z + 2, EMPTY);
+    setBlockAt(x - 2, y + 4, z - 2, EMPTY);
+    setBlockAt(x - 2, y + 4, z + 2, EMPTY);
+    setBlockAt(x + 2, y + 4, z - 2, EMPTY);
+    setBlockAt(x + 2, y + 4, z + 2, EMPTY);
+
+    for (int x3 = x - 1; x3 <= x + 1; x3++) {
+        for (int z3 = z - 1; z3 <= z + 1; z3++) {
+            setBlockAt(x3, y + 3, z3, leaf);
+            setBlockAt(x3, y + 5, z3, leaf);
+            setBlockAt(x3, y + 7, z3, leaf);
+        }
+    }
+    setBlockAt(x - 1, y + 3, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 3, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 3, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 3, z + 1, EMPTY);
+    setBlockAt(x - 1, y + 5, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 5, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 5, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 5, z + 1, EMPTY);
+    setBlockAt(x - 1, y + 7, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 7, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 7, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 7, z + 1, EMPTY);
+
+    // trunk
+    for (int y1 = y; y1 <= y + 6; y1++) {
+        setBlockAt(x, y1, z, wood);
+    }
+}
+void Terrain::createConifer2(int x, int y, int z, BlockType leaf, BlockType wood) {
+    for (int x2 = x - 2; x2 <= x + 2; x2++) {
+        for (int z2 = z - 2; z2 <= z + 2; z2++) {
+            setBlockAt(x2, y + 2, z2, leaf);
+            setBlockAt(x2, y + 4, z2, leaf);
+            setBlockAt(x2, y + 6, z2, leaf);
+        }
+    }
+    setBlockAt(x - 2, y + 2, z - 2, EMPTY);
+    setBlockAt(x - 2, y + 2, z + 2, EMPTY);
+    setBlockAt(x + 2, y + 2, z - 2, EMPTY);
+    setBlockAt(x + 2, y + 2, z + 2, EMPTY);
+    setBlockAt(x - 2, y + 4, z - 2, EMPTY);
+    setBlockAt(x - 2, y + 4, z + 2, EMPTY);
+    setBlockAt(x + 2, y + 4, z - 2, EMPTY);
+    setBlockAt(x + 2, y + 4, z + 2, EMPTY);
+    setBlockAt(x - 2, y + 6, z - 2, EMPTY);
+    setBlockAt(x - 2, y + 6, z + 2, EMPTY);
+    setBlockAt(x + 2, y + 6, z - 2, EMPTY);
+    setBlockAt(x + 2, y + 6, z + 2, EMPTY);
+
+    for (int x3 = x - 1; x3 <= x + 1; x3++) {
+        for (int z3 = z - 1; z3 <= z + 1; z3++) {
+            setBlockAt(x3, y + 1, z3, leaf);
+            setBlockAt(x3, y + 3, z3, leaf);
+            setBlockAt(x3, y + 5, z3, leaf);
+            setBlockAt(x3, y + 7, z3, leaf);
+            setBlockAt(x3, y + 9, z3, leaf);
+        }
+    }
+    setBlockAt(x - 1, y + 1, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 1, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 1, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 1, z + 1, EMPTY);
+    setBlockAt(x - 1, y + 3, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 3, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 3, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 3, z + 1, EMPTY);
+    setBlockAt(x - 1, y + 5, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 5, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 5, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 5, z + 1, EMPTY);
+    setBlockAt(x - 1, y + 7, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 7, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 7, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 7, z + 1, EMPTY);
+    setBlockAt(x - 1, y + 9, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 9, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 9, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 9, z + 1, EMPTY);
+
+    // trunk
+    for (int y1 = y; y1 <= y + 8; y1++) {
+        setBlockAt(x, y1, z, wood);
+    }
+}
+void Terrain::createConifer3(int x, int y, int z, BlockType leaf, BlockType wood) {
+
+    for (int y3 = y + 1; y3 <= y + 5; y3++) {
+        for (int x3 = x - 1; x3 <= x + 1; x3++) {
+            for (int z3 = z - 1; z3 <= z + 1; z3++) {
+                setBlockAt(x3, y3, z3, leaf);
             }
         }
-
-        createVBOWorkers(m_blockDataChunks);
-        m_blockDataChunks.clear();
-        m_blockDataChunksLock.unlock();
     }
+    setBlockAt(x + 2, y + 2, z, leaf);
+    setBlockAt(x, y + 2, z - 2, leaf);
+    setBlockAt(x - 2, y + 2, z, leaf);
+    setBlockAt(x, y + 2, z - 2, leaf);
+    setBlockAt(x + 2, y + 4, z, leaf);
+    setBlockAt(x, y + 4, z - 2, leaf);
+    setBlockAt(x - 2, y + 4, z, leaf);
+    setBlockAt(x, y + 4, z - 2, leaf);
 
-    // Second, take the chunks that have VBO data and send data to GPU
-    m_VBODataChunksLock.lock();
+    setBlockAt(x - 1, y + 1, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 1, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 1, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 1, z + 1, EMPTY);
+    setBlockAt(x - 1, y + 3, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 3, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 3, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 3, z + 1, EMPTY);
+    setBlockAt(x - 1, y + 5, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 5, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 5, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 5, z + 1, EMPTY);
 
-    for (auto& data : m_vboDataChunks) {
-        data->loadVBO();
+    setBlockAt(x, y + 6, z, leaf);
+
+    // trunk
+    for (int y1 = y; y1 <= y + 5; y1++) {
+        setBlockAt(x, y1, z, wood);
     }
-
-    m_vboDataChunks.clear();
-    m_VBODataChunksLock.unlock();
 }
-
-void Terrain::createBDWorkers(const QSet<long long>& zones) {
-    for (long long zone : zones) {
-        createBDWorker(zone);
+void Terrain::createDeciduous1(int x, int y, int z, BlockType leaf, BlockType wood) {
+    for (int y2 = y + 3; y2 <= y + 4; y2++) {
+        for (int x2 = x - 2; x2 <= x + 2; x2++) {
+            for (int z2 = z - 2; z2 <= z + 2; z2++) {
+                setBlockAt(x2, y2, z2, leaf);
+            }
+        }
+        setBlockAt(x - 2, y2, z - 2, EMPTY);
+        setBlockAt(x + 2, y2, z - 2, EMPTY);
+        setBlockAt(x - 2, y2, z + 2, EMPTY);
+        setBlockAt(x + 2, y2, z + 2, EMPTY);
     }
-}
 
-void Terrain::createBDWorker(long long zone) {
-    std::vector<Chunk*> toDo;
-    int x = toCoords(zone).x;
-    int z = toCoords(zone).y;
-
-    for (int i = x; i < x + 64; i += 16) {
-        for (int j = z; j < z + 64; j += 16) {
-            toDo.push_back(instantiateChunkAt(i, j));
+    for (int y3 = y + 5; y3 <= y + 6; y3++) {
+        for (int x3 = x - 1; x3 <= x + 1; x3++) {
+            for (int z3 = z - 1; z3 <= z + 1; z3++) {
+                setBlockAt(x3, y3, z3, leaf);
+            }
         }
     }
+    setBlockAt(x - 1, y + 6, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 6, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 6, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 6, z + 1, EMPTY);
 
-    BDWorker* worker = new BDWorker(x, z, toDo,
-                                    &m_blockDataChunks, &m_blockDataChunksLock);
-    QThreadPool::globalInstance()->start(worker);
-}
-
-void Terrain::createVBOWorkers(const std::unordered_set<Chunk*>& chunks) {
-    for (Chunk* chunk : chunks) {
-        createVBOWorker(chunk);
+    for (int y1 = y; y1 <= y + 5; y1++) {
+        setBlockAt(x, y1, z, wood);
     }
 }
+void Terrain::createDeciduous2(int x, int y, int z, BlockType leaf, BlockType wood) {
+    for (int y2 = y + 2; y2 <= y + 3; y2++) {
+        for (int x2 = x - 3; x2 <= x + 3; x2++) {
+            for (int z2 = z - 3; z2 <= z + 3; z2++) {
+                setBlockAt(x2, y2, z2, leaf);
+            }
+        }
+        setBlockAt(x - 3, y2, z - 3, EMPTY);
+        setBlockAt(x + 3, y2, z - 3, EMPTY);
+        setBlockAt(x - 3, y2, z + 3, EMPTY);
+        setBlockAt(x + 3, y2, z + 3, EMPTY);
+    }
 
-void Terrain::createVBOWorker(Chunk* chunk) {
-    VBOWorker* werk = new VBOWorker(chunk, &m_vboDataChunks, &m_VBODataChunksLock);
-    QThreadPool::globalInstance()->start(werk);
+    for (int y3 = y + 4; y3 <= y + 5; y3++) {
+        for (int x3 = x - 2; x3 <= x + 2; x3++) {
+            for (int z3 = z - 2; z3 <= z + 2; z3++) {
+                setBlockAt(x3, y3, z3, leaf);
+            }
+        }
+    }
+    setBlockAt(x - 2, y + 5, z - 2, EMPTY);
+    setBlockAt(x - 2, y + 5, z + 2, EMPTY);
+    setBlockAt(x + 2, y + 5, z - 2, EMPTY);
+    setBlockAt(x + 2, y + 5, z + 2, EMPTY);
+
+    for (int y1 = y; y1 <= y + 4; y1++) {
+        setBlockAt(x, y1, z, wood);
+    }
+}
+void Terrain::createDeciduous3(int x, int y, int z, BlockType leaf, BlockType wood) {
+    for (int x1 = x - 2; x1 <= x + 2; x1++) {
+        for (int z1 = z - 2; z1 <= z + 2; z1++) {
+            setBlockAt(x1, y + 1, z1, leaf);
+        }
+    }
+    setBlockAt(x - 2, y + 1, z + 2, EMPTY);
+    setBlockAt(x + 2, y + 1, z + 2, EMPTY);
+    setBlockAt(x + 2, y + 1, z - 2, EMPTY);
+
+    for (int x2 = x - 1; x2 <= x + 1; x2++) {
+        for (int z2 = z - 1; z2 <= z + 1; z2++) {
+            setBlockAt(x2, y + 2, z2, leaf);
+        }
+    }
+    setBlockAt(x + 1, y + 2, z - 1, EMPTY);
+    setBlockAt(x, y + 3, z, leaf);
+    setBlockAt(x, y, z, wood);
+    setBlockAt(x, y + 1, z, wood);
 }
