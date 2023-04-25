@@ -29,10 +29,13 @@ glm::vec4 Chunk::getBiomeAt(int x, int z) const {
 }
 
 // Does bounds checking with at()
-void Chunk::setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t) {
+void Chunk::setBlockAt(int x, int y, int z, BlockType t) {
     if (isInBounds(glm::ivec3(x, y, z))) {
         m_blocks.at(x + 16 * y + 16 * 256 * z) = t;
     } else if (x < 0 && m_neighbors.at(XNEG) != nullptr) {
+        if (t == ROOF_TILES_1) {
+            int i = 0;
+        }
         m_neighbors.at(XNEG)->setBlockAt(16 + x, y, z, t);
     } else if (x > 15 && m_neighbors.at(XPOS) != nullptr) {
         m_neighbors.at(XPOS)->setBlockAt(x - 16, y, z, t);
@@ -1388,21 +1391,21 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                         // bamboo
                         int y = h;
                         int addHeight = 0;
-                        while (addHeight == 0) {
+                        while (addHeight == 0 && getBlockAt(x, y, z) == EMPTY) {
                             setBlockAt(x, y, z, BAMBOO_1);
                             y++;
                             if (Biome::noise1D(glm::vec3(worldX, y, worldZ)) >= 0.75) {
                                 addHeight = 1;
                             }
                         }
-                        while (addHeight == 1) {
+                        while (addHeight == 1 && getBlockAt(x, y, z) == EMPTY) {
                             setBlockAt(x, y, z, BAMBOO_2);
                             y++;
                             if (Biome::noise1D(glm::vec3(worldX, y, worldZ)) >= 0.5) {
                                 addHeight = 2;
                             }
                         }
-                        while (addHeight == 2) {
+                        while (addHeight == 2 && getBlockAt(x, y, z) == EMPTY) {
                             setBlockAt(x, y, z, BAMBOO_3);
                             y++;
                             if (Biome::noise1D(glm::vec3(worldX, y, worldZ)) >= 0.25) {
@@ -1540,7 +1543,7 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
         if (p3 < 0.2) {
             createCottage1(p.x, p.y, p.z);
         } else if (p3 < 0.4) {
-            createCottage2(p.x, p.y, p.z);
+            createCottage2(p.x, p.y + 3, p.z);
         }
     }
     for (glm::vec3 p : cherryPos) {
@@ -1586,8 +1589,8 @@ std::pair<float, BiomeEnum> Chunk::blendMultipleBiomes(glm::vec2 worldXZ, glm::v
     BiomeEnum b;
     glm::vec4 biomeWts;
 
-    double elev = std::clamp((Biome::perlin1(worldXZ / 197.f) + 1.f) / 2.f, 0.f, 1.f); // remap perlin noise from (-1, 1) to (0, 1)
-    double temp = std::clamp((Biome::perlin2(worldXZ / 308.f) + 1.f) / 2.f, 0.f, 1.f);
+    double elev = std::clamp((Biome::perlin1(worldXZ / 237.f) + 1.f) / 2.f, 0.f, 1.f); // remap perlin noise from (-1, 1) to (0, 1)
+    double temp = std::clamp((Biome::perlin2(worldXZ / 189.f) + 1.f) / 2.f, 0.f, 1.f);
 
 
 //    std::cout<<elev<<","<<temp<<std::endl;
@@ -1864,7 +1867,7 @@ void Chunk::createCottage1(int x, int y, int z) {
 void Chunk::createCottage2(int x, int y, int z) {
     for (int x1 = x - 2; x1 <= x + 12; x1++) {
         for (int z1 = z - 2; z1 <= z + 11; z1++) {
-            for (int y1 = y; y1 <= y + 15; y1++) {
+            for (int y1 = y - 1; y1 <= y + 15; y1++) {
                 setBlockAt(x1, y1, z1, EMPTY);
             }
         }

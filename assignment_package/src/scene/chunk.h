@@ -1687,7 +1687,7 @@ class Chunk : public Drawable {
         Chunk(OpenGLContext* context);
         BlockType getBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
         BlockType getBlockAt(int x, int y, int z) const;
-        void setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t);
+        void setBlockAt(int x, int y, int z, BlockType t);
 
         std::pair<float, BiomeEnum> blendMultipleBiomes(glm::vec2, glm::vec2, float mountH, float hillH, float forestH,
                                                         float islandH);
