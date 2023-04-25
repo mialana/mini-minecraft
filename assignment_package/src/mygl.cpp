@@ -27,17 +27,17 @@ MyGL::MyGL(QWidget* parent)
     setMouseTracking(true);     // MyGL will track the mouse's movements even if a mouse button is not pressed
     setCursor(Qt::BlankCursor); // Make the cursor invisible
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 15; i++) {
         uPtr<Mob> newMob = mkU<Mob>(this);
         newMob->m_inputs.isPig = true;
         m_mobs.push_back(std::move(newMob));
     }
 
-    for (int i = 0; i < 5; i++) {
-        uPtr<Mob> newMob = mkU<Mob>(this);
-        newMob->m_inputs.isZombie = true;
-        m_mobs.push_back(std::move(newMob));
-    }
+//    for (int i = 0; i < 5; i++) {
+//        uPtr<Mob> newMob = mkU<Mob>(this);
+//        newMob->m_inputs.isZombie = true;
+//        m_mobs.push_back(std::move(newMob));
+//    }
 }
 
 MyGL::~MyGL() {
@@ -322,7 +322,7 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
         }
     }
 
-    if (QSysInfo().productType() == "macos") {
+//    if (QSysInfo().productType() == "macos") {
         float amount = 2.0f;
 
         if (e->modifiers() & Qt::ShiftModifier) {
@@ -344,7 +344,7 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
         if (e->key() == Qt::Key_Down) {
             m_player.rotateOnRightLocal(3 * -amount);
         }
-    }
+//    }
 }
 
 void MyGL::keyReleaseEvent(QKeyEvent* e) {
@@ -378,7 +378,7 @@ void MyGL::keyReleaseEvent(QKeyEvent* e) {
 }
 
 void MyGL::mouseMoveEvent(QMouseEvent* e) {
-    if (QSysInfo().productType() != "macos") {
+//    if (QSysInfo().productType() != "macos") {
         const float SENSITIVITY = 50.0;
         float dx = this->width() * 0.5 - e->pos().x();
 
@@ -393,7 +393,7 @@ void MyGL::mouseMoveEvent(QMouseEvent* e) {
         }
 
         moveMouseToCenter();
-    }
+//    }
 }
 
 void MyGL::mousePressEvent(QMouseEvent *e) {

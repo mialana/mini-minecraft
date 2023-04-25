@@ -232,7 +232,7 @@ void Entity::computePhysics(float dT, Terrain& terrain) {
     m_velocity += m_acceleration * (dT / 10.f);
 
     if (!m_inputs.flightMode) {
-        m_velocity = glm::vec3(m_velocity.x, glm::min(m_velocity.y, 0.25f), m_velocity.z);
+        m_velocity = glm::vec3(m_velocity.x, glm::min(m_velocity.y, 0.5f), m_velocity.z);
         detectCollision(terrain);
     }
 
