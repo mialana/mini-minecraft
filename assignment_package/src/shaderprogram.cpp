@@ -366,7 +366,7 @@ void ShaderProgram::drawInterleavedT(Drawable& d) {
             context->glVertexAttribPointer(attrBWts, 4, GL_FLOAT, false, 6 * sizeof(glm::vec4),
                                            (void*)(5 * sizeof(glm::vec4)));
         }
-    }
+
 
     d.bindTIdx();
     context->glDrawElements(d.drawMode(), d.elemCount(), GL_UNSIGNED_INT, 0);
@@ -393,6 +393,7 @@ void ShaderProgram::drawInterleavedT(Drawable& d) {
 
     if (attrBWts != -1) {
         context->glDisableVertexAttribArray(attrBWts);
+    }
     }
 
     context->printGLErrorLog();
