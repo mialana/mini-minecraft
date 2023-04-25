@@ -396,7 +396,6 @@ void ShaderProgram::drawInterleavedT(Drawable& d) {
     }
 
     context->printGLErrorLog();
-    }
 }
 
 char* ShaderProgram::textFileRead(const char* fileName) {

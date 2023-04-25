@@ -311,7 +311,7 @@ void Entity::detectCollision(Terrain& terrain) {
     }
 }
 
-bool Entity::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit, Terrain& terrain) {
+bool Entity::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit, Terrain& terrain, BlockType* out_type) {
     float maxLen = glm::length(rayDirection);
     glm::ivec3 currCell = glm::ivec3(glm::floor(rayOrigin));
     rayDirection = glm::normalize(rayDirection);
@@ -350,15 +350,13 @@ bool Entity::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_d
         glm::ivec3 offset = glm::ivec3(0, 0, 0);
         offset[interfaceAxis] = glm::min(0.f, glm::sign(rayDirection[interfaceAxis]));
         currCell = glm::ivec3(glm::floor(rayOrigin)) + offset;
-        BlockType cellType;
-        try {
-            cellType = terrain.getBlockAt(currCell.x, currCell.y, currCell.z);
-        } catch (std::exception){
-            continue;
-        }
+        BlockType cellType = terrain.getBlockAt(currCell.x, currCell.y, currCell.z);
 
-        if (cellType != EMPTY && !Chunk::isHPlane(cellType) && !Chunk::isCross2(cellType)
-                && !Chunk::isCross4(cellType) && cellType != WATER && cellType != LAVA) {
+         if (cellType != EMPTY && !Chunk::isHPlane(cellType) && !Chunk::isCross2(cellType) &&
+            !Chunk::isCross4(cellType) && cellType != WATER && cellType != LAVA) {
+            if (out_type) {
+                *out_type = cellType;
+            }
             *out_blockHit = currCell;
             *out_dist = glm::min(maxLen, curr_t);
             return true;

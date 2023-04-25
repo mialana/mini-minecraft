@@ -13,6 +13,7 @@ class Player : public Entity {
         Camera m_camera;
         Camera m_thirdPersonCamera;
         Camera m_frontViewCamera;
+        OpenGLContext* cntx;
 
         void processInputs();
 

@@ -2,6 +2,7 @@
 #include "glm_includes.h"
 #include <QJsonObject>
 #include "geometry3d.h"
+#include "scene/chunk.h"
 #include "scene/node.h"
 #include "shaderprogram.h"
 
@@ -51,7 +52,7 @@ public:
 
     virtual void computePhysics(float dT, Terrain& terrain);
     virtual void detectCollision(Terrain& terrain);
-    virtual bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit, Terrain& terrain);
+    virtual bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit, Terrain& terrain, BlockType* out_type = nullptr);
 
     // Translate along the given vector
     virtual void moveAlongVector(glm::vec3 dir);
