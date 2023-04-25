@@ -8,6 +8,7 @@ SOURCES += \
     $$PWD/main.cpp \
     $$PWD/mainwindow.cpp \
     $$PWD/mygl.cpp \
+    $$PWD/recipewindow.cpp \
     $$PWD/scene/InventoryManager.cpp \
     $$PWD/scene/biome.cpp \
     $$PWD/scene/geometry3d.cpp \
@@ -34,6 +35,7 @@ HEADERS += \
     $$PWD/la.h \
     $$PWD/mainwindow.h \
     $$PWD/mygl.h \
+    $$PWD/recipewindow.h \
     $$PWD/scene/InventoryManager.h \
     $$PWD/scene/biome.h \
     $$PWD/scene/geometry3d.h \

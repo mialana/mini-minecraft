@@ -16,6 +16,8 @@ class Player : public Entity {
         Camera m_thirdPersonCamera;
         const Terrain& mcr_terrain;
 
+        OpenGLContext* cntx;
+
         int infAxis;
 
         void processInputs(InputBundle& inputs);
@@ -50,7 +52,7 @@ class Player : public Entity {
         void detectCollision();
 
         bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection,
-                       float* out_dist, glm::ivec3* out_blockHit);
+                       float* out_dist, glm::ivec3* out_blockHit, BlockType* out_type = nullptr);
 
         BlockType placeBlock(Terrain* terrain, BlockType currBlock);
         BlockType removeBlock(Terrain* terrain);

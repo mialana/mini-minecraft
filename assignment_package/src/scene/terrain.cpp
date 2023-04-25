@@ -2,8 +2,6 @@
 #include <stdexcept>
 #include <iostream>
 #include <cstdlib>
-#include <QThreadPool>
-#include "workers.h"
 
 Terrain::Terrain(OpenGLContext* context)
     : m_chunks(), m_generatedTerrain(), mp_context(context)
@@ -101,12 +99,6 @@ bool Terrain::hasChunkAt(int x, int z) const {
     return m_chunks.find(toKey(16 * xFloor, 16 * zFloor)) != m_chunks.end();
 }
 
-bool Terrain::hasNewChunkAt(int x, int z) const {
-    int xFloor = static_cast<int>(glm::floor(x / 16.f));
-    int zFloor = static_cast<int>(glm::floor(z / 16.f));
-
-    return newChunks.find(toKey(16 * xFloor, 16 * zFloor)) != newChunks.end();
-}
 
 uPtr<Chunk>& Terrain::getChunkAt(int x, int z) {
     int xFloor = static_cast<int>(glm::floor(x / 16.f));
@@ -120,112 +112,14 @@ const uPtr<Chunk>& Terrain::getChunkAt(int x, int z) const {
     return m_chunks.at(toKey(16 * xFloor, 16 * zFloor));
 }
 
-uPtr<Chunk>& Terrain::getNewChunkAt(int x, int z) {
-    int xFloor = static_cast<int>(glm::floor(x / 16.f));
-    int zFloor = static_cast<int>(glm::floor(z / 16.f));
-
-    return newChunks[toKey(16 * xFloor, 16 * zFloor)];
-}
-
-const uPtr<Chunk>& Terrain::getNewChunkAt(int x, int z) const {
-    int xFloor = static_cast<int>(glm::floor(x / 16.f));
-    int zFloor = static_cast<int>(glm::floor(z / 16.f));
-
-    return newChunks.at(toKey(16 * xFloor, 16 * zFloor));
-}
-
-bool Terrain::hasTerrainGenerationZoneAt(glm::ivec2 zone) {
-    return m_generatedTerrain.find(toKey(zone.x, zone.y)) != m_generatedTerrain.end();
-}
 
 void Terrain::multithreadedWork(glm::vec3 currPlayerPos, glm::vec3 prevPlayerPos, float dt) {
     m_chunkTimer += dt;
-
     if (m_chunkTimer >= 0.5f) {
-        tryNewChunk(currPlayerPos, prevPlayerPos);
+        tryExpansion(currPlayerPos, prevPlayerPos);
         m_chunkTimer = 0.0f;
     }
-
-    checkthreadResults();
-}
-
-std::vector<glm::ivec2> getNearTerrainGenZones(glm::vec2 pos, int n) {
-    std::vector<glm::ivec2> tgzs = {};
-    int halfWidth = glm::floor(n / 2.f) * 64;
-
-    for (int i = pos.x - halfWidth; i <= pos.x + halfWidth; i += 64) {
-        for (int j = pos.y - halfWidth; j <= pos.y + halfWidth; j += 64) {
-            tgzs.push_back(glm::ivec2(i, j));
-        }
-    }
-
-    return tgzs;
-}
-
-std::vector<glm::ivec2> isSameVector(std::vector<glm::ivec2> a, std::vector<glm::ivec2> b) {
-    std::vector<glm::ivec2> diff;
-
-    for (glm::ivec2 vecB : b) {
-        bool match = false;
-
-        for (glm::ivec2 vecA : a) {
-            if (vecA.x == vecB.x && vecA.y == vecB.y) {
-                match = true;
-                break;
-            }
-        }
-
-        if (!match) {
-            diff.push_back(vecB);
-        }
-    }
-
-    return diff;
-}
-
-void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos) {
-    // Find the 64 x 64 zone the player is on
-    glm::ivec2 curr(64.f * floor(pos.x / 64.f), 64.f * floor(pos.z / 64.f));
-    glm::ivec2 prev(64.f * floor(prevPos.x / 64.f), 64.f * floor(prevPos.z / 64.f));
-    // Figure out which zones border this zone and the previous zone
-    QSet<long long> borderingCurr = borderingZone(curr, 3, false);
-    QSet<long long> borderingPrev = borderingZone(prev, 3, false);
-
-    // If previous zones are no longer there, remove their vbo data
-    for (long long zone : borderingPrev) {
-        if (!borderingCurr.contains(zone)) {
-            glm::ivec2 coord = toCoords(zone);
-            std::cout<<"got into deleting \n";
-            for (int x = coord.x; x < coord.x + 64; x += 16) {
-                for (int z = coord.y; z < coord.y + 64; z += 16) {
-                    auto& c = getChunkAt(x, z);
-                    c->destroyVBOdata();
-                    c->hasVBOData = false;
-                    c->hasBinded = false;
-                    //c->isBuffered = false;
-                }
-            }
-        }
-    }
-
-    // Figure out if the current zones need VBO data or Block data
-    for (long long zone : borderingCurr) {
-        if (m_chunks.find(zone) != m_chunks.end()) {
-            if (!borderingPrev.contains(zone)) {
-                glm::ivec2 coord = toCoords(zone);
-
-                for (int x = coord.x; x < coord.x + 64; x += 16) {
-                    for (int z = coord.y; z < coord.y + 64; z += 16) {
-                        auto& c = getChunkAt(x, z);
-                        createVBOWorker(c.get());
-                    }
-                }
-            }
-        } else {
-            //std::cout<<"I am bd worker \n";
-            createBDWorker(zone);
-        }
-    }
+    checkThreadResults();
 }
 
 QSet<long long> Terrain::borderingZone(glm::ivec2 coords, int radius, bool atEdge) {
@@ -249,145 +143,91 @@ QSet<long long> Terrain::borderingZone(glm::ivec2 coords, int radius, bool atEdg
             }
         }
     }
-
     return result;
 }
 
-void Terrain::tryExpansion(glm::vec3 currPlayerPos, glm::vec3 prevPlayerPos) {
+void Terrain::tryExpansion(glm::vec3 pos, glm::vec3 prevPos) {
+    // Find the 64 x 64 zone the player is on
+    glm::ivec2 curr(64.f * floor(pos.x / 64.f), 64.f * floor(pos.z / 64.f));
+    glm::ivec2 prev(64.f * floor(prevPos.x / 64.f), 64.f * floor(prevPos.z / 64.f));
+    // Figure out which zones border this zone and the previous zone
+    QSet<long long> borderingCurr = borderingZone(curr, 3, false);
+    QSet<long long> borderingPrev = borderingZone(prev, 3, false);
 
-    //std::cout<<"itry  \n";
+    // Figure out if the current zones need VBO data or Block data
+    for (long long zone : borderingCurr) {
+        if (m_chunks.find(zone) != m_chunks.end()) {
+            if (!borderingPrev.contains(zone)) {
+                glm::ivec2 coord = toCoords(zone);
 
-    glm::ivec2 currZone = glm::ivec2(glm::floor(currPlayerPos.x / 64.f) * 64.f,
-                                     glm::floor(currPlayerPos.z / 64.f) * 64.f);
-
-    glm::ivec2 prevZone = glm::ivec2(glm::floor(prevPlayerPos.x / 64.f) * 64.f,
-                                     glm::floor(prevPlayerPos.z / 64.f) * 64.f);
-
-    std::vector<glm::ivec2> currTGZs = getNearTerrainGenZones(currZone, 1);
-    std::vector<glm::ivec2> prevTGZs = getNearTerrainGenZones(prevZone, 1);
-
-    std::vector<glm::ivec2> newZones = firstTick ? currTGZs : isSameVector(currTGZs, prevTGZs);
-    std::vector<glm::ivec2> oldZones = isSameVector(currTGZs, prevTGZs);
-
-    for (glm::ivec2 newZone : newZones) {
-        if (!hasTerrainGenerationZoneAt(newZone)) {
-            m_generatedTerrain.insert(toKey(newZone.x, newZone.y));
-
-            for (int x = 0; x < 64; x += 16) {
-                for (int z = 0; z < 64; z += 16) {
-                    std::cout << "i am add new chunk \n";
-                    newChunks[toKey(newZone.x + x, newZone.y + z)] = instantiateNewChunkAt(newZone.x + x,
-                                                                                           newZone.y + z);
+                for (int x = coord.x; x < coord.x + 64; x += 16) {
+                    for (int z = coord.y; z < coord.y + 64; z += 16) {
+                        auto& c = getChunkAt(x, z);
+                        createVBOWorker(c.get());
+                    }
                 }
             }
+        } else {
+            createBDWorker(zone);
         }
     }
-
-    for (auto & [ key, chunk ] : newChunks) {
-        int x = chunk->getWorldPos().x;
-        int z = chunk->getWorldPos().y;
-
-        if (hasChunkAt(x, z + 16)) {
-            auto& chunkNorth = getChunkAt(x, z + 16);
-            chunk->linkNeighbor(chunkNorth, ZPOS);
-        }
-
-        if (hasChunkAt(x, z - 16)) {
-            auto& chunkSouth = getChunkAt(x, z - 16);
-            chunk->linkNeighbor(chunkSouth, ZNEG);
-        }
-
-        if (hasChunkAt(x + 16, z)) {
-            auto& chunkEast = getChunkAt(x + 16, z);
-            chunk->linkNeighbor(chunkEast, XPOS);
-        }
-
-        if (hasChunkAt(x - 16, z)) {
-            auto& chunkWest = getChunkAt(x - 16, z);
-            chunk->linkNeighbor(chunkWest, XNEG);
-        }
-    }
-
-    for (auto & [ key, chunk ] : newChunks) {
-        blockWorkerThreads.push_back(std::thread(&Terrain::blockWorker, this, move(chunk)));
-    }
-
-    newChunks.clear();
-    firstTick = false;
-}
-
-uPtr<Chunk> Terrain::instantiateNewChunkAt(int x, int z) {
-    uPtr<Chunk> chunk = mkU<Chunk>(mp_context);
-    chunk.get()->setWorldPos(x, z);
-
-    return chunk;
-}
-
-BlockType Terrain::generateBlockTypeByHeight(int height, bool isTop) {
-
-    if (height < 120) {
-        return STONE;
-    }
-
-    if (height < 140) {
-        return STONE;
-    }
-
-    if (height < 160) {
-        return isTop ? GRASS : STONE;
-    }
-
-    if (height > 200) {
-        return isTop ? GRASS : STONE;
-    }
-
-    return STONE;
-}
-
-void Terrain::blockWorker(uPtr<Chunk> chunk) {
-    chunksWithBlockDataMutex.lock();
-    glm::ivec2 chunkWorldPos = chunk->getWorldPos();
-
-    for (int x = 0; x < 16; x++) {
-        for (int z = 0; z < 16; z++) {
-            int height = std::rand() % 250;
-
-            for (int k = 0; k <= height; k++) {
-                chunk->setBlockAt(x, k, z, generateBlockTypeByHeight(height, k == height));
-            }
-        }
-    }
-
-    chunksWithBlockData[toKey(chunk->getWorldPos().x, chunk->getWorldPos().y)] = move(chunk);
-    chunksWithBlockDataMutex.unlock();
 }
 
 void Terrain::checkThreadResults() {
-    /*  //std::cout<<"i am cjecl tjread load \n";
-        chunksWithBlockDataMutex.lock();
-        for (auto & [ key, chunk ] : chunksWithBlockData) {
-         std::cout<<"i am here at vbo worker \n";
-         vboWorkerThreads.push_back(std::thread(&Terrain::VBOWorker, this, std::move(chunk)));
-        }
-        chunksWithBlockData.clear();
-        chunksWithBlockDataMutex.unlock();
+    // First, send chunks processed by BlockWorkers to VBOWorkers
+    if (!m_blockDataChunks.empty()) {
+        m_blockDataChunksLock.lock();
 
-        chunksWithVBODataMutex.lock();
-        for (auto & [ key, chunk ] : chunksWithVBOData) {
-         chunk->loadVBO();
-         std::cout<<"i am here at load \n";
-         m_chunks[key] = move(chunk);
+        for (auto& c : m_blockDataChunks) {
+            for (auto& n : c->m_neighbors) {
+                if (n.second) {
+                    m_blockDataChunks.insert(n.second);
+                }
+            }
         }
-        chunksWithVBOData.clear();
-        chunksWithVBODataMutex.unlock();*/
+
+        createVBOWorkers(m_blockDataChunks);
+        m_blockDataChunks.clear();
+        m_blockDataChunksLock.unlock();
+    }
+
+    // Second, take the chunks that have VBO data and send data to GPU
+    m_VBODataChunksLock.lock();
+
+    for (auto& data : m_vboDataChunks) {
+        data->loadVBO();
+    }
+
+    m_vboDataChunks.clear();
+    m_VBODataChunksLock.unlock();
 }
 
-/*  void Terrain::VBOWorker(uPtr<Chunk> chunk) {
-    chunksWithVBODataMutex.lock();
-    chunk->generateVBOData();
-    chunksWithVBOData[toKey(chunk->getWorldPos().x, chunk->getWorldPos().y)] = move(chunk);
-    chunksWithVBODataMutex.unlock();
-    }*/
+void Terrain::createBDWorker(long long zone) {
+    std::vector<Chunk*> toDo;
+    int x = toCoords(zone).x;
+    int z = toCoords(zone).y;
+
+    for (int i = x; i < x + 64; i += 16) {
+        for (int j = z; j < z + 64; j += 16) {
+            toDo.push_back(instantiateChunkAt(i, j));
+        }
+    }
+
+    BDWorker* worker = new BDWorker(x, z, toDo,
+                                    &m_blockDataChunks, &m_blockDataChunksLock);
+    QThreadPool::globalInstance()->start(worker);
+}
+
+void Terrain::createVBOWorkers(const std::unordered_set<Chunk*>& chunks) {
+    for (Chunk* chunk : chunks) {
+        createVBOWorker(chunk);
+    }
+}
+
+void Terrain::createVBOWorker(Chunk* chunk) {
+    VBOWorker* werk = new VBOWorker(chunk, &m_vboDataChunks, &m_VBODataChunksLock);
+    QThreadPool::globalInstance()->start(werk);
+}
 
 void Terrain::setBlockAt(int x, int y, int z, BlockType t) {
     if (hasChunkAt(x, z)) {
@@ -448,19 +288,10 @@ Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
 }
 
 void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shaderProgram) {
-    chunksWithBlockDataMutex.lock();
-    chunksWithVBODataMutex.lock();
     m_blockDataChunksLock.lock();
-
     m_VBODataChunksLock.lock();
-
     for (int x = minX; x < maxX; x += 16) {
         for (int z = minZ; z < maxZ; z += 16) {
-
-
-
-
-
             if (hasChunkAt(x, z)) {
 
                 const uPtr<Chunk>& currChunk = getChunkAt(x, z);
@@ -469,24 +300,13 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
                     shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
                     shaderProgram->drawInterleavedO(*currChunk);
                 }
-
-
-
             }
         }
     }
-
     for (int x = minX; x < maxX; x += 16) {
         for (int z = minZ; z < maxZ; z += 16) {
-
-
-
-
-
             if (hasChunkAt(x, z)) {
                 const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-
-
                 if (currChunk->hasVBOData && currChunk->hasBinded) {
                     shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
                     shaderProgram->drawInterleavedT(*currChunk);
@@ -494,40 +314,27 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
             }
         }
     }
-
     m_blockDataChunksLock.unlock();
-
     m_VBODataChunksLock.unlock();
-    chunksWithBlockDataMutex.unlock();
-    chunksWithVBODataMutex.unlock();
 }
-
-
 
 void Terrain::CreateTestScene() {
     // Create the Chunks that will
     // store the blocks for our
     // initial world space
-
-
     for (int x = 0; x < 64; x += 16) {
         for (int z = 0; z < 64; z += 16) {
             Chunk* c = instantiateChunkAt(x, z);
-
             c->helperCreate(x, z);
-
         }
     }
 
     for (int x = 0; x < 64; x += 16) {
         for (int z = 0; z < 64; z += 16) {
             Chunk* c = getChunkAt(x, z).get();
-
             c->createVBOdata();
-
         }
     }
-
     // Tell our existing terrain set that
     // the "generated terrain zone" at (0,0)
     // now exists.
@@ -1414,66 +1221,4 @@ void Terrain::createDeciduous3(int x, int y, int z, BlockType leaf, BlockType wo
     setBlockAt(x, y + 3, z, leaf);
     setBlockAt(x, y, z, wood);
     setBlockAt(x, y + 1, z, wood);
-}
-
-void Terrain::checkthreadResults() {
-    // First, send chunks processed by BlockWorkers to VBOWorkers
-    if (!m_blockDataChunks.empty()) {
-        m_blockDataChunksLock.lock();
-
-        for (auto& c : m_blockDataChunks) {
-            for (auto& n : c->m_neighbors) {
-                if (n.second) {
-                    m_blockDataChunks.insert(n.second);
-                }
-            }
-        }
-
-        createVBOWorkers(m_blockDataChunks);
-        m_blockDataChunks.clear();
-        m_blockDataChunksLock.unlock();
-    }
-
-    // Second, take the chunks that have VBO data and send data to GPU
-    m_VBODataChunksLock.lock();
-
-    for (auto& data : m_vboDataChunks) {
-        data->loadVBO();
-    }
-
-    m_vboDataChunks.clear();
-    m_VBODataChunksLock.unlock();
-}
-
-void Terrain::createBDWorkers(const QSet<long long>& zones) {
-    for (long long zone : zones) {
-        createBDWorker(zone);
-    }
-}
-
-void Terrain::createBDWorker(long long zone) {
-    std::vector<Chunk*> toDo;
-    int x = toCoords(zone).x;
-    int z = toCoords(zone).y;
-
-    for (int i = x; i < x + 64; i += 16) {
-        for (int j = z; j < z + 64; j += 16) {
-            toDo.push_back(instantiateChunkAt(i, j));
-        }
-    }
-
-    BDWorker* worker = new BDWorker(x, z, toDo,
-                                    &m_blockDataChunks, &m_blockDataChunksLock);
-    QThreadPool::globalInstance()->start(worker);
-}
-
-void Terrain::createVBOWorkers(const std::unordered_set<Chunk*>& chunks) {
-    for (Chunk* chunk : chunks) {
-        createVBOWorker(chunk);
-    }
-}
-
-void Terrain::createVBOWorker(Chunk* chunk) {
-    VBOWorker* werk = new VBOWorker(chunk, &m_vboDataChunks, &m_VBODataChunksLock);
-    QThreadPool::globalInstance()->start(werk);
 }

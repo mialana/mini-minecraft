@@ -26,12 +26,9 @@ VBOWorker::VBOWorker(Chunk* c, std::vector<Chunk*>* data, QMutex* dataLock) :
 {}
 
 void VBOWorker::run() {
-    //mp_chunk->chunkLock.lock();
-    //ChunkVBOdata c(mp_chunk);
     // call function to build VBO Data
     mp_chunk->generateVBOData();
     mp_VBOsCompletedLock->lock();
     mp_VBOsCompleted->push_back(mp_chunk);
     mp_VBOsCompletedLock->unlock();
-    //mp_chunk->chunkLock.unlock();
 }

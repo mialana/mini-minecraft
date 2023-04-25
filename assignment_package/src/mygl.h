@@ -77,6 +77,8 @@ class MyGL : public OpenGLContext {
         static glm::vec3 convertQJsonArrayToGlmVec3(QJsonArray obj);
         static glm::vec4 convertQJsonArrayToGlmVec4(QJsonArray obj);
 
+        void showRecipe();
+
 
     protected:
         // Automatically invoked when the user
@@ -102,6 +104,8 @@ signals:
     void sig_sendPlayerTerrainZone(QString) const;
 
     void sig_sendInventoryToggle(bool) const;
+
+    void sig_sendRecipeWindow() const;
 };
 
 
