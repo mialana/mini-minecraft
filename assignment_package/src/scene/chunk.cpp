@@ -10,15 +10,26 @@ Chunk::Chunk(OpenGLContext* context) : Drawable(context), m_blocks(), m_neighbor
 }
 
 // Does bounds checking with at()
-BlockType Chunk::getBlockAt(unsigned int x, unsigned int y, unsigned int z) const {
-    return m_blocks.at(x + 16 * y + 16 * 256 * z);
+BlockType Chunk::getBlockAt(int x, int y, int z) const {
+    if (isInBounds(glm::ivec3(x, y, z))) {
+        return m_blocks.at(x + 16 * y + 16 * 256 * z);
+    } else if (x < 0 && m_neighbors.at(XNEG) != nullptr) {
+        return m_neighbors.at(XNEG)->getBlockAt(16 + x, y, z);
+    } else if (x > 15 && m_neighbors.at(XPOS) != nullptr) {
+        return m_neighbors.at(XPOS)->getBlockAt(x - 16, y, z);
+    } else if (z < 0 && m_neighbors.at(ZNEG) != nullptr) {
+        return m_neighbors.at(ZNEG)->getBlockAt(x, y, 16 + z);
+    } else if (z > 15 && m_neighbors.at(ZPOS) != nullptr) {
+        return m_neighbors.at(ZPOS)->getBlockAt(x, y, z - 16);
+    }
+    return EMPTY;
 }
 
 // Exists to get rid of compiler warnings about int -> unsigned int implicit conversion
-BlockType Chunk::getBlockAt(int x, int y, int z) const {
-    return getBlockAt(static_cast<unsigned int>(x), static_cast<unsigned int>(y),
-                      static_cast<unsigned int>(z));
-}
+//BlockType Chunk::getBlockAt(int x, int y, int z) const {
+//    return getBlockAt(static_cast<unsigned int>(x), static_cast<unsigned int>(y),
+//                      static_cast<unsigned int>(z));
+//}
 
 glm::vec4 Chunk::getBiomeAt(unsigned int x, unsigned int z) const {
     return m_biomes.at(x + 16 * z);
@@ -33,9 +44,6 @@ void Chunk::setBlockAt(int x, int y, int z, BlockType t) {
     if (isInBounds(glm::ivec3(x, y, z))) {
         m_blocks.at(x + 16 * y + 16 * 256 * z) = t;
     } else if (x < 0 && m_neighbors.at(XNEG) != nullptr) {
-        if (t == ROOF_TILES_1) {
-            int i = 0;
-        }
         m_neighbors.at(XNEG)->setBlockAt(16 + x, y, z, t);
     } else if (x > 15 && m_neighbors.at(XPOS) != nullptr) {
         m_neighbors.at(XPOS)->setBlockAt(x - 16, y, z, t);
@@ -1391,21 +1399,21 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                         // bamboo
                         int y = h;
                         int addHeight = 0;
-                        while (addHeight == 0 && getBlockAt(x, y, z) == EMPTY) {
+                        while (addHeight == 0 && getBlockAt(x, y + 1, z) == EMPTY) {
                             setBlockAt(x, y, z, BAMBOO_1);
                             y++;
-                            if (Biome::noise1D(glm::vec3(worldX, y, worldZ)) >= 0.75) {
+                            if (Biome::noise1D(glm::vec3(worldX, y + 1, worldZ)) >= 0.75) {
                                 addHeight = 1;
                             }
                         }
-                        while (addHeight == 1 && getBlockAt(x, y, z) == EMPTY) {
+                        while (addHeight == 1 && getBlockAt(x, y + 1, z) == EMPTY) {
                             setBlockAt(x, y, z, BAMBOO_2);
                             y++;
                             if (Biome::noise1D(glm::vec3(worldX, y, worldZ)) >= 0.5) {
                                 addHeight = 2;
                             }
                         }
-                        while (addHeight == 2 && getBlockAt(x, y, z) == EMPTY) {
+                        while (addHeight == 2 && getBlockAt(x, y + 1, z) == EMPTY) {
                             setBlockAt(x, y, z, BAMBOO_3);
                             y++;
                             if (Biome::noise1D(glm::vec3(worldX, y, worldZ)) >= 0.25) {
@@ -1589,8 +1597,10 @@ std::pair<float, BiomeEnum> Chunk::blendMultipleBiomes(glm::vec2 worldXZ, glm::v
     BiomeEnum b;
     glm::vec4 biomeWts;
 
-    double elev = std::clamp((Biome::perlin1(worldXZ / 237.f) + 1.f) / 2.f, 0.f, 1.f); // remap perlin noise from (-1, 1) to (0, 1)
-    double temp = std::clamp((Biome::perlin2(worldXZ / 189.f) + 1.f) / 2.f, 0.f, 1.f);
+//    double elev = std::clamp((Biome::perlin1(worldXZ / 237.f) + 1.f) / 2.f, 0.f, 1.f); // remap perlin noise from (-1, 1) to (0, 1)
+//    double temp = std::clamp((Biome::perlin2(worldXZ / 189.f) + 1.f) / 2.f, 0.f, 1.f);
+    double elev = std::clamp(Biome::fbm(worldXZ / 237.f), 0.f, 1.f); // remap perlin noise from (-1, 1) to (0, 1)
+    double temp = std::clamp(Biome::fbm(worldXZ / 189.f), 0.f, 1.f);
 
 
 //    std::cout<<elev<<","<<temp<<std::endl;
@@ -2254,6 +2264,15 @@ void Chunk::createTeaHouse(int x, int y, int z) {
 }
 
 void Chunk::createConifer1(int x, int y, int z, BlockType leaf, BlockType wood) {
+    for (int x1 = x - 3; x1 <= x + 3; x1++) {
+        for (int z1 = z - 3; z1 <= z + 3; z1++) {
+            for (int y1 = y + 1; y1 <= y + 7; y1++) {
+                if (getBlockAt(x1, y1, z1) != EMPTY) {
+                    return;
+                }
+            }
+        }
+    }
     // leaves
     for (int x3 = x - 1; x3 <= x + 1; x3++) {
         for (int z3 = z - 1; z3 <= z + 1; z3++) {
@@ -2306,6 +2325,16 @@ void Chunk::createConifer1(int x, int y, int z, BlockType leaf, BlockType wood) 
     }
 }
 void Chunk::createConifer2(int x, int y, int z, BlockType leaf, BlockType wood) {
+    for (int x1 = x - 2; x1 <= x + 2; x1++) {
+        for (int z1 = z - 2; z1 <= z + 2; z1++) {
+            for (int y1 = y + 1; y1 <= y + 9; y1++) {
+                if (getBlockAt(x1, y1, z1) != EMPTY) {
+                    return;
+                }
+            }
+        }
+    }
+
     for (int x3 = x - 1; x3 <= x + 1; x3++) {
         for (int z3 = z - 1; z3 <= z + 1; z3++) {
             setBlockAt(x3, y + 1, z3, leaf);
@@ -2362,12 +2391,20 @@ void Chunk::createConifer2(int x, int y, int z, BlockType leaf, BlockType wood) 
     }
 }
 void Chunk::createConifer3(int x, int y, int z, BlockType leaf, BlockType wood) {
+    for (int x1 = x - 2; x1 <= x + 2; x1++) {
+        for (int z1 = z - 2; z1 <= z + 2; z1++) {
+            for (int y1 = y + 1; y1 <= y + 6; y1++) {
+                if (getBlockAt(x1, y1, z1) != EMPTY) {
+                    return;
+                }
+            }
+        }
+    }
 
     for (int y3 = y + 1; y3 <= y + 5; y3++) {
         for (int x3 = x - 1; x3 <= x + 1; x3++) {
             for (int z3 = z - 1; z3 <= z + 1; z3++) {
                 setBlockAt(x3, y3, z3, leaf);
-                setBlockAt(x3, y3 + 1, z3, SNOW_1);
             }
         }
     }
@@ -2392,18 +2429,6 @@ void Chunk::createConifer3(int x, int y, int z, BlockType leaf, BlockType wood) 
     setBlockAt(x - 1, y + 5, z + 1, EMPTY);
     setBlockAt(x + 1, y + 5, z - 1, EMPTY);
     setBlockAt(x + 1, y + 5, z + 1, EMPTY);
-    setBlockAt(x - 1, y + 2, z - 1, EMPTY);
-    setBlockAt(x - 1, y + 2, z + 1, EMPTY);
-    setBlockAt(x + 1, y + 2, z - 1, EMPTY);
-    setBlockAt(x + 1, y + 2, z + 1, EMPTY);
-    setBlockAt(x - 1, y + 4, z - 1, EMPTY);
-    setBlockAt(x - 1, y + 4, z + 1, EMPTY);
-    setBlockAt(x + 1, y + 4, z - 1, EMPTY);
-    setBlockAt(x + 1, y + 4, z + 1, EMPTY);
-    setBlockAt(x - 1, y + 6, z - 1, EMPTY);
-    setBlockAt(x - 1, y + 6, z + 1, EMPTY);
-    setBlockAt(x + 1, y + 6, z - 1, EMPTY);
-    setBlockAt(x + 1, y + 6, z + 1, EMPTY);
 
     setBlockAt(x, y + 6, z, leaf);
 
@@ -2413,6 +2438,16 @@ void Chunk::createConifer3(int x, int y, int z, BlockType leaf, BlockType wood) 
     }
 }
 void Chunk::createDeciduous1(int x, int y, int z, BlockType leaf, BlockType wood) {
+    for (int x1 = x - 2; x1 <= x + 2; x1++) {
+        for (int z1 = z - 2; z1 <= z + 2; z1++) {
+            for (int y1 = y + 1; y1 <= y + 6; y1++) {
+                if (getBlockAt(x1, y1, z1) != EMPTY && getBlockAt(x1, y1, z1) != BAMBOO_1) {
+                    return;
+                }
+            }
+        }
+    }
+
     for (int y2 = y + 3; y2 <= y + 4; y2++) {
         for (int x2 = x - 2; x2 <= x + 2; x2++) {
             for (int z2 = z - 2; z2 <= z + 2; z2++) {
@@ -2442,6 +2477,16 @@ void Chunk::createDeciduous1(int x, int y, int z, BlockType leaf, BlockType wood
     }
 }
 void Chunk::createDeciduous2(int x, int y, int z, BlockType leaf, BlockType wood) {
+    for (int x1 = x - 3; x1 <= x + 3; x1++) {
+        for (int z1 = z - 3; z1 <= z + 3; z1++) {
+            for (int y1 = y + 1; y1 <= y + 6; y1++) {
+                if (getBlockAt(x1, y1, z1) != EMPTY && getBlockAt(x1, y1, z1) != BAMBOO_1) {
+                    return;
+                }
+            }
+        }
+    }
+
     for (int y2 = y + 2; y2 <= y + 3; y2++) {
         for (int x2 = x - 3; x2 <= x + 3; x2++) {
             for (int z2 = z - 3; z2 <= z + 3; z2++) {
@@ -2471,6 +2516,16 @@ void Chunk::createDeciduous2(int x, int y, int z, BlockType leaf, BlockType wood
     }
 }
 void Chunk::createDeciduous3(int x, int y, int z, BlockType leaf, BlockType wood) {
+    for (int x1 = x - 2; x1 <= x + 2; x1++) {
+        for (int z1 = z - 2; z1 <= z + 2; z1++) {
+            for (int y1 = y + 1; y1 <= y + 4; y1++) {
+                if (getBlockAt(x1, y1, z1) != EMPTY && getBlockAt(x1, y1, z1) != BAMBOO_1) {
+                    return;
+                }
+            }
+        }
+    }
+
     for (int x1 = x - 2; x1 <= x + 2; x1++) {
         for (int z1 = z - 2; z1 <= z + 2; z1++) {
             setBlockAt(x1, y + 1, z1, leaf);
