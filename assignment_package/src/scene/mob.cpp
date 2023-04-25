@@ -80,14 +80,9 @@ void Mob::pathFind() {
         glm::mat4 bodyRotateMatrix = glm::lookAt(glm::vec3(), glm::normalize(directionOfTravel), glm::vec3(0, 1, 0));
         (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->overriddenTransformMatrix = glm::inverse(bodyRotateMatrix);
 
-        if (glm::distance(this->m_position, this->m_inputs.playerPosition) < 25.f) {
-            if (m_inputs.isZombie) {
-                glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 1.65f, 0.f), m_inputs.playerPosition + glm::vec3(0.f, 1.65f, 0.f), glm::vec3(0, 1, 0));
-                (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
-            } else if (m_inputs.isPig) {
-                glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 0.9f, 0.f) + glm::normalize(directionOfTravel) * 0.55f, m_inputs.playerPosition + glm::vec3(0.f, 1.65f, 0.f), glm::vec3(0, 1, 0));
-                (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
-            }
+        if (m_inputs.isZombie && glm::distance(this->m_position, this->m_inputs.playerPosition) < 25.f) {
+            glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 1.65f, 0.f), m_inputs.playerPosition + glm::vec3(0.f, 1.65f, 0.f), glm::vec3(0, 1, 0));
+            (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
 
             m_acceleration *= 10.f;
         } else {
