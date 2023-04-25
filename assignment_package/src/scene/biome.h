@@ -6,6 +6,8 @@ class Biome
 public:
     Biome();
 
+    static int getRandomIntInRange(int min, int max);
+
     static float noise1D(float x);
     static float noise1D(glm::vec2 p);
     static float noise1D(glm::vec3 p);

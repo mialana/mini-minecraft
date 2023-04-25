@@ -15,12 +15,10 @@
 
 MyGL::MyGL(QWidget* parent)
     : OpenGLContext(parent), m_worldAxes(this), m_progLambert(this),
-      m_terrain(this),
-      m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain, this),
+      m_progPlayer(this), m_progFlat(this), m_terrain(this),
       m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f),
-      m_frameBuffer(this, this->width(), this->height(),
-                    this->devicePixelRatio()),
-      m_screenQuad(this), m_progLiquid(this), m_progPlayer(this), isInventoryOpen(false) {
+      m_frameBuffer(this, this->width(), this->height(), this->devicePixelRatio()),
+      m_screenQuad(this), m_progLiquid(this), isInventoryOpen(false), m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain, this) {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
     // Tell the timer to redraw 60 times per second
@@ -28,6 +26,18 @@ MyGL::MyGL(QWidget* parent)
     setFocusPolicy(Qt::ClickFocus);
     setMouseTracking(true);     // MyGL will track the mouse's movements even if a mouse button is not pressed
     setCursor(Qt::BlankCursor); // Make the cursor invisible
+
+    for (int i = 0; i < 5; i++) {
+        uPtr<Mob> newMob = mkU<Mob>(this);
+        newMob->m_inputs.isPig = true;
+        m_mobs.push_back(std::move(newMob));
+    }
+
+    for (int i = 0; i < 5; i++) {
+        uPtr<Mob> newMob = mkU<Mob>(this);
+        newMob->m_inputs.isZombie = true;
+        m_mobs.push_back(std::move(newMob));
+    }
 }
 
 MyGL::~MyGL() {
@@ -72,9 +82,19 @@ void MyGL::initializeGL() {
     m_player.m_geom3D.createVBOdata();
     m_player.constructSceneGraph(nodeDataJsonObject["PlayerNodes"].toArray());
 
-    // Create and set up the diffuse shader
+    for (auto& mob : m_mobs) {
+        mob->m_geom3D.destroyVBOdata();
+        mob->m_geom3D.createVBOdata();
+        if (mob->m_inputs.isPig) {
+            mob->constructSceneGraph(nodeDataJsonObject["PigNodes"].toArray());
+        } else {
+            mob->constructSceneGraph(nodeDataJsonObject["PlayerNodes"].toArray());
+        }
+    }
+
     m_progLambert.create(":/glsl/lambert.vert.glsl", ":/glsl/lambert.frag.glsl");
     // Create and set up the flat lighting shader
+    m_progFlat.create(":/glsl/flat.vert.glsl", ":/glsl/flat.frag.glsl");
     m_progLiquid.create(":/glsl/liquid.vert.glsl", ":/glsl/liquid.frag.glsl");
     m_progPlayer.create(":/glsl/player.vert.glsl", ":/glsl/player.frag.glsl");
 
@@ -85,6 +105,14 @@ void MyGL::initializeGL() {
     m_playerTexture = std::make_shared<Texture>(this);
     m_playerTexture->create(":/textures/player_texture.png");
     m_playerTexture->load(2);
+
+    m_pigTexture = std::make_shared<Texture>(this);
+    m_pigTexture->create(":/textures/pig.png");
+    m_pigTexture->load(3);
+
+    m_zombieTexture = std::make_shared<Texture>(this);
+    m_zombieTexture->create(":/textures/zombie_texture.png");
+    m_zombieTexture->load(4);
 
     // We have to have a VAO bound in OpenGL 3.2 Core. But if we're not
     // using multiple VAOs, we can just bind one once.
@@ -105,6 +133,7 @@ void MyGL::resizeGL(int w, int h) {
     // Upload the view-projection matrix to our shaders (i.e. onto the graphics card)
 
     m_progLambert.setViewProjMatrix(viewproj);
+    m_progFlat.setViewProjMatrix(viewproj);
     m_progPlayer.setViewProjMatrix(viewproj);
 
     // resize framebuffer
@@ -122,14 +151,19 @@ void MyGL::resizeGL(int w, int h) {
 void MyGL::tick() {
     glm::vec3 prevPlayerPos = m_player.m_position;
     float dT = (QDateTime::currentMSecsSinceEpoch() - m_currMSecSinceEpoch) / 1000.f;
-    m_player.tick(dT, m_inputs);
+    m_player.tick(dT, m_terrain);
+
+    for (auto& mob : m_mobs) {
+        mob->m_inputs.playerPosition = m_player.m_position;
+        mob->tick(dT, m_terrain);
+    }
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
-    if (m_inputs.underWater) {
+    if (m_player.m_inputs.underWater) {
         m_progLiquid.setPlayerPosBiomeWts(m_terrain.getBiomeAt(prevPlayerPos.x, prevPlayerPos.z));
         m_progLiquid.setPlayerPos(prevPlayerPos);
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
-    } else if (m_inputs.underLava) {
+    } else if (m_player.m_inputs.underLava) {
         m_progLiquid.setGeometryColor(glm::vec4(1.f, 0.f, 0.f, 1.f));
     } else {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
@@ -182,13 +216,33 @@ void MyGL::paintGL() {
                this->height() * this->devicePixelRatio());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_playerTexture->load(2);
-    m_playerTexture->bind(2);
-    m_progPlayer.setTexture(2);
+    if (m_player.m_inputs.inThirdPerson) {
+        m_playerTexture->load(2);
+        m_playerTexture->bind(2);
+        m_progPlayer.setTexture(2);
 
-    if (m_inputs.inThirdPerson) {
+        glDisable(GL_CULL_FACE);
         m_progPlayer.setModelMatrix(glm::mat4());
         m_player.drawSceneGraph(m_player.bodyT, glm::mat4(), m_progPlayer);
+        glEnable(GL_CULL_FACE);
+    }
+
+    for (auto& mob : m_mobs) {
+        if (!mob->needsRespawn) {
+            if (mob->m_inputs.isPig) {
+                m_pigTexture->load(3);
+                m_pigTexture->bind(3);
+                m_progPlayer.setTexture(3);
+            } else {
+                m_zombieTexture->load(4);
+                m_zombieTexture->bind(4);
+                m_progPlayer.setTexture(4);
+            }
+            glDisable(GL_CULL_FACE);
+            m_progPlayer.setModelMatrix(glm::mat4());
+            mob->drawSceneGraph(mob->bodyT, glm::translate(mob->m_position), m_progPlayer);
+            glEnable(GL_CULL_FACE);
+        }
     }
 
     renderTerrain();
@@ -199,12 +253,11 @@ void MyGL::paintGL() {
 
     m_progLiquid.draw(m_screenQuad);
 
-    //    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
 
-    //    m_progLambert.setModelMatrix(glm::mat4());
-    //    m_progFlat.draw(m_worldAxes);
+//    m_progFlat.draw(m_worldAxes);
 
-    //    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 }
 
 // TODO: Change this so it renders the nine zones of generated
@@ -217,7 +270,7 @@ void MyGL::renderTerrain() {
     int x = 16 * xFloor;
     int z = 16 * zFloor;
 
-    m_terrain.draw(x - 1024, x + 1024, z - 1024, z + 1024, &m_progLambert);
+    m_terrain.draw(x - 1024, x + 1024, z - 1024, z + 1024, &m_progLambert, m_mobs);
 }
 
 void MyGL::keyPressEvent(QKeyEvent* e) {
@@ -226,9 +279,7 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
     }
 
     if (e->key() == Qt::Key_5) {
-        m_inputs.inThirdPerson = !m_inputs.inThirdPerson;
-        m_player.calculateThirdPersonCameraRotation();
-        m_player.changeCamera(m_inputs.inThirdPerson);
+        m_player.changeCamera();
     }
     
     if (e->key() == Qt::Key_I) {
@@ -238,36 +289,36 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
     }
 
     if (e->key() == Qt::Key_W) {
-        m_inputs.wPressed = true;
+        m_player.m_inputs.wPressed = true;
     }
 
     if (e->key() == Qt::Key_S) {
-        m_inputs.sPressed = true;
+        m_player.m_inputs.sPressed = true;
     }
 
     if (e->key() == Qt::Key_D) {
-        m_inputs.dPressed = true;
+        m_player.m_inputs.dPressed = true;
     }
 
     if (e->key() == Qt::Key_A) {
-        m_inputs.aPressed = true;
+        m_player.m_inputs.aPressed = true;
     }
 
     if (e->key() == Qt::Key_F) {
-        m_inputs.flightMode = !m_inputs.flightMode;
+        m_player.m_inputs.flightMode = !m_player.m_inputs.flightMode;
     }
 
-    if (m_inputs.flightMode) {
+    if (m_player.m_inputs.flightMode) {
         if (e->key() == Qt::Key_Q) {
-            m_inputs.qPressed = true;
+            m_player.m_inputs.qPressed = true;
         }
 
         if (e->key() == Qt::Key_E) {
-            m_inputs.ePressed = true;
+            m_player.m_inputs.ePressed = true;
         }
     } else {
         if (e->key() == Qt::Key_Space) {
-            m_inputs.spacePressed = true;
+            m_player.m_inputs.spacePressed = true;
         }
     }
 
@@ -298,31 +349,31 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
 
 void MyGL::keyReleaseEvent(QKeyEvent* e) {
     if (e->key() == Qt::Key_W) {
-        m_inputs.wPressed = false;
+        m_player.m_inputs.wPressed = false;
     }
 
     if (e->key() == Qt::Key_S) {
-        m_inputs.sPressed = false;
+        m_player.m_inputs.sPressed = false;
     }
 
     if (e->key() == Qt::Key_D) {
-        m_inputs.dPressed = false;
+        m_player.m_inputs.dPressed = false;
     }
 
     if (e->key() == Qt::Key_A) {
-        m_inputs.aPressed = false;
+        m_player.m_inputs.aPressed = false;
     }
 
     if (e->key() == Qt::Key_Q) {
-        m_inputs.qPressed = false;
+        m_player.m_inputs.qPressed = false;
     }
 
     if (e->key() == Qt::Key_E) {
-        m_inputs.ePressed = false;
+        m_player.m_inputs.ePressed = false;
     }
 
     if (e->key() == Qt::Key_Space) {
-        m_inputs.spacePressed = false;
+        m_player.m_inputs.spacePressed = false;
     }
 }
 

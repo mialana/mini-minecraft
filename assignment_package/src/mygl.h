@@ -3,6 +3,7 @@
 
 #include "openglcontext.h"
 #include "scene/quad.h"
+#include "scene/mob.h"
 #include "shaderprogram.h"
 #include "scene/worldaxes.h"
 #include "scene/terrain.h"
@@ -22,12 +23,12 @@ class MyGL : public OpenGLContext {
         WorldAxes m_worldAxes; // A wireframe representation of the world axes. It is hard-coded to sit centered at (32, 128, 32).
         ShaderProgram m_progLambert;// A shader program that uses lambertian reflection
         ShaderProgram m_progPlayer;
+        ShaderProgram m_progFlat;
 
         GLuint vao; // A handle for our vertex array object. This will store the VBOs created in our geometry classes.
         // Don't worry too much about this. Just know it is necessary in order to render geometry.
 
         Terrain m_terrain; // All of the Chunks that currently comprise the world.
-        InputBundle m_inputs; // A collection of variables to be updated in keyPressEvent, mouseMoveEvent, mousePressEvent, etc.
 
         qint64 m_currMSecSinceEpoch;
 
@@ -48,10 +49,14 @@ class MyGL : public OpenGLContext {
 
         std::shared_ptr<Texture> m_texture;
         std::shared_ptr<Texture> m_playerTexture;
+        std::shared_ptr<Texture> m_pigTexture;
+        std::shared_ptr<Texture> m_zombieTexture;
 
     public:
         bool isInventoryOpen;
         Player m_player;
+
+        std::vector<uPtr<Mob>> m_mobs;
 
         BlockType currBlock = EMPTY;
 

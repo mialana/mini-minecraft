@@ -9,7 +9,7 @@ Geometry3D::Geometry3D(OpenGLContext* context)
     : Drawable(context) {
     QJsonObject dataObj = MyGL::importJson(":/data/geom3dData.json");
     QJsonArray jsonPosArr = dataObj["Geometry3DPositions"].toArray();
-    QJsonObject jsonUVObj = dataObj["PlayerUVCoordinates"].toObject();
+    QJsonObject jsonUVObj = dataObj["EntityUVCoordinates"].toObject();
 
     for (int i = 0; i < 24; i++) {
         QJsonArray posVectorArr = jsonPosArr[i].toArray();
@@ -109,7 +109,7 @@ void createCubeVertexNormals(glm::vec4 (&cub_vert_nor)[CUB_VERT_COUNT])
     int idx = 0;
     //Front
     for(int i = 0; i < 4; i++){
-        cub_vert_nor[idx++] = glm::vec4(0,0,-1,0);
+        cub_vert_nor[idx++] = glm::vec4(0,0,1,0);
     }
     //Right
     for(int i = 0; i < 4; i++){
@@ -121,7 +121,7 @@ void createCubeVertexNormals(glm::vec4 (&cub_vert_nor)[CUB_VERT_COUNT])
     }
     //Back
     for(int i = 0; i < 4; i++){
-        cub_vert_nor[idx++] = glm::vec4(0,0,1,0);
+        cub_vert_nor[idx++] = glm::vec4(0,0,-1,0);
     }
     //Top
     for(int i = 0; i < 4; i++){

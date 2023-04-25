@@ -2,7 +2,6 @@
 #include "entity.h"
 #include "camera.h"
 #include "scene/node.h"
-#include "terrain.h"
 #include "InventoryManager.h"
 
 const static std::vector<float> playerDimensions = {
@@ -11,26 +10,19 @@ const static std::vector<float> playerDimensions = {
 
 class Player : public Entity {
     private:
-        glm::vec3 m_velocity, m_acceleration;
         Camera m_camera;
         Camera m_thirdPersonCamera;
-        const Terrain& mcr_terrain;
-
+        Camera m_frontViewCamera;
         OpenGLContext* cntx;
 
-        int infAxis;
-
-        void processInputs(InputBundle& inputs);
-        void computePhysics(float dT, InputBundle& inputs);
+        void processInputs();
 
     public:
-        uPtr<Node> bodyT;
-        std::unordered_map<QString, Node*> nodePointerMap;
-
-        void constructSceneGraph(QJsonArray data) override;
         void calculateThirdPersonCameraRotation();
-        void changeCamera(bool thirdPerson);
+        void calculateFrontViewCameraRotation();
+        void changeCamera();
         InventoryManager inventory;
+        const Terrain& mcr_terrain;
 
         Player(glm::vec3 pos, const Terrain &terrain);
         virtual ~Player() override;
@@ -39,20 +31,11 @@ class Player : public Entity {
         // for easy access from MyGL
         Camera* mcr_camera;
 
-        Player(glm::vec3 pos, const Terrain& terrain,
-               OpenGLContext* context);
+        Player(glm::vec3 pos, const Terrain& terrain, OpenGLContext* context);
 
         void setCameraWidthHeight(unsigned int w, unsigned int h);
 
-        void tick(float dT, InputBundle& input) override;
-
-        void isInLiquid(InputBundle& input);
-        void isUnderLiquid(InputBundle& input);
-        void isOnGround(InputBundle& input);
-        void detectCollision();
-
-        bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection,
-                       float* out_dist, glm::ivec3* out_blockHit, BlockType* out_type = nullptr);
+        void tick(float dT, Terrain& terrain) override;
 
         BlockType placeBlock(Terrain* terrain, BlockType currBlock);
         BlockType removeBlock(Terrain* terrain);

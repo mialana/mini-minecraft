@@ -1727,5 +1727,5 @@ class Chunk : public Drawable {
             return GL_TRIANGLES;
         }
 
-
+        std::vector<glm::vec3> viableSpawnBlocks;
 };

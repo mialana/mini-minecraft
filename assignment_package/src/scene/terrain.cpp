@@ -287,7 +287,7 @@ Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
     return cPtr;
 }
 
-void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shaderProgram) {
+void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shaderProgram, std::vector<uPtr<Mob>>& currMobs) {
     m_blockDataChunksLock.lock();
     m_VBODataChunksLock.lock();
     for (int x = minX; x < maxX; x += 16) {
@@ -305,8 +305,10 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
     }
     for (int x = minX; x < maxX; x += 16) {
         for (int z = minZ; z < maxZ; z += 16) {
+
             if (hasChunkAt(x, z)) {
                 const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+
                 if (currChunk->hasVBOData && currChunk->hasBinded) {
                     shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
                     shaderProgram->drawInterleavedT(*currChunk);
@@ -314,6 +316,46 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
             }
         }
     }
+
+    // handle mob respawning
+
+    std::vector<Mob*> mobsToRespawn;
+
+    for (auto& mob : currMobs) {
+        if (mob->needsRespawn) {
+            mobsToRespawn.push_back(mob.get());
+        }
+    }
+
+    if (mobsToRespawn.size() > 0) {
+        std::vector<Chunk*> availableChunks;
+
+        for (int x = minX; x < maxX; x += 16) {
+            for (int z = minZ; z < maxZ; z += 16) {
+
+                if (hasChunkAt(x, z)) {
+                    const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+
+                    if (currChunk->hasVBOData && currChunk->hasBinded && currChunk->viableSpawnBlocks.size() > 0) {
+                        availableChunks.push_back(currChunk.get());
+                    }
+                }
+            }
+        }
+        if (availableChunks.size() > 0) {
+            for (Mob* mob : mobsToRespawn) {
+                int randomChunk = Biome::getRandomIntInRange(0, availableChunks.size() - 1);
+
+                mob->respawn(availableChunks[randomChunk]);
+            }
+        }
+
+
+
+
+
+    }
+
     m_blockDataChunksLock.unlock();
     m_VBODataChunksLock.unlock();
 }

@@ -9,6 +9,8 @@ protected:
 public:
     Geometry3D* geometry;
     QString geomType;
+    QString name;
+    glm::mat4 overriddenTransformMatrix;
 
     Node(Geometry3D*);
     Node(const Node&);

@@ -14,7 +14,6 @@
       "geomType": "BODY",
       "parent": "BodyR"
     },
-
     {
       "name": "HeadT",
       "nodeType": "translation",
@@ -70,18 +69,11 @@
       "parent": "BodyR"
     },
     {
-      "name": "RightForearmR",
-      "nodeType": "rotation",
-      "degrees": 0,
-      "axisOfRotation": [0, 1, 0],
-      "parent": "RightArmT"
-    },
-    {
       "name": "RightArmR",
       "nodeType": "rotation",
-      "degrees": 90,
+      "degrees": 0,
       "axisOfRotation": [1, 0, 0],
-      "parent": "RightForearmR"
+      "parent": "RightArmT"
     },
     {
       "name": "RightForearmT",
@@ -150,5 +142,172 @@
       "geomType": "RIGHTLEG",
       "parent": "RightCalfT"
     }
-  ]
+  ],
+
+  "PigNodes": [
+    {
+      "name": "BodyR",
+      "nodeType": "rotation",
+      "degrees": 0,
+      "axisOfRotation": [1, 0, 0],
+      "parent": "BodyT"
+    },
+    {
+      "name": "BodyS",
+      "nodeType": "scale",
+      "scale": [0.625, 0.5, 1],
+      "geomType": "PIGBODY",
+      "parent": "BodyR"
+    },
+    {
+      "name": "HeadT",
+      "nodeType": "translation",
+      "translation": [0, 0.625, -0.5],
+      "parent": "BodyR"
+    },
+    {
+      "name": "HeadR",
+      "nodeType": "rotation",
+      "degrees": 0,
+      "axisOfRotation": [1, 0, 0],
+      "parent": "HeadT"
+    },
+    {
+      "name": "HeadS",
+      "nodeType": "scale",
+      "scale": [0.5, 0.5, 0.5],
+      "geomType": "PIGHEAD",
+      "parent": "HeadR"
+    },
+
+    {
+      "name": "SnoutT",
+      "nodeType": "translation",
+      "translation": [0, -0.1, -0.27],
+      "parent": "HeadR"
+    },
+    {
+      "name": "SnoutR",
+      "nodeType": "rotation",
+      "degrees": 0,
+      "axisOfRotation": [1, 0, 0],
+      "parent": "SnoutT"
+    },
+    {
+      "name": "SnoutS",
+      "nodeType": "scale",
+      "scale": [0.25, 0.1875, 0.0625],
+      "geomType": "PIGSNOUT",
+      "parent": "SnoutR"
+    },
+
+    {
+      "name": "LeftArmT",
+      "nodeType": "translation",
+      "translation": [-0.15, -0.3, 0.4],
+      "parent": "BodyR"
+    },
+    {
+      "name": "LeftArmR",
+      "nodeType": "rotation",
+      "degrees": 0,
+      "axisOfRotation": [1, 0, 0],
+      "parent": "LeftArmT"
+    },
+    {
+      "name": "LeftForearmT",
+      "nodeType": "translation",
+      "translation": [0, -0.1, 0],
+      "parent": "LeftArmR"
+    },
+    {
+      "name": "LeftArmS",
+      "nodeType": "scale",
+      "scale": [0.25, 0.375, 0.25],
+      "geomType": "PIGLEFTARM",
+      "parent": "LeftForearmT"
+    },
+
+    {
+      "name": "RightArmT",
+      "nodeType": "translation",
+      "translation": [0.15, -0.3, 0.4],
+      "parent": "BodyR"
+    },
+    {
+      "name": "RightArmR",
+      "nodeType": "rotation",
+      "degrees": 0,
+      "axisOfRotation": [1, 0, 0],
+      "parent": "RightArmT"
+    },
+    {
+      "name": "RightForearmT",
+      "nodeType": "translation",
+      "translation": [0, -0.1, 0],
+      "parent": "RightArmR"
+    },
+    {
+      "name": "RightArmS",
+      "nodeType": "scale",
+      "scale": [0.25, 0.375, 0.25],
+      "geomType": "PIGRIGHTARM",
+      "parent": "RightForearmT"
+    },
+
+    {
+      "name": "LeftLegT",
+      "nodeType": "translation",
+      "translation": [-0.15, -0.3, -0.3],
+      "parent": "BodyR"
+    },
+    {
+      "name": "LeftLegR",
+      "nodeType": "rotation",
+      "degrees": 0,
+      "axisOfRotation": [1, 0, 0],
+      "parent": "LeftLegT"
+    },
+    {
+      "name": "LeftCalfT",
+      "nodeType": "translation",
+      "translation": [0, -0.1, 0],
+      "parent": "LeftLegR"
+    },
+    {
+      "name": "LeftLegS",
+      "nodeType": "scale",
+      "scale": [0.25, 0.375, 0.25],
+      "geomType": "PIGLEFTLEG",
+      "parent": "LeftCalfT"
+    },
+
+    {
+      "name": "RightLegT",
+      "nodeType": "translation",
+      "translation": [0.15, -0.3, -0.3],
+      "parent": "BodyR"
+    },
+    {
+      "name": "RightLegR",
+      "nodeType": "rotation",
+      "degrees": 0,
+      "axisOfRotation": [1, 0, 0],
+      "parent": "RightLegT"
+    },
+    {
+      "name": "RightCalfT",
+      "nodeType": "translation",
+      "translation": [0, -0.1, 0],
+      "parent": "RightLegR"
+    },
+    {
+      "name": "RightLegS",
+      "nodeType": "scale",
+      "scale": [0.25, 0.375, 0.25],
+      "geomType": "PIGRIGHTLEG",
+      "parent": "RightCalfT"
     }
+  ]
+
+}

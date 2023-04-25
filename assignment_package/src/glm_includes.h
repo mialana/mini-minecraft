@@ -13,6 +13,7 @@
 // For glm::translate, glm::rotate, and glm::scale.
 #    include <glm/gtc/matrix_transform.hpp>
 #    include <glm/gtx/transform.hpp>
+#    include <glm/gtx/projection.hpp>
 // For glm::to_string.
 #    include <glm/gtx/string_cast.hpp>
 // For glm::value_ptr.
