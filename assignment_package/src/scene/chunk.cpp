@@ -1,6 +1,7 @@
 #include "chunk.h"
 #include "terrain.h"
 #include <iostream>
+#include <algorithm>
 #include "biome.h"
 
 
@@ -1032,22 +1033,22 @@ void Chunk::generateVBOData() {
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
 
                                 for (const Vertex& v : faceVerts) {
-                                    tVertData.push_back(v.position);
-                                    tVertData.push_back(v.normal);
-                                    tVertData.push_back(v.color);
-                                    tVertData.push_back(v.uvCoords);
-                                    tVertData.push_back(v.blockType);
-                                    tVertData.push_back(v.biomeWts);
+                                    oVertData.push_back(v.position);
+                                    oVertData.push_back(v.normal);
+                                    oVertData.push_back(v.color);
+                                    oVertData.push_back(v.uvCoords);
+                                    oVertData.push_back(v.blockType);
+                                    oVertData.push_back(v.biomeWts);
                                 }
 
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 1);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount + 3);
+                                oIndices.push_back(oVertCount);
+                                oIndices.push_back(oVertCount + 1);
+                                oIndices.push_back(oVertCount + 2);
+                                oIndices.push_back(oVertCount);
+                                oIndices.push_back(oVertCount + 2);
+                                oIndices.push_back(oVertCount + 3);
 
-                                tVertCount += 4;
+                                oVertCount += 4;
                             }
                         }
                     }
@@ -1061,29 +1062,29 @@ void Chunk::generateVBOData() {
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
 
                                 for (const Vertex& v : faceVerts) {
-                                    tVertData.push_back(v.position);
-                                    tVertData.push_back(v.normal);
-                                    tVertData.push_back(v.color);
-                                    tVertData.push_back(v.uvCoords);
-                                    tVertData.push_back(v.blockType);
-                                    tVertData.push_back(v.biomeWts);
+                                    oVertData.push_back(v.position);
+                                    oVertData.push_back(v.normal);
+                                    oVertData.push_back(v.color);
+                                    oVertData.push_back(v.uvCoords);
+                                    oVertData.push_back(v.blockType);
+                                    oVertData.push_back(v.biomeWts);
                                 }
 
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 1);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount);
-                                tIndices.push_back(tVertCount + 2);
-                                tIndices.push_back(tVertCount + 3);
+                                oIndices.push_back(oVertCount);
+                                oIndices.push_back(oVertCount + 1);
+                                oIndices.push_back(oVertCount + 2);
+                                oIndices.push_back(oVertCount);
+                                oIndices.push_back(oVertCount + 2);
+                                oIndices.push_back(oVertCount + 3);
 
-                                tIndices.push_back(tVertCount + 4);
-                                tIndices.push_back(tVertCount + 5);
-                                tIndices.push_back(tVertCount + 6);
-                                tIndices.push_back(tVertCount + 4);
-                                tIndices.push_back(tVertCount + 6);
-                                tIndices.push_back(tVertCount + 7);
+                                oIndices.push_back(oVertCount + 4);
+                                oIndices.push_back(oVertCount + 5);
+                                oIndices.push_back(oVertCount + 6);
+                                oIndices.push_back(oVertCount + 4);
+                                oIndices.push_back(oVertCount + 6);
+                                oIndices.push_back(oVertCount + 7);
 
-                                tVertCount += 8;
+                                oVertCount += 8;
                             }
                         }
                     }
@@ -1212,6 +1213,15 @@ glm::ivec2 Chunk::getWorldPos() {
 }
 
 void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
+    std::vector<glm::vec3> cedarPos;
+    std::vector<glm::vec3> teakPos;
+    std::vector<glm::vec3> cottagePos;
+    std::vector<glm::vec3> cherryPos;
+    std::vector<glm::vec3> teaHousePos;
+    std::vector<glm::vec3> maplePos;
+    std::vector<glm::vec3> pinePos;
+    std::vector<glm::vec3> wisteriaPos;
+
     for (int x = 0; x < 16; ++x) {
         for (int z = 0; z < 16; ++z) {
             int worldX = worldXOrigin + x;
@@ -1223,7 +1233,7 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
             float hI = Biome::islands(glm::vec2(worldX, worldZ));
 
             std::pair<float, BiomeEnum> hb = blendMultipleBiomes(glm::vec2(worldX, worldZ), glm::vec2(x, z), hM,
-                                                                 hF, hH, hI);
+                                                                 hH, hF, hI);
             float h = hb.first;
             BiomeEnum b = hb.second;
 
@@ -1250,20 +1260,10 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                     float snowBar = Biome::noise1D(glm::vec3(x, h, z));
                     if (snowBar < 0.5) {
                         setBlockAt(x, h, z, SNOW_1);
-                    } else if (snowBar < 0.75) {
+                    } else if (snowBar < 0.8) {
                         setBlockAt(x, h, z, SNOW_2);
-                    } else if (snowBar < 0.85) {
+                    } else {
                         setBlockAt(x, h, z, SNOW_3);
-                    } else if (snowBar < 0.9) {
-                        setBlockAt(x, h, z, SNOW_4);
-                    } else if (snowBar < 0.925) {
-                        setBlockAt(x, h, z, SNOW_5);
-                    } else if (snowBar < 0.9375) {
-                        setBlockAt(x, h, z, SNOW_6);
-                    } else if (snowBar < 0.94375) {
-                        setBlockAt(x, h, z, SNOW_7);
-                    } else if (snowBar < 0.946875) {
-                        setBlockAt(x, h, z, SNOW_8);
                     }
                 }
             } else if (b == HILLS) {
@@ -1355,8 +1355,10 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
             float p1 = Biome::noise1D(glm::vec2(worldX, worldZ));
             float p2 = Biome::fbm(glm::vec2(worldX, worldZ));
             glm::vec2 wTree = Biome::voronoi(glm::vec2(worldX, worldZ), 5);
-            glm::vec2 wSparseTree = Biome::voronoi(glm::vec2(worldX, worldZ), 15);
-            glm::vec2 wHouse = Biome::voronoi(glm::vec2(worldX, worldZ), 40);
+            glm::vec2 wSparseTree = Biome::voronoi(glm::vec2(worldX, worldZ), 12);
+            glm::vec2 wHouse = Biome::voronoi(glm::vec2(worldX, worldZ), 107);
+
+
 
             if (getBlockAt(x, h, z) == EMPTY || getBlockAt(x, h, z) == SNOW_1) {
 
@@ -1373,19 +1375,13 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                 if (b == MOUNTAINS && h > 130) {
                     if (worldX == wTree.x && worldZ == wTree.y) {
                         if (p1 < 0.175) {
-                            createConifer1(x, h, z, CEDAR_LEAVES, CEDAR_WOOD_Y);
+                            cedarPos.push_back(glm::vec3(x, h, z));
                         } else if (p1 < 0.225) {
-                            createConifer2(x, h, z, TEAK_LEAVES, TEAK_WOOD_Y);
+                            teakPos.push_back(glm::vec3(x, h, z));
                         }
-                    } else if (worldX == wHouse.x && worldZ == wHouse.y) {
-                        if (p1 > 0.995) {
-                            float p3 = Biome::noise1D(glm::vec3(worldX, h, worldZ));
-                            if (p3 < 0.5) {
-                                createCottage1(x, h, z);
-                            } else {
-                                createCottage2(x, h, z);
-                            }
-                        }
+                    }
+                    if (worldX == wHouse.x && worldZ == wHouse.y) {
+                        cottagePos.push_back(glm::vec3(x, h, z));
                     }
                 } else if (b == FOREST) {
                     if (p1 < 0.04) {
@@ -1416,41 +1412,22 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                     }
 
                     if (worldX == wSparseTree.x && worldZ == wSparseTree.y) {
-                        if (p1 < 0.05) {
-//                            createDeciduous2(x, h, z, CHERRY_BLOSSOMS_1, CHERRY_WOOD_Y);
-                        } else if (p1 < 0.055) {
-    //                        createDeciduous3(x, h, z, CHERRY_BLOSSOMS_2, CHERRY_WOOD_Y);
-                        } else if (p1 < 0.06) {
-    //                        createDeciduous3(x, h, z, CHERRY_BLOSSOMS_3, CHERRY_WOOD_Y);
-                        } else if (p1 < 0.065) {
-    //                        createDeciduous1(x, h, z, CHERRY_BLOSSOMS_4, CHERRY_WOOD_Y);
-                        } else if (p1 < 0.066) {
-    //                        createToriiGate(x, h, z, 0);
-                        } else if (p1 < 0.067) {
-    //                        createToriiGate(x, h, z, 1);
-                        }
+                        cherryPos.push_back(glm::vec3(x, h, z));
                     }
-
-                    if (worldX == wHouse.x && worldZ == wHouse.y) {
-//                        createTeaHouse(x, h, z);
+                    if (worldX == wHouse.x && worldZ == wHouse.y && p1 > 0.75) {
+                        teaHousePos.push_back(glm::vec3(x, h, z));
                     }
                 } else if (b == HILLS) {
-                    if (worldX == wTree.x && worldZ == wTree.y) {
-                        createDeciduous2(x, h, z, CHERRY_BLOSSOMS_1, CHERRY_WOOD_Y);
-                    }
-                    else if (worldX == wHouse.x && worldZ == wHouse.y) {
+                    float p3 = Biome::noise1D(glm::vec3(worldX, h, worldZ));
+                    if (worldX == wHouse.x && worldZ == wHouse.y && p3 < 0.2) {
                         createHut(x, h, z);
                     }
                 } else if (b == ISLANDS) {
                     if (worldX == wTree.x && worldZ == wTree.y) {
                         if (p1 < 0.2) {
-    //                        createConifer3(x, h, z, PINE_LEAVES, PINE_WOOD_Y);
-                        } else if (p1 < 0.4) {
-    //                        createDeciduous2(x, h, z, MAPLE_LEAVES_1, MAPLE_WOOD_Y);
-                        } else if (p1 < 0.6) {
-    //                        createDeciduous3(x, h, z, MAPLE_LEAVES_2, MAPLE_WOOD_Y);
-                        } else if (p1 < 0.8) {
-    //                        createDeciduous1(x, h, z, MAPLE_LEAVES_3, MAPLE_WOOD_Y);
+                            pinePos.push_back(glm::vec3(x, h, z));
+                        } else {
+                            maplePos.push_back(glm::vec3(x, h, z));
                         }
                     }
                 }
@@ -1508,20 +1485,8 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                     } else {
                         setBlockAt(x, currY, z, EMPTY);
                         if (!prevNotGround) {
-//                            BlockType xn = getBlockAt(x - 1, currY - 1, z);
-//                            BlockType xp = getBlockAt(x + 1, currY - 1, z);
-//                            BlockType zn = getBlockAt(x, currY - 1, z - 1);
-//                            BlockType zp = getBlockAt(x, currY - 1, z + 1);
 
-                            if (p3 < 0.6) {
-                                setBlockAt(x, currY - 1, z, GRASS);
-                            } else if (p3 < 0.8 /*&&
-                                (Chunk::isFullCube(xn) || xn == WATER) &&
-                                (Chunk::isFullCube(xp) || xp == WATER) &&
-                                (Chunk::isFullCube(zn) || zn == WATER) &&
-                                (Chunk::isFullCube(zp) || zp == WATER)*/) {
-                                    setBlockAt(x, currY - 1, z, WATER);
-                            }
+                            setBlockAt(x, currY - 1, z, GRASS);
 
                             if (p3 < 0.02) {
                                 setBlockAt(x, currY, z, GHOST_LILY);
@@ -1544,11 +1509,11 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                 float p4 = Biome::noise1D(glm::vec2(worldX, worldZ));
                 if (worldX == wTree.x && worldZ == wTree.y) {
                     if (p4 < 0.2) {
-    //                    createDeciduous3(x, y, z, WISTERIA_BLOSSOMS_1, WISTERIA_WOOD_Y);
+                        createDeciduous3(x, y, z, WISTERIA_BLOSSOMS_1, WISTERIA_WOOD_Y);
                     } else if (p4 < 0.4) {
-    //                    createDeciduous2(x, y, z, WISTERIA_BLOSSOMS_2, WISTERIA_WOOD_Y);
+                        createDeciduous2(x, y, z, WISTERIA_BLOSSOMS_2, WISTERIA_WOOD_Y);
                     } else {
-    //                    createDeciduous1(x, y, z, WISTERIA_BLOSSOMS_3, WISTERIA_WOOD_Y);
+                        createDeciduous1(x, y, z, WISTERIA_BLOSSOMS_3, WISTERIA_WOOD_Y);
                     }
                 }
             }
@@ -1563,25 +1528,69 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
             setBlockAt(x, 0, z, BEDROCK);
         }
     }
+
+    for (glm::vec3 p : cedarPos) {
+        createConifer1(p.x, p.y, p.z, CEDAR_LEAVES, CEDAR_WOOD_Y);
+    }
+    for (glm::vec3 p : teakPos) {
+        createConifer2(p.x, p.y, p.z, TEAK_LEAVES, TEAK_WOOD_Y);
+    }
+    for (glm::vec3 p : cottagePos) {
+        float p3 = Biome::noise1D(glm::vec3(p.x, p.y, p.z));
+        if (p3 < 0.2) {
+            createCottage1(p.x, p.y, p.z);
+        } else if (p3 < 0.4) {
+            createCottage2(p.x, p.y, p.z);
+        }
+    }
+    for (glm::vec3 p : cherryPos) {
+        float p3 = Biome::noise1D(glm::vec3(p.x, p.y, p.z));
+        if (p3 < 0.05) {
+            createDeciduous2(p.x, p.y, p.z, CHERRY_BLOSSOMS_1, CHERRY_WOOD_Y);
+        } else if (p3 < 0.055) {
+            createDeciduous3(p.x, p.y, p.z, CHERRY_BLOSSOMS_2, CHERRY_WOOD_Y);
+        } else if (p3 < 0.06) {
+            createDeciduous3(p.x, p.y, p.z, CHERRY_BLOSSOMS_3, CHERRY_WOOD_Y);
+        } else if (p3 < 0.065) {
+            createDeciduous1(p.x, p.y, p.z, CHERRY_BLOSSOMS_4, CHERRY_WOOD_Y);
+        } else if (p3 < 0.066) {
+            createToriiGate(p.x, p.y, p.z, 0);
+        } else if (p3 < 0.067) {
+            createToriiGate(p.x, p.y, p.z, 1);
+        }
+    }
+    for (glm::vec3 p : teaHousePos) {
+        createTeaHouse(p.x, p.y, p.z);
+    }
+    for (glm::vec3 p : pinePos) {
+        createConifer3(p.x, p.y, p.z, PINE_LEAVES, PINE_WOOD_Y);
+    }
+    for (glm::vec3 p : maplePos) {
+        float p3 = Biome::noise1D(glm::vec3(p.x, p.y, p.z));
+        if (p3 < 0.2) {
+            createDeciduous2(p.x, p.y, p.z, MAPLE_LEAVES_1, MAPLE_WOOD_Y);
+        } else if (p3 < 0.4) {
+            createDeciduous3(p.x, p.y, p.z, MAPLE_LEAVES_2, MAPLE_WOOD_Y);
+        } else if (p3 < 0.6) {
+            createDeciduous1(p.x, p.y, p.z, MAPLE_LEAVES_3, MAPLE_WOOD_Y);
+        }
+    }
 }
 
 std::pair<float, BiomeEnum> Chunk::blendMultipleBiomes(glm::vec2 worldXZ, glm::vec2 localXZ,
-                                                       float forestH, float mountH,
-                                                       float hillH, float islandH) {
+                                                       float mountH, float hillH,
+                                                       float forestH, float islandH) {
 
     // perform bilinear interpolation
 
     BiomeEnum b;
     glm::vec4 biomeWts;
 
-    double elev = (Biome::perlin1(worldXZ) + 1.f) / 2.f; // remap perlin noise from (-1, 1) to (0, 1)
-    double temp = (Biome::perlin2(worldXZ) + 1.f) / 2.f;
+    double elev = std::clamp((Biome::perlin1(worldXZ / 197.f) + 1.f) / 2.f, 0.f, 1.f); // remap perlin noise from (-1, 1) to (0, 1)
+    double temp = std::clamp((Biome::perlin2(worldXZ / 308.f) + 1.f) / 2.f, 0.f, 1.f);
 
-    //    BiomeEnum bFM;
-    //    BiomeEnum bHI;
-    //    float heightMix1 = glm::smoothstep(0.25, 0.75, p1);
-    //    float hFM = ((1 - heightMix1) * forestH) + (heightMix1 * mountH);
-    //    float hHI = ((1 - heightMix1) * hillH) + (heightMix1 * islandH);
+
+//    std::cout<<elev<<","<<temp<<std::endl;
 
     if (elev >= 0.5 && temp < 0.5) {
         b = MOUNTAINS;
@@ -1600,10 +1609,10 @@ std::pair<float, BiomeEnum> Chunk::blendMultipleBiomes(glm::vec2 worldXZ, glm::v
     biomeWts.w = (1.f - elev) * temp;
     setBiomeAt(localXZ[0], localXZ[1], biomeWts);
 
-    //    std::cout<<"("<<biomeWts.x<<","<<biomeWts.y<<","<<biomeWts.z<<","<<biomeWts.w<<")"<<std::endl;
-    if (biomeWts.x + biomeWts.y + biomeWts.z + biomeWts.w != 1) {
-        std::cout << "something is wrong" << std::endl;
-    }
+//    std::cout<<"("<<biomeWts.x<<","<<biomeWts.y<<","<<biomeWts.z<<","<<biomeWts.w<<")"<<std::endl;
+//    if (biomeWts.x + biomeWts.y + biomeWts.z + biomeWts.w > 1.00001 || biomeWts.x + biomeWts.y + biomeWts.z + biomeWts.w < 0.99999) {
+//        std::cout << "something is wrong" << std::endl;
+//    }
 
     float h = (biomeWts.x * mountH) +
               (biomeWts.y * hillH) +
@@ -1725,6 +1734,14 @@ void Chunk::createHut(int x, int y, int z) {
 }
 
 void Chunk::createCottage1(int x, int y, int z) {
+    for (int x1 = x; x1 <= x + 10; x1++) {
+        for (int z1 = z; z1 <= z + 7; z1++) {
+            for (int y1 = y; y1 <= y + 10; y1++) {
+                setBlockAt(x1, y1, z1, EMPTY);
+            }
+        }
+    }
+
     // floor 1 walls
     for (int y1 = y; y1 <= y + 3; y1++) {
         for (int x1 = x; x1 <= x + 10; x1++) {
@@ -1845,6 +1862,14 @@ void Chunk::createCottage1(int x, int y, int z) {
 }
 
 void Chunk::createCottage2(int x, int y, int z) {
+    for (int x1 = x - 2; x1 <= x + 12; x1++) {
+        for (int z1 = z - 2; z1 <= z + 11; z1++) {
+            for (int y1 = y; y1 <= y + 15; y1++) {
+                setBlockAt(x1, y1, z1, EMPTY);
+            }
+        }
+    }
+
     // platform
     for (int x1 = x - 2; x1 <= x + 12; x1++) {
         for (int z1 = z - 2; z1 <= z + 11; z1++) {
@@ -2007,6 +2032,15 @@ void Chunk::createCottage2(int x, int y, int z) {
 }
 
 void Chunk::createTeaHouse(int x, int y, int z) {
+    for (int x1 = x - 1; x1 <= x + 16; x1++) {
+        for (int z1 = z - 1; z1 <= z + 11; z1++) {
+            for (int y1 = y; y1 <= y + 15; y1++) {
+                setBlockAt(x1, y1, z1, EMPTY);
+            }
+        }
+    }
+
+
     // platform
     for (int x1 = x - 2; x1 <= x + 16; x1++) {
         for (int z1 = z - 2; z1 <= z + 11; z1++) {
@@ -2203,7 +2237,7 @@ void Chunk::createTeaHouse(int x, int y, int z) {
     setBlockAt(x + 4, y + 2, z + 5, TATAMI_XL);
 
     // roof
-    for (int x3 = x - 1; x3 <= z + 15; x3++) {
+    for (int x3 = x - 1; x3 <= x + 15; x3++) {
         int dx = -2;
         for (int y3 = y + 8; y3 <= y + 11; y3++) {
             setBlockAt(x3, y3, z + dx, ROOF_TILES_1);
@@ -2218,31 +2252,6 @@ void Chunk::createTeaHouse(int x, int y, int z) {
 
 void Chunk::createConifer1(int x, int y, int z, BlockType leaf, BlockType wood) {
     // leaves
-    for (int x1 = x - 3; x1 <= x + 3; x1++) {
-        for (int z1 = z - 3; z1 <= z + 3; z1++) {
-            setBlockAt(x1, y + 1, z1, leaf);
-        }
-    }
-    setBlockAt(x - 3, y + 1, z - 3, EMPTY);
-    setBlockAt(x - 3, y + 1, z + 3, EMPTY);
-    setBlockAt(x + 3, y + 1, z - 3, EMPTY);
-    setBlockAt(x + 3, y + 1, z + 3, EMPTY);
-
-    for (int x2 = x - 2; x2 <= x + 2; x2++) {
-        for (int z2 = z - 2; z2 <= z + 2; z2++) {
-            setBlockAt(x2, y + 2, z2, leaf);
-            setBlockAt(x2, y + 4, z2, leaf);
-        }
-    }
-    setBlockAt(x - 2, y + 2, z - 2, EMPTY);
-    setBlockAt(x - 2, y + 2, z + 2, EMPTY);
-    setBlockAt(x + 2, y + 2, z - 2, EMPTY);
-    setBlockAt(x + 2, y + 2, z + 2, EMPTY);
-    setBlockAt(x - 2, y + 4, z - 2, EMPTY);
-    setBlockAt(x - 2, y + 4, z + 2, EMPTY);
-    setBlockAt(x + 2, y + 4, z - 2, EMPTY);
-    setBlockAt(x + 2, y + 4, z + 2, EMPTY);
-
     for (int x3 = x - 1; x3 <= x + 1; x3++) {
         for (int z3 = z - 1; z3 <= z + 1; z3++) {
             setBlockAt(x3, y + 3, z3, leaf);
@@ -2263,17 +2272,10 @@ void Chunk::createConifer1(int x, int y, int z, BlockType leaf, BlockType wood) 
     setBlockAt(x + 1, y + 7, z - 1, EMPTY);
     setBlockAt(x + 1, y + 7, z + 1, EMPTY);
 
-    // trunk
-    for (int y1 = y; y1 <= y + 6; y1++) {
-        setBlockAt(x, y1, z, wood);
-    }
-}
-void Chunk::createConifer2(int x, int y, int z, BlockType leaf, BlockType wood) {
     for (int x2 = x - 2; x2 <= x + 2; x2++) {
         for (int z2 = z - 2; z2 <= z + 2; z2++) {
             setBlockAt(x2, y + 2, z2, leaf);
             setBlockAt(x2, y + 4, z2, leaf);
-            setBlockAt(x2, y + 6, z2, leaf);
         }
     }
     setBlockAt(x - 2, y + 2, z - 2, EMPTY);
@@ -2284,11 +2286,23 @@ void Chunk::createConifer2(int x, int y, int z, BlockType leaf, BlockType wood) 
     setBlockAt(x - 2, y + 4, z + 2, EMPTY);
     setBlockAt(x + 2, y + 4, z - 2, EMPTY);
     setBlockAt(x + 2, y + 4, z + 2, EMPTY);
-    setBlockAt(x - 2, y + 6, z - 2, EMPTY);
-    setBlockAt(x - 2, y + 6, z + 2, EMPTY);
-    setBlockAt(x + 2, y + 6, z - 2, EMPTY);
-    setBlockAt(x + 2, y + 6, z + 2, EMPTY);
 
+    for (int x1 = x - 3; x1 <= x + 3; x1++) {
+        for (int z1 = z - 3; z1 <= z + 3; z1++) {
+            setBlockAt(x1, y + 1, z1, leaf);
+        }
+    }
+    setBlockAt(x - 3, y + 1, z - 3, EMPTY);
+    setBlockAt(x - 3, y + 1, z + 3, EMPTY);
+    setBlockAt(x + 3, y + 1, z - 3, EMPTY);
+    setBlockAt(x + 3, y + 1, z + 3, EMPTY);
+
+    // trunk
+    for (int y1 = y; y1 <= y + 6; y1++) {
+        setBlockAt(x, y1, z, wood);
+    }
+}
+void Chunk::createConifer2(int x, int y, int z, BlockType leaf, BlockType wood) {
     for (int x3 = x - 1; x3 <= x + 1; x3++) {
         for (int z3 = z - 1; z3 <= z + 1; z3++) {
             setBlockAt(x3, y + 1, z3, leaf);
@@ -2319,6 +2333,26 @@ void Chunk::createConifer2(int x, int y, int z, BlockType leaf, BlockType wood) 
     setBlockAt(x + 1, y + 9, z - 1, EMPTY);
     setBlockAt(x + 1, y + 9, z + 1, EMPTY);
 
+    for (int x2 = x - 2; x2 <= x + 2; x2++) {
+        for (int z2 = z - 2; z2 <= z + 2; z2++) {
+            setBlockAt(x2, y + 2, z2, leaf);
+            setBlockAt(x2, y + 4, z2, leaf);
+            setBlockAt(x2, y + 6, z2, leaf);
+        }
+    }
+    setBlockAt(x - 2, y + 2, z - 2, EMPTY);
+    setBlockAt(x - 2, y + 2, z + 2, EMPTY);
+    setBlockAt(x + 2, y + 2, z - 2, EMPTY);
+    setBlockAt(x + 2, y + 2, z + 2, EMPTY);
+    setBlockAt(x - 2, y + 4, z - 2, EMPTY);
+    setBlockAt(x - 2, y + 4, z + 2, EMPTY);
+    setBlockAt(x + 2, y + 4, z - 2, EMPTY);
+    setBlockAt(x + 2, y + 4, z + 2, EMPTY);
+    setBlockAt(x - 2, y + 6, z - 2, EMPTY);
+    setBlockAt(x - 2, y + 6, z + 2, EMPTY);
+    setBlockAt(x + 2, y + 6, z - 2, EMPTY);
+    setBlockAt(x + 2, y + 6, z + 2, EMPTY);
+
     // trunk
     for (int y1 = y; y1 <= y + 8; y1++) {
         setBlockAt(x, y1, z, wood);
@@ -2330,6 +2364,7 @@ void Chunk::createConifer3(int x, int y, int z, BlockType leaf, BlockType wood) 
         for (int x3 = x - 1; x3 <= x + 1; x3++) {
             for (int z3 = z - 1; z3 <= z + 1; z3++) {
                 setBlockAt(x3, y3, z3, leaf);
+                setBlockAt(x3, y3 + 1, z3, SNOW_1);
             }
         }
     }
@@ -2354,6 +2389,18 @@ void Chunk::createConifer3(int x, int y, int z, BlockType leaf, BlockType wood) 
     setBlockAt(x - 1, y + 5, z + 1, EMPTY);
     setBlockAt(x + 1, y + 5, z - 1, EMPTY);
     setBlockAt(x + 1, y + 5, z + 1, EMPTY);
+    setBlockAt(x - 1, y + 2, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 2, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 2, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 2, z + 1, EMPTY);
+    setBlockAt(x - 1, y + 4, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 4, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 4, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 4, z + 1, EMPTY);
+    setBlockAt(x - 1, y + 6, z - 1, EMPTY);
+    setBlockAt(x - 1, y + 6, z + 1, EMPTY);
+    setBlockAt(x + 1, y + 6, z - 1, EMPTY);
+    setBlockAt(x + 1, y + 6, z + 1, EMPTY);
 
     setBlockAt(x, y + 6, z, leaf);
 

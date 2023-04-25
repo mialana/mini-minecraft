@@ -1689,8 +1689,8 @@ class Chunk : public Drawable {
         BlockType getBlockAt(int x, int y, int z) const;
         void setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t);
 
-        std::pair<float, BiomeEnum> blendMultipleBiomes(glm::vec2, glm::vec2, float forestH, float mountH,
-                                                        float hillH, float islandH);
+        std::pair<float, BiomeEnum> blendMultipleBiomes(glm::vec2, glm::vec2, float mountH, float hillH, float forestH,
+                                                        float islandH);
 
         // mountains = 0, hills = 1, forest = 2, islands = 3, caves = 4
         glm::vec4 getBiomeAt(unsigned int x, unsigned int z) const;

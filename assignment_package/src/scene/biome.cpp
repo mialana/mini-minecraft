@@ -108,10 +108,9 @@ float Biome::worley(glm::vec2 uv) {
 }
 
 glm::vec2 Biome::voronoi(glm::vec2 uv, int scale) {
-    uv *= scale;
-    glm::vec2 uvInt = glm::floor(uv);
-    glm::vec2 point = noise2D(uvInt); // Get the Voronoi centerpoint for this cell
-    return point;
+    glm::vec2 offset = noise2D(uv / 217.f); // Get the Voronoi centerpoint for this cell
+    offset *= scale;
+    return glm::floor(uv + offset);
 }
 
 float Biome::surflet1(glm::vec2 P, glm::vec2 gridPoint) {
@@ -213,7 +212,7 @@ float Biome::hills(glm::vec2 xz) {
         h -= min;
         h *= sharpen;
         h += min;
-    } return floor(128.f + (h * 50.f));
+    } return floor(160.f + (h * 50.f));
 }
 
 float Biome::mountains(glm::vec2 xz) {
@@ -229,7 +228,7 @@ float Biome::mountains(glm::vec2 xz) {
 
         amp *= 0.5;
         freq *= 0.5;
-    } return floor(128.f + h * 100.f);
+    } return floor(150.f + h * 100.f);
 }
 
 float Biome::forest(glm::vec2 xz) {
@@ -242,7 +241,7 @@ float Biome::forest(glm::vec2 xz) {
         h += amp * perlin1(xz / freq);
         freq *= 0.5;
         amp *= 0.5;
-    } return floor(128.f + h * 20) - 20;
+    } return floor(100.f + h * 20) - 20;
 }
 
 float Biome::islands(glm::vec2 xz) {
@@ -266,7 +265,7 @@ float Biome::islands(glm::vec2 xz) {
         h /= flatten;
         h += bar;
     }
-    return floor(135.f - h * 100);
+    return floor(128.f - h * 100);
 }
 
 float Biome::blendTerrain(glm::vec2 uv, float h1, float h2) {
