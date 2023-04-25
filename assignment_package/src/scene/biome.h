@@ -17,6 +17,7 @@ public:
     static float fbm(float x);
     static float fbm(const glm::vec2 uv); // range 0 to 1
     static float worley(glm::vec2 uv); // range 0 to 1
+    static glm::vec2 voronoi(glm::vec2 uv, int scale);
 
     static float surflet1(glm::vec2 P, glm::vec2 gridPoint);
     static float surflet2(glm::vec2 P, glm::vec2 gridPoint);
