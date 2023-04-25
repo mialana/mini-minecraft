@@ -93,6 +93,17 @@ vec4 color(vec4 origCol, vec4 newCol, float newWt) {
 //    vec4 finalCol = newCol * grayscaleCol;
     return finalCol;
 }
+
+vec4 mySmoothStep(vec4 a, vec4 b, float t) {
+    t = smoothstep(0, 1, t);
+    vec4 newCol;
+    newCol.r = mix(a.r, b.r, t);
+    newCol.g = mix(a.g, b.g, t);
+    newCol.b = mix(a.b, b.b, t);
+    newCol.a = mix(a.a, b.a, t);
+    return newCol;
+}
+
 void main()
 {
     vec2 newUV;
@@ -116,10 +127,14 @@ void main()
 
             vec4 tintCol;
 
-            if (fs_Pos.y < 110) {
+            if (fs_Pos.y < 100) {
                 tintCol = cCol;
-            } else {
+            } else if (fs_Pos.y > 110) {
                 tintCol = mCol + hCol + fCol + iCol;
+            } else {
+                vec4 col1 = mCol + hCol + fCol + iCol;
+                vec4 col2 = cCol;
+                tintCol = mySmoothStep(col1, col2, (110.f - fs_Pos.y) / 10.f);
             }
             newUV = fs_UV;
             out_Col = vec4(texture(u_TextureSampler, fs_UV));

@@ -1640,6 +1640,23 @@ class Chunk : public Drawable {
     private:
         int worldPos_x;
         int worldPos_z;
+
+        // rot = 0 if placed along x dir; 1 if placed along z dir
+        void createToriiGate(int x, int y, int z, int rot);
+
+        void createConifer1(int x, int y, int z, BlockType leaf, BlockType wood); // cone shape, tall
+        void createConifer2(int x, int y, int z, BlockType leaf, BlockType wood); // constant width, tall
+        void createConifer3(int x, int y, int z, BlockType leaf, BlockType wood); // small
+        void createDeciduous1(int x, int y, int z, BlockType leaf, BlockType wood); // medium tall
+        void createDeciduous2(int x, int y, int z, BlockType leaf, BlockType wood); // medium short
+        void createDeciduous3(int x, int y, int z, BlockType leaf, BlockType wood); // short, asymmetric
+
+        // rot = 0 if door faces XPOS dir; 1 if faces XNEG; 2 if faces ZPOS; 3 if faces ZNEG
+        void createHut(int x, int y, int z); // hills
+        void createCottage1(int x, int y, int z); // mountains
+        void createCottage2(int x, int y, int z); // mountains
+        void createTeaHouse(int x, int y, int z); // forest
+
     public:
         // All of the blocks contained within this Chunk
         std::array<BlockType, 65536> m_blocks;
@@ -1670,10 +1687,10 @@ class Chunk : public Drawable {
         Chunk(OpenGLContext* context);
         BlockType getBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
         BlockType getBlockAt(int x, int y, int z) const;
-        void setBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t);
+        void setBlockAt(int x, int y, int z, BlockType t);
 
-        std::pair<float, BiomeEnum> blendMultipleBiomes(glm::vec2, glm::vec2, float forestH, float mountH,
-                                                        float hillH, float islandH);
+        std::pair<float, BiomeEnum> blendMultipleBiomes(glm::vec2, glm::vec2, float mountH, float hillH, float forestH,
+                                                        float islandH);
 
         // mountains = 0, hills = 1, forest = 2, islands = 3, caves = 4
         glm::vec4 getBiomeAt(unsigned int x, unsigned int z) const;
