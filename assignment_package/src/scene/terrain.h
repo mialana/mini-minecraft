@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "shaderprogram.h"
-#include "scene/zombie.h"
+#include "scene/mob.h"
 #include "biome.h"
 #include <mutex>
 #include <thread>
@@ -96,7 +96,7 @@ public:
 
     QSet<long long> borderingZone(glm::ivec2 coords, int radius, bool atEdge);
 
-    void tryNewChunk(glm::vec3 pos, glm::vec3 prevPos, std::vector<uPtr<Zombie>>& currZombies);
+    void tryNewChunk(glm::vec3 pos, glm::vec3 prevPos);
 
     bool hasTerrainGenerationZoneAt(glm::ivec2);
 
@@ -105,7 +105,7 @@ public:
     uPtr<Chunk>& getNewChunkAt(int x, int z);
     const uPtr<Chunk>& getNewChunkAt(int x, int z) const;
 
-    void multithreadedWork(glm::vec3, glm::vec3, float, std::vector<uPtr<Zombie>>& currZombies);
+    void multithreadedWork(glm::vec3, glm::vec3, float);
 
     void tryExpansion(glm::vec3, glm::vec3);
     void checkThreadResults();

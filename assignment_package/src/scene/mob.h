@@ -6,11 +6,15 @@
 class Zombie : public Entity
 {
 public:
+    float timeSinceLastPathRecompute;
     bool needsRespawn;
+    glm::vec3 directionOfTravel;
 
     Zombie(OpenGLContext*);
 
-    void tick(float dT, InputBundle& inputs);
+    void tick(float dT, Terrain& terrain) override;
 
     void respawn(Chunk* c);
+
+    void pathFind();
 };

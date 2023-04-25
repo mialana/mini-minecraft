@@ -3,7 +3,7 @@
 
 #include "openglcontext.h"
 #include "scene/quad.h"
-#include "scene/zombie.h"
+#include "scene/mob.h"
 #include "shaderprogram.h"
 #include "scene/worldaxes.h"
 #include "scene/terrain.h"
@@ -29,7 +29,6 @@ class MyGL : public OpenGLContext {
         // Don't worry too much about this. Just know it is necessary in order to render geometry.
 
         Terrain m_terrain; // All of the Chunks that currently comprise the world.
-        InputBundle m_inputs; // A collection of variables to be updated in keyPressEvent, mouseMoveEvent, mousePressEvent, etc.
 
         qint64 m_currMSecSinceEpoch;
 

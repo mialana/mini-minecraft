@@ -138,11 +138,11 @@ bool Terrain::hasTerrainGenerationZoneAt(glm::ivec2 zone) {
     return m_generatedTerrain.find(toKey(zone.x, zone.y)) != m_generatedTerrain.end();
 }
 
-void Terrain::multithreadedWork(glm::vec3 currPlayerPos, glm::vec3 prevPlayerPos, float dt, std::vector<uPtr<Zombie>>& currZombies) {
+void Terrain::multithreadedWork(glm::vec3 currPlayerPos, glm::vec3 prevPlayerPos, float dt) {
     m_chunkTimer += dt;
 
     if (m_chunkTimer >= 0.5f) {
-        tryNewChunk(currPlayerPos, prevPlayerPos, currZombies);
+        tryNewChunk(currPlayerPos, prevPlayerPos);
         m_chunkTimer = 0.0f;
     }
 
@@ -183,7 +183,7 @@ std::vector<glm::ivec2> isSameVector(std::vector<glm::ivec2> a, std::vector<glm:
     return diff;
 }
 
-void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos, std::vector<uPtr<Zombie>>& currZombies) {
+void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos) {
     // Find the 64 x 64 zone the player is on
     glm::ivec2 curr(64.f * floor(pos.x / 64.f), 64.f * floor(pos.z / 64.f));
     glm::ivec2 prev(64.f * floor(prevPos.x / 64.f), 64.f * floor(prevPos.z / 64.f));
@@ -197,12 +197,6 @@ void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos, std::vector<uPtr<Zom
             glm::ivec2 coord = toCoords(zone);
             std::cout<<"got into deleting \n";
 
-            for (auto& zomb : currZombies) {
-                if (zomb->m_position.x >= coord.x && zomb->m_position.x < coord.x + 64
-                        && zomb->m_position.z >= coord.y && zomb->m_position.z < coord.y + 64) {
-                    zomb->needsRespawn = true;
-                }
-            }
             for (int x = coord.x; x < coord.x + 64; x += 16) {
                 for (int z = coord.y; z < coord.y + 64; z += 16) {
                     auto& c = getChunkAt(x, z);

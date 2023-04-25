@@ -2,7 +2,6 @@
 #include "entity.h"
 #include "camera.h"
 #include "scene/node.h"
-#include "terrain.h"
 #include "InventoryManager.h"
 
 const static std::vector<float> playerDimensions = {
@@ -14,18 +13,15 @@ class Player : public Entity {
         Camera m_camera;
         Camera m_thirdPersonCamera;
         Camera m_frontViewCamera;
-        const Terrain& mcr_terrain;
 
-        int infAxis;
-
-        void processInputs(InputBundle& inputs);
-        void computePhysics(float dT, InputBundle& inputs);
+        void processInputs();
 
     public:
         void calculateThirdPersonCameraRotation();
         void calculateFrontViewCameraRotation();
-        void changeCamera(InputBundle& inputs);
+        void changeCamera();
         InventoryManager inventory;
+        const Terrain& mcr_terrain;
 
         Player(glm::vec3 pos, const Terrain &terrain);
         virtual ~Player() override;
@@ -38,14 +34,7 @@ class Player : public Entity {
 
         void setCameraWidthHeight(unsigned int w, unsigned int h);
 
-        void tick(float dT, InputBundle& inputs) override;
-
-        void isInLiquid(InputBundle& input);
-        void isUnderLiquid(InputBundle& input);
-        void isOnGround(InputBundle& input);
-        void detectCollision();
-
-        bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit);
+        void tick(float dT, Terrain& terrain) override;
 
         BlockType placeBlock(Terrain* terrain, BlockType currBlock);
         BlockType removeBlock(Terrain* terrain);

@@ -18,7 +18,7 @@ class Camera : public Entity {
         Camera(const Camera& c, OpenGLContext* context);
         void setWidthHeight(unsigned int w, unsigned int h);
 
-        void tick(float dT, InputBundle& input) override;
+        void tick(float dT, Terrain& terrain) override;
 
         glm::mat4 getViewProj() const;
 };

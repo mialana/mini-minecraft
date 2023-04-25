@@ -11,11 +11,11 @@ SOURCES += \
     $$PWD/scene/InventoryManager.cpp \
     $$PWD/scene/biome.cpp \
     $$PWD/scene/geometry3d.cpp \
+    $$PWD/scene/mob.cpp \
     $$PWD/scene/node.cpp \
     $$PWD/scene/pig.cpp \
     $$PWD/scene/quad.cpp \
     $$PWD/scene/workers.cpp \
-    $$PWD/scene/zombie.cpp \
     $$PWD/shaderprogram.cpp \
     $$PWD/drawable.cpp \
     $$PWD/cameracontrolshelp.cpp \
@@ -38,11 +38,11 @@ HEADERS += \
     $$PWD/scene/InventoryManager.h \
     $$PWD/scene/biome.h \
     $$PWD/scene/geometry3d.h \
+    $$PWD/scene/mob.h \
     $$PWD/scene/node.h \
     $$PWD/scene/pig.h \
     $$PWD/scene/quad.h \
     $$PWD/scene/workers.h \
-    $$PWD/scene/zombie.h \
     $$PWD/shaderprogram.h \
     $$PWD/drawable.h \
     $$PWD/cameracontrolshelp.h \

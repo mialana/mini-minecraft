@@ -131,20 +131,25 @@ void MyGL::resizeGL(int w, int h) {
 void MyGL::tick() {
     glm::vec3 prevPlayerPos = m_player.m_position;
     float dT = (QDateTime::currentMSecsSinceEpoch() - m_currMSecSinceEpoch) / 1000.f;
-    m_player.tick(dT, m_inputs);
+    m_player.tick(dT, m_terrain);
+
+    for (auto& zomb : m_zombies) {
+        zomb->m_inputs.playerPosition = m_player.m_position;
+        zomb->tick(dT, m_terrain);
+    }
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
-    if (m_inputs.underWater) {
+    if (m_player.m_inputs.underWater) {
         m_progLiquid.setPlayerPosBiomeWts(m_terrain.getBiomeAt(prevPlayerPos.x, prevPlayerPos.z));
         m_progLiquid.setPlayerPos(prevPlayerPos);
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
-    } else if (m_inputs.underLava) {
+    } else if (m_player.m_inputs.underLava) {
         m_progLiquid.setGeometryColor(glm::vec4(1.f, 0.f, 0.f, 1.f));
     } else {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
     }
 
-    m_terrain.multithreadedWork(m_player.m_position, prevPlayerPos, dT, m_zombies);
+    m_terrain.multithreadedWork(m_player.m_position, prevPlayerPos, dT);
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
@@ -195,7 +200,7 @@ void MyGL::paintGL() {
     m_playerTexture->bind(2);
     m_progPlayer.setTexture(2);
 
-    if (m_inputs.inThirdPerson) {
+    if (m_player.m_inputs.inThirdPerson) {
         glDisable(GL_CULL_FACE);
         m_progPlayer.setModelMatrix(glm::mat4());
         m_player.drawSceneGraph(m_player.bodyT, glm::mat4(), m_progPlayer);
@@ -254,7 +259,7 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
     }
 
     if (e->key() == Qt::Key_5) {
-        m_player.changeCamera(m_inputs);
+        m_player.changeCamera();
     }
     
     if (e->key() == Qt::Key_I) {
@@ -264,36 +269,36 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
     }
 
     if (e->key() == Qt::Key_W) {
-        m_inputs.wPressed = true;
+        m_player.m_inputs.wPressed = true;
     }
 
     if (e->key() == Qt::Key_S) {
-        m_inputs.sPressed = true;
+        m_player.m_inputs.sPressed = true;
     }
 
     if (e->key() == Qt::Key_D) {
-        m_inputs.dPressed = true;
+        m_player.m_inputs.dPressed = true;
     }
 
     if (e->key() == Qt::Key_A) {
-        m_inputs.aPressed = true;
+        m_player.m_inputs.aPressed = true;
     }
 
     if (e->key() == Qt::Key_F) {
-        m_inputs.flightMode = !m_inputs.flightMode;
+        m_player.m_inputs.flightMode = !m_player.m_inputs.flightMode;
     }
 
-    if (m_inputs.flightMode) {
+    if (m_player.m_inputs.flightMode) {
         if (e->key() == Qt::Key_Q) {
-            m_inputs.qPressed = true;
+            m_player.m_inputs.qPressed = true;
         }
 
         if (e->key() == Qt::Key_E) {
-            m_inputs.ePressed = true;
+            m_player.m_inputs.ePressed = true;
         }
     } else {
         if (e->key() == Qt::Key_Space) {
-            m_inputs.spacePressed = true;
+            m_player.m_inputs.spacePressed = true;
         }
     }
 
@@ -324,31 +329,31 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
 
 void MyGL::keyReleaseEvent(QKeyEvent* e) {
     if (e->key() == Qt::Key_W) {
-        m_inputs.wPressed = false;
+        m_player.m_inputs.wPressed = false;
     }
 
     if (e->key() == Qt::Key_S) {
-        m_inputs.sPressed = false;
+        m_player.m_inputs.sPressed = false;
     }
 
     if (e->key() == Qt::Key_D) {
-        m_inputs.dPressed = false;
+        m_player.m_inputs.dPressed = false;
     }
 
     if (e->key() == Qt::Key_A) {
-        m_inputs.aPressed = false;
+        m_player.m_inputs.aPressed = false;
     }
 
     if (e->key() == Qt::Key_Q) {
-        m_inputs.qPressed = false;
+        m_player.m_inputs.qPressed = false;
     }
 
     if (e->key() == Qt::Key_E) {
-        m_inputs.ePressed = false;
+        m_player.m_inputs.ePressed = false;
     }
 
     if (e->key() == Qt::Key_Space) {
-        m_inputs.spacePressed = false;
+        m_player.m_inputs.spacePressed = false;
     }
 }
 
