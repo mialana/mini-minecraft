@@ -350,7 +350,14 @@ bool Entity::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_d
         glm::ivec3 offset = glm::ivec3(0, 0, 0);
         offset[interfaceAxis] = glm::min(0.f, glm::sign(rayDirection[interfaceAxis]));
         currCell = glm::ivec3(glm::floor(rayOrigin)) + offset;
-        BlockType cellType = terrain.getBlockAt(currCell.x, currCell.y, currCell.z);
+
+        BlockType cellType;
+
+        try {
+            cellType = terrain.getBlockAt(currCell.x, currCell.y, currCell.z);
+        } catch (std::exception){
+            continue;
+        }
 
          if (cellType != EMPTY && !Chunk::isHPlane(cellType) && !Chunk::isCross2(cellType) &&
             !Chunk::isCross4(cellType) && cellType != WATER && cellType != LAVA) {
