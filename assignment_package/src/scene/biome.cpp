@@ -1,9 +1,18 @@
 #include "biome.h"
 #include <iostream>
+#include <random>
 
 Biome::Biome()
 {
 
+}
+
+int Biome::getRandomIntInRange(int min, int max) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distr(min, max);
+
+    return distr(gen);
 }
 
 float Biome::noise1D(float x) {

@@ -25,6 +25,8 @@ class Entity {
         glm::vec3 m_forward, m_right, m_up;
         glm::vec3 m_position;
         Geometry3D m_geom3D;
+        uPtr<Node> bodyT;
+        std::unordered_map<QString, Node*> nodePointerMap;
 
         // Various constructors
         Entity(OpenGLContext* context);
@@ -58,7 +60,7 @@ class Entity {
         virtual void rotateOnRightGlobal(float degrees);
         virtual void rotateOnUpGlobal(float degrees);
 
-        virtual void constructSceneGraph(QJsonArray);
+        void constructSceneGraph(QJsonArray data);
         void drawSceneGraph(const uPtr<Node>& currNode, glm::mat4 currTransformation,
                             ShaderProgram& m_progLambert);
         virtual void animate(float dT, InputBundle& inputs);

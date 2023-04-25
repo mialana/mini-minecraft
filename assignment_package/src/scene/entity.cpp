@@ -1,5 +1,6 @@
 #include "entity.h"
 #include <QJsonArray>
+#include "mygl.h"
 
 Entity::Entity(OpenGLContext* context)
     :  Entity(glm::vec3(0, 0, 0), context)
@@ -89,12 +90,90 @@ void Entity::rotateOnUpGlobal(float degrees) {
     m_up = glm::vec3(glm::rotate(glm::mat4(), rad, glm::vec3(0, 1, 0)) * glm::vec4(m_up, 0.f));
 }
 
-void Entity::constructSceneGraph(QJsonArray) {
-    return;
+void Entity::constructSceneGraph(QJsonArray data) {
+    bodyT = mkU<TranslateNode>(
+                &m_geom3D, glm::vec3(m_position.x, m_position.y + 1.05f, m_position.z));
+    nodePointerMap.insert({"BodyT", bodyT.get()});
+
+    for (auto i = data.begin(), end = data.end(); i != end; i++) {
+        QJsonObject obj = i->toObject();
+        QString key = obj["name"].toString();
+
+        uPtr<Node> newNode;
+
+        if (obj["nodeType"].toString() == "translation") {
+            glm::vec3 translation =
+                MyGL::convertQJsonArrayToGlmVec3(obj["translation"].toArray());
+            newNode = mkU<TranslateNode>(&m_geom3D, translation);
+        } else if (obj["nodeType"].toString() == "rotation") {
+            int degrees = obj["degrees"].toInt();
+            glm::vec3 aor =
+                MyGL::convertQJsonArrayToGlmVec3(obj["axisOfRotation"].toArray());
+            newNode = mkU<RotateNode>(&m_geom3D, degrees, aor);
+        } else if (obj["nodeType"].toString() == "scale") {
+            glm::vec3 scale = MyGL::convertQJsonArrayToGlmVec3(obj["scale"].toArray());
+            newNode = mkU<ScaleNode>(&m_geom3D, scale);
+            newNode->geomType = obj["geomType"].toString();
+        }
+
+        newNode->name = key;
+        nodePointerMap.insert({key, newNode.get()});
+
+        QString parent = obj["parent"].toString();
+        nodePointerMap.at(parent)->addChild(std::move(newNode));
+    }
 }
 
-void Entity::animate(float, InputBundle&) {
-    return;
+void Entity::animate(float dT, InputBundle& inputs) {
+    m_timer += (dT);
+    if (m_timer > 50.f * M_PI) {
+        m_timer = 0.f;
+    }
+    float maxAngle = 30.f;
+    Player* p = dynamic_cast<Player*>(this);
+    if ((p != nullptr && inputs.inThirdPerson) || p == nullptr) {
+        if (inputs.isMoving) {
+            if (nodePointerMap["LeftArmR"] != nullptr) {
+                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+            }
+            if (nodePointerMap["RightArmR"] != nullptr) {
+                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
+            }
+            if (nodePointerMap["LeftLegR"] != nullptr) {
+                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
+            }
+            if (nodePointerMap["RightLegR"] != nullptr) {
+                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+            }
+        } else {
+            if (nodePointerMap["LeftArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees) >= 3.f) {
+                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+            } else {
+                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = 0.f;
+            }
+            if (nodePointerMap["RightArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees) >= 3.f) {
+                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
+            } else {
+                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = 0.f;
+            }
+            if (nodePointerMap["LeftLegR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees) >= 3.f) {
+                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
+            } else {
+                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = 0.f;
+            }
+            if (nodePointerMap["RightLegR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees) >= 3.f) {
+                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+            } else {
+                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = 0.f;
+            }
+        }
+    }
+
+    glm::mat4 bodyRotateMatrix = glm::lookAt(glm::vec3(), glm::normalize(glm::vec3(m_forward.x, 0, m_forward.z)), glm::vec3(0, 1, 0));
+    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->overriddenTransformMatrix = glm::inverse(bodyRotateMatrix);
+
+    glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 1.65f, 0.f), m_position + glm::vec3(0.f, 1.65f, 0.f) + m_forward, glm::vec3(0, 1, 0));
+    (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
 }
 
 void Entity::drawSceneGraph(const uPtr<Node>& currNode, glm::mat4 currTransformation, ShaderProgram& progShader) {

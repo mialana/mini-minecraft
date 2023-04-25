@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <QThreadPool>
+#include "scene/zombie.h"
 #include "workers.h"
 
 Terrain::Terrain(OpenGLContext* context)
@@ -183,7 +184,7 @@ std::vector<glm::ivec2> isSameVector(std::vector<glm::ivec2> a, std::vector<glm:
     return diff;
 }
 
-void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos) {
+void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos, std::vector<Zombie*>& currZombies) {
     // Find the 64 x 64 zone the player is on
     glm::ivec2 curr(64.f * floor(pos.x / 64.f), 64.f * floor(pos.z / 64.f));
     glm::ivec2 prev(64.f * floor(prevPos.x / 64.f), 64.f * floor(prevPos.z / 64.f));
@@ -196,6 +197,13 @@ void Terrain::tryNewChunk(glm::vec3 pos, glm::vec3 prevPos) {
         if (!borderingCurr.contains(zone)) {
             glm::ivec2 coord = toCoords(zone);
             std::cout<<"got into deleting \n";
+
+            for (Zombie* zomb : currZombies) {
+                if (zomb->m_position.x >= coord.x && zomb->m_position.x < coord.x + 64
+                        && zomb.m_position.z >= coord.y && zomb->m_position.z < coord.y + 64) {
+                    zomb->needsRespawn = true;
+                }
+            }
             for (int x = coord.x; x < coord.x + 64; x += 16) {
                 for (int z = coord.y; z < coord.y + 64; z += 16) {
                     auto& c = getChunkAt(x, z);
@@ -447,7 +455,7 @@ Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
     return cPtr;
 }
 
-void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shaderProgram) {
+void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shaderProgram, std::vector<Zombie*>& currZombies) {
     chunksWithBlockDataMutex.lock();
     chunksWithVBODataMutex.lock();
     m_blockDataChunksLock.lock();
@@ -456,11 +464,6 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
 
     for (int x = minX; x < maxX; x += 16) {
         for (int z = minZ; z < maxZ; z += 16) {
-
-
-
-
-
             if (hasChunkAt(x, z)) {
 
                 const uPtr<Chunk>& currChunk = getChunkAt(x, z);
@@ -469,9 +472,6 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
                     shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
                     shaderProgram->drawInterleavedO(*currChunk);
                 }
-
-
-
             }
         }
     }
@@ -479,13 +479,8 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
     for (int x = minX; x < maxX; x += 16) {
         for (int z = minZ; z < maxZ; z += 16) {
 
-
-
-
-
             if (hasChunkAt(x, z)) {
                 const uPtr<Chunk>& currChunk = getChunkAt(x, z);
-
 
                 if (currChunk->hasVBOData && currChunk->hasBinded) {
                     shaderProgram->setModelMatrix(glm::translate(glm::mat4(), glm::vec3(x, 0, z)));
@@ -493,6 +488,43 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
                 }
             }
         }
+    }
+
+    // handle zombie respawning
+
+    std::vector<Zombie*> zombiesToRespawn;
+
+    for (Zombie* zomb : currZombies) {
+        if (zomb->needsRespawn) {
+            zombiesToRespawn.push_back(zomb);
+        }
+    }
+
+    if (zombiesToRespawn.size() > 0) {
+        std::vector<Chunk*> availableChunks;
+
+        for (int x = minX; x < maxX; x += 16) {
+            for (int z = minZ; z < maxZ; z += 16) {
+
+                if (hasChunkAt(x, z)) {
+                    const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+
+                    if (currChunk->hasVBOData && currChunk->hasBinded) {
+                        availableChunks.push_back(currChunk.get());
+                    }
+                }
+            }
+        }
+
+        for (Zombie* zomb : zombiesToRespawn) {
+            int randomChunk = Biome::getRandomIntInRange(0, availableChunks.size() - 1);
+            std::cout << randomChunk << std::endl;
+
+            zomb->respawn(availableChunks[randomChunk]);
+        }
+
+
+
     }
 
     m_blockDataChunksLock.unlock();

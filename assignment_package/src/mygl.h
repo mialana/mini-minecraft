@@ -3,6 +3,7 @@
 
 #include "openglcontext.h"
 #include "scene/quad.h"
+#include "scene/zombie.h"
 #include "shaderprogram.h"
 #include "scene/worldaxes.h"
 #include "scene/terrain.h"
@@ -53,6 +54,8 @@ class MyGL : public OpenGLContext {
     public:
         bool isInventoryOpen;
         Player m_player;
+
+        std::vector<Zombie*> m_zombies;
 
         BlockType currBlock = EMPTY;
 

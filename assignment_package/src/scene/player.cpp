@@ -14,40 +14,6 @@ Player::Player(glm::vec3 pos, const Terrain& terrain, OpenGLContext* context)
 
 Player::~Player() {}
 
-void Player::constructSceneGraph(QJsonArray data) {
-    bodyT = mkU<TranslateNode>(
-                &m_geom3D, glm::vec3(m_position.x, m_position.y + 1.05f, m_position.z));
-    nodePointerMap.insert({"BodyT", bodyT.get()});
-
-    for (auto i = data.begin(), end = data.end(); i != end; i++) {
-        QJsonObject obj = i->toObject();
-        QString key = obj["name"].toString();
-
-        uPtr<Node> newNode;
-
-        if (obj["nodeType"].toString() == "translation") {
-            glm::vec3 translation =
-                MyGL::convertQJsonArrayToGlmVec3(obj["translation"].toArray());
-            newNode = mkU<TranslateNode>(&m_geom3D, translation);
-        } else if (obj["nodeType"].toString() == "rotation") {
-            int degrees = obj["degrees"].toInt();
-            glm::vec3 aor =
-                MyGL::convertQJsonArrayToGlmVec3(obj["axisOfRotation"].toArray());
-            newNode = mkU<RotateNode>(&m_geom3D, degrees, aor);
-        } else if (obj["nodeType"].toString() == "scale") {
-            glm::vec3 scale = MyGL::convertQJsonArrayToGlmVec3(obj["scale"].toArray());
-            newNode = mkU<ScaleNode>(&m_geom3D, scale);
-            newNode->geomType = obj["geomType"].toString();
-        }
-
-        newNode->name = key;
-        nodePointerMap.insert({key, newNode.get()});
-
-        QString parent = obj["parent"].toString();
-        nodePointerMap.at(parent)->addChild(std::move(newNode));
-    }
-}
-
 void Player::changeCamera(InputBundle& inputs) {
     if (mcr_camera == &m_camera) {
         mcr_camera = &m_thirdPersonCamera;
@@ -71,7 +37,7 @@ void Player::tick(float dT, InputBundle& inputs) {
     isUnderLiquid(inputs);
     processInputs(inputs);
     computePhysics(dT, inputs);
-    animate(dT, inputs);
+    Entity::animate(dT, inputs);
 }
 
 void Player::processInputs(InputBundle& inputs) {
@@ -130,57 +96,6 @@ void Player::processInputs(InputBundle& inputs) {
     }
 
     m_acceleration *= 20.f;
-}
-
-void Player::animate(float dT, InputBundle& inputs) {
-    m_timer += (dT);
-    if (m_timer > 50.f * M_PI) {
-        m_timer = 0.f;
-    }
-    float maxAngle = 30.f;
-    if (inputs.inThirdPerson) {
-        if (inputs.isMoving) {
-            if (nodePointerMap["LeftArmR"] != nullptr) {
-                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
-            }
-            if (nodePointerMap["RightArmR"] != nullptr) {
-                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
-            }
-            if (nodePointerMap["LeftLegR"] != nullptr) {
-                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
-            }
-            if (nodePointerMap["RightLegR"] != nullptr) {
-                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
-            }
-        } else {
-            if (nodePointerMap["LeftArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees) >= 3.f) {
-                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
-            } else {
-                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = 0.f;
-            }
-            if (nodePointerMap["RightArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees) >= 3.f) {
-                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
-            } else {
-                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = 0.f;
-            }
-            if (nodePointerMap["LeftLegR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees) >= 3.f) {
-                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
-            } else {
-                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = 0.f;
-            }
-            if (nodePointerMap["RightLegR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees) >= 3.f) {
-                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
-            } else {
-                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = 0.f;
-            }
-        }
-
-        glm::mat4 bodyRotateMatrix = glm::lookAt(glm::vec3(), glm::normalize(glm::vec3(m_forward.x, 0, m_forward.z)), glm::vec3(0, 1, 0));
-        (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->overriddenTransformMatrix = glm::inverse(bodyRotateMatrix);
-
-        glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 1.65f, 0.f), m_position + glm::vec3(0.f, 1.65f, 0.f) + m_forward, glm::vec3(0, 1, 0));
-        (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
-    }
 }
 
 void Player::computePhysics(float dT, InputBundle& inputs) {

@@ -21,13 +21,8 @@ class Player : public Entity {
 
         void processInputs(InputBundle& inputs);
         void computePhysics(float dT, InputBundle& inputs);
-        void animate(float dT, InputBundle& inputs) override;
 
     public:
-        uPtr<Node> bodyT;
-        std::unordered_map<QString, Node*> nodePointerMap;
-
-        void constructSceneGraph(QJsonArray data) override;
         void calculateThirdPersonCameraRotation();
         void calculateFrontViewCameraRotation();
         void changeCamera(InputBundle& inputs);

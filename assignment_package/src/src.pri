@@ -15,6 +15,7 @@ SOURCES += \
     $$PWD/scene/pig.cpp \
     $$PWD/scene/quad.cpp \
     $$PWD/scene/workers.cpp \
+    $$PWD/scene/zombie.cpp \
     $$PWD/shaderprogram.cpp \
     $$PWD/drawable.cpp \
     $$PWD/cameracontrolshelp.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     $$PWD/scene/pig.h \
     $$PWD/scene/quad.h \
     $$PWD/scene/workers.h \
+    $$PWD/scene/zombie.h \
     $$PWD/shaderprogram.h \
     $$PWD/drawable.h \
     $$PWD/cameracontrolshelp.h \
