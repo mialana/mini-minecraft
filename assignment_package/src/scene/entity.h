@@ -11,14 +11,15 @@ struct InputBundle {
     float mouseX, mouseY;
     bool flightMode, onGround, inLiquid, underWater, underLava, inThirdPerson, isMoving;
     glm::vec3 playerPosition;
-    bool collisionDetected;
+    bool collisionDetected, isZombie, isPig, isHoldingWheat;
 
     InputBundle()
         : wPressed(false), aPressed(false), sPressed(false),
           dPressed(false), ePressed(false), fPressed(false),
           qPressed(false), spacePressed(false),
           mouseX(0.f), mouseY(0.f), flightMode(true), onGround(false), isMoving(false),
-          inLiquid(false), underWater(false), underLava(false), inThirdPerson(false)
+          inLiquid(false), underWater(false), underLava(false), inThirdPerson(false),
+          isZombie(false), isPig(false), isHoldingWheat(false)
     {}
 };
 

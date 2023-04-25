@@ -3,14 +3,14 @@
 #include "entity.h"
 #include "scene/chunk.h"
 
-class Zombie : public Entity
+class Mob : public Entity
 {
 public:
     float timeSinceLastPathRecompute;
     bool needsRespawn;
     glm::vec3 directionOfTravel;
 
-    Zombie(OpenGLContext*);
+    Mob(OpenGLContext*);
 
     void tick(float dT, Terrain& terrain) override;
 

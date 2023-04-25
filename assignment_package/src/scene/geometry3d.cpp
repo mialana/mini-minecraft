@@ -9,7 +9,7 @@ Geometry3D::Geometry3D(OpenGLContext* context)
     : Drawable(context) {
     QJsonObject dataObj = MyGL::importJson(":/data/geom3dData.json");
     QJsonArray jsonPosArr = dataObj["Geometry3DPositions"].toArray();
-    QJsonObject jsonUVObj = dataObj["PlayerUVCoordinates"].toObject();
+    QJsonObject jsonUVObj = dataObj["EntityUVCoordinates"].toObject();
 
     for (int i = 0; i < 24; i++) {
         QJsonArray posVectorArr = jsonPosArr[i].toArray();

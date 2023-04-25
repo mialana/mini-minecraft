@@ -9,8 +9,8 @@ Entity::Entity(OpenGLContext* context)
 {}
 
 Entity::Entity(glm::vec3 pos, OpenGLContext* context)
-    : m_velocity(glm::vec3(0, 0, 0)), m_acceleration(glm::vec3(0, 0, 0)), m_forward(0, 0, -1), m_right(1, 0, 0), m_up(0, 1, 0), m_position(pos), infAxis(-1), m_geom3D(context),
-      m_inputs(InputBundle())
+    : m_inputs(InputBundle()), infAxis(-1), m_velocity(glm::vec3(0, 0, 0)), m_acceleration(glm::vec3(0, 0, 0)), m_forward(0, 0, -1), m_right(1, 0, 0), m_up(0, 1, 0), m_position(pos),
+      m_geom3D(context)
 {}
 
 Entity::Entity(const Entity& e, OpenGLContext* context)
@@ -94,8 +94,14 @@ void Entity::rotateOnUpGlobal(float degrees) {
 }
 
 void Entity::constructSceneGraph(QJsonArray data) {
-    bodyT = mkU<TranslateNode>(
-                &m_geom3D, glm::vec3(m_position.x, m_position.y + 1.05f, m_position.z));
+    if (m_inputs.isPig) {
+        bodyT = mkU<TranslateNode>(
+                    &m_geom3D, glm::vec3(m_position.x, m_position.y + 0.8, m_position.z));
+    } else {
+        bodyT = mkU<TranslateNode>(
+                    &m_geom3D, glm::vec3(m_position.x, m_position.y + 1.05f, m_position.z));
+    }
+
     nodePointerMap.insert({"BodyT", bodyT.get()});
 
     for (auto i = data.begin(), end = data.end(); i != end; i++) {
@@ -110,8 +116,13 @@ void Entity::constructSceneGraph(QJsonArray data) {
             newNode = mkU<TranslateNode>(&m_geom3D, translation);
         } else if (obj["nodeType"].toString() == "rotation") {
             int degrees = obj["degrees"].toInt();
-            glm::vec3 aor =
-                MyGL::convertQJsonArrayToGlmVec3(obj["axisOfRotation"].toArray());
+            glm::vec3 aor = MyGL::convertQJsonArrayToGlmVec3(obj["axisOfRotation"].toArray());
+
+            if (m_inputs.isZombie) {
+                if (key == "LeftArmR" || key == "RightArmR") {
+                    degrees = 90;
+                }
+            }
             newNode = mkU<RotateNode>(&m_geom3D, degrees, aor);
         } else if (obj["nodeType"].toString() == "scale") {
             glm::vec3 scale = MyGL::convertQJsonArrayToGlmVec3(obj["scale"].toArray());
@@ -136,10 +147,10 @@ void Entity::animate(float dT) {
 
     if (m_inputs.inThirdPerson) {
         if (m_inputs.isMoving) {
-            if (nodePointerMap["LeftArmR"] != nullptr) {
+            if (nodePointerMap["LeftArmR"] != nullptr && !m_inputs.isZombie) {
                 (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
             }
-            if (nodePointerMap["RightArmR"] != nullptr) {
+            if (nodePointerMap["RightArmR"] != nullptr && !m_inputs.isZombie) {
                 (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
             }
             if (nodePointerMap["LeftLegR"] != nullptr) {
@@ -149,14 +160,14 @@ void Entity::animate(float dT) {
                 (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
             }
         } else {
-            if (nodePointerMap["LeftArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees) >= 3.f) {
+            if (nodePointerMap["LeftArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees && !m_inputs.isZombie) >= 3.f) {
                 (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
-            } else {
+            } else if (!m_inputs.isZombie) {
                 (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = 0.f;
             }
-            if (nodePointerMap["RightArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees) >= 3.f) {
+            if (nodePointerMap["RightArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees && !m_inputs.isZombie) >= 3.f) {
                 (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
-            } else {
+            } else if (!m_inputs.isZombie) {
                 (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = 0.f;
             }
             if (nodePointerMap["LeftLegR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees) >= 3.f) {

@@ -448,7 +448,7 @@ Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
     return cPtr;
 }
 
-void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shaderProgram, std::vector<uPtr<Zombie>>& currZombies) {
+void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shaderProgram, std::vector<uPtr<Mob>>& currMobs) {
     chunksWithBlockDataMutex.lock();
     chunksWithVBODataMutex.lock();
     m_blockDataChunksLock.lock();
@@ -483,17 +483,17 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
         }
     }
 
-    // handle zombie respawning
+    // handle mob respawning
 
-    std::vector<Zombie*> zombiesToRespawn;
+    std::vector<Mob*> mobsToRespawn;
 
-    for (auto& zomb : currZombies) {
-        if (zomb->needsRespawn) {
-            zombiesToRespawn.push_back(zomb.get());
+    for (auto& mob : currMobs) {
+        if (mob->needsRespawn) {
+            mobsToRespawn.push_back(mob.get());
         }
     }
 
-    if (zombiesToRespawn.size() > 0) {
+    if (mobsToRespawn.size() > 0) {
         std::vector<Chunk*> availableChunks;
 
         for (int x = minX; x < maxX; x += 16) {
@@ -509,10 +509,10 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
             }
         }
         if (availableChunks.size() > 0) {
-            for (Zombie* zomb : zombiesToRespawn) {
+            for (Mob* mob : mobsToRespawn) {
                 int randomChunk = Biome::getRandomIntInRange(0, availableChunks.size() - 1);
 
-                zomb->respawn(availableChunks[randomChunk]);
+                mob->respawn(availableChunks[randomChunk]);
             }
         }
 

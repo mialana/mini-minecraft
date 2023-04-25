@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>textures/custom_minecraft_textures.png</file>
         <file>textures/player_texture.png</file>
+        <file>textures/pig.png</file>
+        <file>textures/zombie_texture.png</file>
     </qresource>
 </RCC>

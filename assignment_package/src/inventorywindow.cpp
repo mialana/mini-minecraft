@@ -46,5 +46,16 @@ void InventoryWindow::slot_blockSelected(QListWidgetItem* item) {
     InventoryItem* i = static_cast<InventoryItem*>(item);
     if (i) {
         ui_main->mygl->currBlock = i->type;
+
+        if (i->type == WHEAT_1) {
+            for (auto& mob : ui_main->mygl->m_mobs) {
+                mob->m_inputs.isHoldingWheat = true;
+            }
+        } else {
+            for (auto& mob : ui_main->mygl->m_mobs) {
+                mob->m_inputs.isHoldingWheat = false;
+            }
+        }
+
     }
 }

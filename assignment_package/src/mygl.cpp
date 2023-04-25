@@ -28,7 +28,15 @@ MyGL::MyGL(QWidget* parent)
     setCursor(Qt::BlankCursor); // Make the cursor invisible
 
     for (int i = 0; i < 5; i++) {
-        m_zombies.push_back(mkU<Zombie>(this));
+        uPtr<Mob> newMob = mkU<Mob>(this);
+        newMob->m_inputs.isPig = true;
+        m_mobs.push_back(std::move(newMob));
+    }
+
+    for (int i = 0; i < 5; i++) {
+        uPtr<Mob> newMob = mkU<Mob>(this);
+        newMob->m_inputs.isZombie = true;
+        m_mobs.push_back(std::move(newMob));
     }
 }
 
@@ -74,10 +82,14 @@ void MyGL::initializeGL() {
     m_player.m_geom3D.createVBOdata();
     m_player.constructSceneGraph(nodeDataJsonObject["PlayerNodes"].toArray());
 
-    for (auto& zomb : m_zombies) {
-        zomb->m_geom3D.destroyVBOdata();
-        zomb->m_geom3D.createVBOdata();
-        zomb->constructSceneGraph(nodeDataJsonObject["PlayerNodes"].toArray());
+    for (auto& mob : m_mobs) {
+        mob->m_geom3D.destroyVBOdata();
+        mob->m_geom3D.createVBOdata();
+        if (mob->m_inputs.isPig) {
+            mob->constructSceneGraph(nodeDataJsonObject["PigNodes"].toArray());
+        } else {
+            mob->constructSceneGraph(nodeDataJsonObject["PlayerNodes"].toArray());
+        }
     }
 
     m_progLambert.create(":/glsl/lambert.vert.glsl", ":/glsl/lambert.frag.glsl");
@@ -93,6 +105,14 @@ void MyGL::initializeGL() {
     m_playerTexture = std::make_shared<Texture>(this);
     m_playerTexture->create(":/textures/player_texture.png");
     m_playerTexture->load(2);
+
+    m_pigTexture = std::make_shared<Texture>(this);
+    m_pigTexture->create(":/textures/pig.png");
+    m_pigTexture->load(3);
+
+    m_zombieTexture = std::make_shared<Texture>(this);
+    m_zombieTexture->create(":/textures/zombie_texture.png");
+    m_zombieTexture->load(4);
 
     // We have to have a VAO bound in OpenGL 3.2 Core. But if we're not
     // using multiple VAOs, we can just bind one once.
@@ -133,9 +153,9 @@ void MyGL::tick() {
     float dT = (QDateTime::currentMSecsSinceEpoch() - m_currMSecSinceEpoch) / 1000.f;
     m_player.tick(dT, m_terrain);
 
-    for (auto& zomb : m_zombies) {
-        zomb->m_inputs.playerPosition = m_player.m_position;
-        zomb->tick(dT, m_terrain);
+    for (auto& mob : m_mobs) {
+        mob->m_inputs.playerPosition = m_player.m_position;
+        mob->tick(dT, m_terrain);
     }
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
@@ -196,22 +216,31 @@ void MyGL::paintGL() {
                this->height() * this->devicePixelRatio());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_playerTexture->load(2);
-    m_playerTexture->bind(2);
-    m_progPlayer.setTexture(2);
-
     if (m_player.m_inputs.inThirdPerson) {
+        m_playerTexture->load(2);
+        m_playerTexture->bind(2);
+        m_progPlayer.setTexture(2);
+
         glDisable(GL_CULL_FACE);
         m_progPlayer.setModelMatrix(glm::mat4());
         m_player.drawSceneGraph(m_player.bodyT, glm::mat4(), m_progPlayer);
         glEnable(GL_CULL_FACE);
     }
 
-    for (auto& zomb : m_zombies) {
-        if (!zomb->needsRespawn) {
+    for (auto& mob : m_mobs) {
+        if (!mob->needsRespawn) {
+            if (mob->m_inputs.isPig) {
+                m_pigTexture->load(3);
+                m_pigTexture->bind(3);
+                m_progPlayer.setTexture(3);
+            } else {
+                m_zombieTexture->load(4);
+                m_zombieTexture->bind(4);
+                m_progPlayer.setTexture(4);
+            }
             glDisable(GL_CULL_FACE);
             m_progPlayer.setModelMatrix(glm::mat4());
-            zomb->drawSceneGraph(zomb->bodyT, glm::translate(zomb->m_position), m_progPlayer);
+            mob->drawSceneGraph(mob->bodyT, glm::translate(mob->m_position), m_progPlayer);
             glEnable(GL_CULL_FACE);
         }
     }
@@ -241,7 +270,7 @@ void MyGL::renderTerrain() {
     int x = 16 * xFloor;
     int z = 16 * zFloor;
 
-    m_terrain.draw(x - 256, x + 256, z - 256, z + 256, &m_progLambert, m_zombies);
+    m_terrain.draw(x - 256, x + 256, z - 256, z + 256, &m_progLambert, m_mobs);
 
     glm::vec2 pPos(m_player.m_position.x, m_player.m_position.z);
     glm::ivec2 chunk(16 * glm::ivec2(glm::floor(pPos / 16.f)));

@@ -179,7 +179,7 @@ void ShaderProgram::setTexture(GLuint slot) {
         if (unifFrameBufferTexture != -1) {
             context->glUniform1i(unifFrameBufferTexture, slot);
         }
-    } else if (slot == 2) {
+    } else if (slot >= 2) {
         if (unifPlayerTexture != -1) {
             context->glUniform1i(unifPlayerTexture, slot);
         }

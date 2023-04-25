@@ -49,12 +49,14 @@ class MyGL : public OpenGLContext {
 
         std::shared_ptr<Texture> m_texture;
         std::shared_ptr<Texture> m_playerTexture;
+        std::shared_ptr<Texture> m_pigTexture;
+        std::shared_ptr<Texture> m_zombieTexture;
 
     public:
         bool isInventoryOpen;
         Player m_player;
 
-        std::vector<uPtr<Zombie>> m_zombies;
+        std::vector<uPtr<Mob>> m_mobs;
 
         BlockType currBlock = EMPTY;
 
