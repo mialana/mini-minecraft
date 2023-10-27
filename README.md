@@ -1,5 +1,10 @@
-# mini-minecraft CIS4600/5600
-mini-minecraft-moo-moo-minecrafters created by GitHub Classroom
+# Mini Minecraft
+
+##### Authors: Amy Liu Penn DMD '25,  Abhinav Srivastava Penn DMD '25, Rachel Lin Penn DMD '25
+
+### ([Demo Link](https://youtu.be/uaXJtYumZVE))
+
+An interactive 3D world exploration and alteration program in the style of the popular computer game Minecraft. 
 
 ### Terrain Rendering and Chunking - Amy Liu
 
