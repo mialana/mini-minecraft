@@ -18,6 +18,17 @@ For the `draw()` function in `Terrain`, I simply iterated through the chunks in 
 #### For loading chunks based on player proximity:
 To implement this feature, I looped through the 4 directions and checked whether the player was currently less than 16 blocks from an unloaded chunk. If they are, I calculated the correct chunk origin and instantiated a new chunk in that direction.
 
+### Cave Generation - Amy Liu
+Documentation TBD
+
+### First-to-Second-to-Third-Person Perspective Changing - Amy Liu
+Documentation TBD
+
+### Hostile Mobs with Pathfinding AI - Amy Liu
+Documentation TBD
+
+### Non-hostile Idling Mobs with Multithreading - Amy Liu
+Documentation TBD
 
 ### Game Engine Tick Function and Player Physics (MILESTONE 1) - Abhinav Srivastava
 
