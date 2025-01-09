@@ -18,7 +18,7 @@ MyGL::MyGL(QWidget* parent)
       m_progPlayer(this), m_progFlat(this), m_terrain(this),
       m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f),
       m_frameBuffer(this, this->width(), this->height(), this->devicePixelRatio()),
-      m_screenQuad(this), m_progLiquid(this), isInventoryOpen(false), m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain, this) {
+      m_screenQuad(this), m_progLiquid(this), isInventoryOpen(false), m_player(glm::vec3(4.f, 70.f, 4.f), m_terrain, this) {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
     // Tell the timer to redraw 60 times per second
@@ -27,11 +27,11 @@ MyGL::MyGL(QWidget* parent)
     setMouseTracking(true);     // MyGL will track the mouse's movements even if a mouse button is not pressed
     setCursor(Qt::BlankCursor); // Make the cursor invisible
 
-    for (int i = 0; i < 15; i++) {
-        uPtr<Mob> newMob = mkU<Mob>(this);
-        newMob->m_inputs.isPig = true;
-        m_mobs.push_back(std::move(newMob));
-    }
+//    for (int i = 0; i < 15; i++) {
+//        uPtr<Mob> newMob = mkU<Mob>(this);
+//        newMob->m_inputs.isPig = true;
+//        m_mobs.push_back(std::move(newMob));
+//    }
 
 //    for (int i = 0; i < 5; i++) {
 //        uPtr<Mob> newMob = mkU<Mob>(this);
@@ -169,7 +169,7 @@ void MyGL::tick() {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
     }
 
-    m_terrain.multithreadedWork(m_player.m_position, prevPlayerPos, dT);
+//    m_terrain.multithreadedWork(m_player.m_position, prevPlayerPos, dT);
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 

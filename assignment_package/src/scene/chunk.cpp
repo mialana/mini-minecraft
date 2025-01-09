@@ -775,6 +775,9 @@ void Chunk::createVBOdata() {
                     }
 
                     if (isFullCube(currType)) {
+                        if (currType == GRASS) {
+                            std::cout << "break" << std::endl;
+                        }
                         for (const DirectionVector& dv : directionIter) {
                             if (isVisible(x, y, z, dv, currType)) {
                                 if (!isTransparent(currType)) {
@@ -1221,6 +1224,37 @@ void Chunk::setWorldPos(int x, int z) {
 
 glm::ivec2 Chunk::getWorldPos() {
     return glm::ivec2(worldPos_x, worldPos_z);
+}
+
+// TODO: move this to header file
+// TODO: investigate documentation generation
+/**
+ * @brief Helps create a Superflat chunk
+ *
+ * Operations:
+ *  1. Nested iteration through all x and z values [0, 16)
+ *  2. Call `setBlockAt()` for each non-empty block
+ *  3. Update `this->viableSpawnBlocks: std::vector<glm::vec3>` as needed
+ *
+ * @param  worldXOrigin:  x-coord of the chunk origin in world coordinates
+ * @param  worldZOrigin:  z-coord of the chunk origin in world coordinates
+ */
+void Chunk::createSuperFlat(int worldXOrigin, int worldZOrigin) {
+
+    for (int localX = 0; localX < 16; localX++) {
+        for (int localZ = 0; localZ < 16; localZ++) {
+            // x and z in world coordinates
+            int x = worldXOrigin + localX;
+            int z = worldZOrigin + localZ;
+
+            setBlockAt(x, 63, z, GRASS);
+            this->viableSpawnBlocks.push_back(glm::vec3(x, 63, z));
+            setBlockAt(x, 62, z, DIRT);
+            setBlockAt(x, 61, z, DIRT);
+            setBlockAt(x, 60, z, BEDROCK);
+
+        }
+    }
 }
 
 void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {

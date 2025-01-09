@@ -136,9 +136,10 @@ void main()
                 vec4 col2 = cCol;
                 tintCol = mySmoothStep(col1, col2, (110.f - fs_Pos.y) / 10.f);
             }
-            newUV = fs_UV;
             out_Col = vec4(texture(u_TextureSampler, fs_UV));
-            out_Col = color(out_Col, tintCol, 0.6);
+            // TODO: refactor grass interpolation
+//            out_Col = color(out_Col, tintCol, 0.6);
+            out_Col = vec4(out_Col.rgb * 0.75, out_Col.a);
         } else if (fs_TexIdx == 2) {
             // water animation
             float uOffset = (0.0625 / 64.f) * float(mod(u_Time, 64));

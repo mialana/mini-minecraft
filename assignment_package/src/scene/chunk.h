@@ -1674,6 +1674,7 @@ class Chunk : public Drawable {
         static bool isInBounds(glm::ivec3);
         BlockType getAdjBlockType(Direction, glm::ivec3);
 
+        void createSuperFlat(int, int);
         void helperCreate(int, int);
 
         // coords given in block space

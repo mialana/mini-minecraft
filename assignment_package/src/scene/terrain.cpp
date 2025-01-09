@@ -367,7 +367,12 @@ void Terrain::CreateTestScene() {
     for (int x = 0; x < 64; x += 16) {
         for (int z = 0; z < 64; z += 16) {
             Chunk* c = instantiateChunkAt(x, z);
-            c->helperCreate(x, z);
+//            c->helperCreate(x, z);
+            // TODO: replace helperCreate call
+            if (x == 0 && z == 0) {
+                c->createSuperFlat(x, z);
+                c->setBiomeAt(x, z, glm::vec4(0.4, 1.f, 0.4, 1.f));
+            }
         }
     }
 
@@ -396,6 +401,7 @@ void Terrain::loadNewChunks(glm::vec3 currPos) {
     }
 }
 
+// TODO: Can this be deleted?
 std::pair<float, BiomeEnum> Terrain::blendMultipleBiomes(glm::vec2 xz, float forestH, float mountH,
                                                          float hillH, float islandH) {
 
