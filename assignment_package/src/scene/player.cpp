@@ -10,7 +10,7 @@ Player::Player(glm::vec3 pos, const Terrain& terrain, OpenGLContext* context)
       m_thirdPersonCamera(pos + glm::normalize(m_camera.m_up) * 2.f + glm::normalize(
                               m_camera.m_forward) * -5.f, context),
       m_frontViewCamera(pos + glm::normalize(m_camera.m_forward) * 5.f, context),
-      mcr_terrain(terrain), mcr_camera(&m_camera), cntx(context) {}
+      cntx(context), mcr_terrain(terrain), mcr_camera(&m_camera) {}
 
 Player::~Player() {}
 
@@ -27,7 +27,6 @@ void Player::changeCamera() {
         mcr_camera = &m_camera;
         m_inputs.inThirdPerson = false;
     }
-
 }
 
 

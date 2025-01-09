@@ -346,14 +346,10 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
             for (Mob* mob : mobsToRespawn) {
                 int randomChunk = Biome::getRandomIntInRange(0, availableChunks.size() - 1);
 
+                // pass raw pointer because mob will never delete a chunk
                 mob->respawn(availableChunks[randomChunk]);
             }
         }
-
-
-
-
-
     }
 
     m_blockDataChunksLock.unlock();
@@ -364,15 +360,15 @@ void Terrain::CreateTestScene() {
     // Create the Chunks that will
     // store the blocks for our
     // initial world space
-    for (int x = 0; x < 64; x += 16) {
-        for (int z = 0; z < 64; z += 16) {
+    for (int x = 0; x < 16; x += 16) {
+        for (int z = 0; z < 16; z += 16) {
             Chunk* c = instantiateChunkAt(x, z);
             c->helperCreate(x, z);
         }
     }
 
-    for (int x = 0; x < 64; x += 16) {
-        for (int z = 0; z < 64; z += 16) {
+    for (int x = 0; x < 16; x += 16) {
+        for (int z = 0; z < 16; z += 16) {
             Chunk* c = getChunkAt(x, z).get();
             c->createVBOdata();
         }
@@ -421,6 +417,8 @@ std::pair<float, BiomeEnum> Terrain::blendMultipleBiomes(glm::vec2 xz, float for
         } else if (elev < LimE && temp >= LimT) {
             b = ISLANDS;
         }
+        b = ISLANDS;
+
         // set biome weights in m_biomes for each xz coord in this chunk
         biomeWts.x = elev * (1.f - temp);
         biomeWts.y = elev * temp;

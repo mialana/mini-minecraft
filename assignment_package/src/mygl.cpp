@@ -27,17 +27,17 @@ MyGL::MyGL(QWidget* parent)
     setMouseTracking(true);     // MyGL will track the mouse's movements even if a mouse button is not pressed
     setCursor(Qt::BlankCursor); // Make the cursor invisible
 
-    for (int i = 0; i < 15; i++) {
-        uPtr<Mob> newMob = mkU<Mob>(this);
-        newMob->m_inputs.isPig = true;
-        m_mobs.push_back(std::move(newMob));
-    }
-
-//    for (int i = 0; i < 5; i++) {
+//    for (int i = 0; i < 15; i++) {
 //        uPtr<Mob> newMob = mkU<Mob>(this);
-//        newMob->m_inputs.isZombie = true;
+//        newMob->m_inputs.isPig = true;
 //        m_mobs.push_back(std::move(newMob));
 //    }
+
+    for (int i = 0; i < 1; i++) {
+        uPtr<Mob> newMob = mkU<Mob>(this);
+        newMob->m_inputs.isZombie = true;
+        m_mobs.push_back(std::move(newMob));
+    }
 }
 
 MyGL::~MyGL() {

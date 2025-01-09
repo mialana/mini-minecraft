@@ -1728,4 +1728,8 @@ class Chunk : public Drawable {
         }
 
         std::vector<glm::vec3> viableSpawnBlocks;
+
+        glm::vec3 getRandomViableBlock();
+
+        glm::ivec2 computeLocalPos(glm::vec3);
 };

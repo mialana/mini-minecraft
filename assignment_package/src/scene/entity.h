@@ -7,8 +7,7 @@
 #include "shaderprogram.h"
 
 struct InputBundle {
-    bool wPressed, aPressed, sPressed, dPressed, ePressed, fPressed, qPressed,
-         spacePressed;
+    bool wPressed, aPressed, sPressed, dPressed, ePressed, fPressed, qPressed, spacePressed;
     float mouseX, mouseY;
     bool flightMode, onGround, inLiquid, underWater, underLava, inThirdPerson, isMoving;
     glm::vec3 playerPosition;
@@ -18,8 +17,8 @@ struct InputBundle {
         : wPressed(false), aPressed(false), sPressed(false),
           dPressed(false), ePressed(false), fPressed(false),
           qPressed(false), spacePressed(false),
-          mouseX(0.f), mouseY(0.f), flightMode(true), onGround(false), isMoving(false),
-          inLiquid(false), underWater(false), underLava(false), inThirdPerson(false),
+          mouseX(0.f), mouseY(0.f),
+          flightMode(true), onGround(false), inLiquid(false), underWater(false), underLava(false), inThirdPerson(false), isMoving(false),
           isZombie(false), isPig(false), isHoldingWheat(false)
     {}
 };
