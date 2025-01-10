@@ -2,18 +2,23 @@
 #include "biome.h"
 #include <iostream>
 
-Mob::Mob(OpenGLContext* context)
-    : Entity(context), needsRespawn(true)
+Mob::Mob(OpenGLContext& context, Terrain& terrain)
+    : Entity(context, terrain), needsRespawn(true)
 {
     this->m_inputs.flightMode = false;
     this->m_inputs.isMoving = false;
-    this->m_inputs.inThirdPerson = true;
 }
 
-void Mob::respawn(Chunk* c) {
-    int randomViableBlock = Biome::getRandomIntInRange(0, c->viableSpawnBlocks.size() - 1);
+void Mob::respawn(Chunk* c, std::optional<glm::vec3> pos) {
 
-    this->m_position = c->viableSpawnBlocks[randomViableBlock] + glm::vec3(c->getWorldPos().x, 5, c->getWorldPos().y);
+    if (!pos.has_value()) {
+        int randomViableBlock = Biome::getRandomIntInRange(0, c->viableSpawnBlocks.size() - 1);
+        // TODO: make custom vec2 class with x z swizzling.
+        this->m_position = c->viableSpawnBlocks[randomViableBlock] + glm::vec3(c->getWorldPos().x, 5, c->getWorldPos().y);
+    } else {
+        this->m_position = pos.value();
+    }
+
     this->rotateOnUpGlobal(Biome::getRandomIntInRange(0, 359));
     this->needsRespawn = false;
 

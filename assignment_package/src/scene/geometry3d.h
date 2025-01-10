@@ -15,7 +15,7 @@ class Geometry3D : public Drawable {
         std::vector<glm::vec4> m_uvs;
         std::unordered_map<QString, std::vector<glm::vec4>> m_uvObj;
 
-        Geometry3D(OpenGLContext* context);
+        Geometry3D(OpenGLContext& context);
         virtual ~Geometry3D() {}
 
         void addType(QString t);

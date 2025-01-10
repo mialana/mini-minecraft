@@ -4,23 +4,12 @@
 #include "mygl.h"
 #include "terrain.h"
 
-Entity::Entity(OpenGLContext* context)
-    :  Entity(glm::vec3(0, 0, 0), context)
+Entity::Entity(OpenGLContext& context, Terrain& terrain, std::optional<glm::vec3> pos)
+    : mr_context(context), mr_terrain(terrain),
+      m_inputs(InputBundle()), infAxis(-1),
+      m_velocity(glm::vec3(0, 0, 0)), m_acceleration(glm::vec3(0, 0, 0)), m_forward(0, 0, -1), m_right(1, 0, 0),
+      m_up(0, 1, 0), m_position(pos.value()), m_geom3D(context)
 {}
-
-Entity::Entity(glm::vec3 pos, OpenGLContext* context)
-    : m_inputs(InputBundle()), infAxis(-1), m_velocity(glm::vec3(0, 0, 0)), m_acceleration(glm::vec3(0, 0, 0)), m_forward(0, 0, -1), m_right(1, 0, 0), m_up(0, 1, 0), m_position(pos),
-      m_geom3D(context)
-{}
-
-Entity::Entity(const Entity& e, OpenGLContext* context)
-    : m_inputs(e.m_inputs), infAxis(e.infAxis), m_velocity(e.m_velocity), m_acceleration(e.m_acceleration), m_forward(e.m_forward), m_right(e.m_right),
-      m_up(e.m_up), m_position(e.m_position), m_geom3D(context)
-{}
-
-Entity::~Entity()
-{}
-
 
 void Entity::moveAlongVector(glm::vec3 dir) {
     m_position += dir;

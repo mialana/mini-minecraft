@@ -44,6 +44,53 @@ glm::ivec2 toCoords(int64_t k) {
     return glm::ivec2(x, z);
 }
 
+void Terrain::tick(float dT, glm::vec3 playerPos, glm::vec3 prevPlayerPos) {
+
+    m_chunkTimer += dT;
+    // TODO: uncomment out when multithreading is needed again
+    // Tries to expand the terrain through multithreading
+//    if (m_chunkTimer >= 0.5f) {
+//        tryExpansion(playerPos, prevPlayerPos);
+//        m_chunkTimer = 0.0f;
+//    }
+    checkThreadResults();
+}
+
+void Terrain::respawnMobs() {
+//    // handle mob respawning
+
+//    std::vector<Mob*> mobsToRespawn;
+
+//    for (auto& mob : currMobs) {
+//        if (mob->needsRespawn) {
+//            mobsToRespawn.push_back(mob.get());
+//        }
+//    }
+
+//    if (mobsToRespawn.size() > 0) {
+//        std::vector<Chunk*> availableChunks;
+
+//        for (int x = minX; x < maxX; x += 16) {
+//            for (int z = minZ; z < maxZ; z += 16) {
+
+//                if (hasChunkAt(x, z)) {
+//                    const uPtr<Chunk>& currChunk = getChunkAt(x, z);
+
+//                    if (currChunk->hasVBOData && currChunk->hasBinded && currChunk->viableSpawnBlocks.size() > 0) {
+//                        availableChunks.push_back(currChunk.get());
+//                    }
+//                }
+//            }
+//        }
+//        if (availableChunks.size() > 0) {
+//            for (Mob* mob : mobsToRespawn) {
+//                int randomChunk = Biome::getRandomIntInRange(0, availableChunks.size() - 1);
+
+//                mob->respawn(availableChunks[randomChunk]);
+//            }
+//        }
+}
+
 // Surround calls to this with try-catch if you don't know whether
 // the coordinates at x, y, z have a corresponding Chunk
 BlockType Terrain::getBlockAt(int x, int y, int z) const {
@@ -191,7 +238,7 @@ void Terrain::checkThreadResults() {
         m_blockDataChunksLock.unlock();
     }
 
-    // Second, take the chunks that have VBO data and send data to GPU
+    // Second, take the chunks that have new VBO data and send data to GPU
     m_VBODataChunksLock.lock();
 
     for (auto& data : m_vboDataChunks) {
@@ -258,7 +305,7 @@ void Terrain::setBiomeAt(int x, int z, glm::vec4 b) {
 }
 
 Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
-    uPtr<Chunk> chunk = mkU<Chunk>(mp_context);
+    uPtr<Chunk> chunk = mkU<Chunk>(*mp_context);
     chunk->setWorldPos(xcoord, zcoord);
     m_chunks[toKey(xcoord, zcoord)] = std::move(chunk);
     Chunk* cPtr = m_chunks[toKey(xcoord, zcoord)].get();
@@ -349,11 +396,6 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram* shader
                 mob->respawn(availableChunks[randomChunk]);
             }
         }
-
-
-
-
-
     }
 
     m_blockDataChunksLock.unlock();

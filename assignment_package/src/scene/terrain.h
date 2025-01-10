@@ -67,18 +67,23 @@ private:
     // inefficient, and will cause your game to run very slowly until
     // milestone 1's Chunk VBO setup is completed.
 
-    bool firstTick = true;
+//    bool firstTick = true;
 
     OpenGLContext* mp_context;
 
 public:
-    Terrain(OpenGLContext *context);
+    Terrain(OpenGLContext* context);
     ~Terrain();
+
+    void tick(float dT, glm::vec3 playerPos, glm::vec3 prevPlayerPos);
+
+    void respawnMobs();
 
     //multithreading functions
 
     float m_chunkTimer = 0.0f;
 
+    // TODO: delete `multithreadedWork()`
     void multithreadedWork(glm::vec3, glm::vec3, float);
 
     QSet<long long> borderingZone(glm::ivec2 coords, int radius, bool atEdge);

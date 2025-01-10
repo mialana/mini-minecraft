@@ -7,6 +7,7 @@ Biome::Biome()
 
 }
 
+// TODO: move this to a global utility function file
 int Biome::getRandomIntInRange(int min, int max) {
     std::random_device rd;
     std::mt19937 gen(rd());

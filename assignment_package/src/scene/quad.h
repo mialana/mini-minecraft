@@ -5,6 +5,6 @@
 class Quad : public Drawable
 {
 public:
-    Quad(OpenGLContext* context);
+    Quad(OpenGLContext& context);
     virtual void createVBOdata();
 };

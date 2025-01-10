@@ -48,13 +48,12 @@ public:
     bool m_tBWtsGenerated;
     bool m_tVertDataGenerated;
 
-    OpenGLContext* mp_context; // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
+    OpenGLContext& mp_context; // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
                           // we need to pass our OpenGL context to the Drawable in order to call GL functions
                           // from within this class.
 
 
-public:
-    Drawable(OpenGLContext* mp_context);
+    Drawable(OpenGLContext& mp_context);
     virtual ~Drawable();
 
     virtual void createVBOdata() = 0; // To be implemented by subclasses. Populates the VBOs of the Drawable.
@@ -119,7 +118,7 @@ protected:
     bool m_offsetGenerated;
 
 public:
-    InstancedDrawable(OpenGLContext* mp_context);
+    InstancedDrawable(OpenGLContext& mp_context);
     virtual ~InstancedDrawable();
     int instanceCount() const;
 

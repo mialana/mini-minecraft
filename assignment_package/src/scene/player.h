@@ -4,34 +4,33 @@
 #include "scene/node.h"
 #include "InventoryManager.h"
 
+enum CameraViews : unsigned char {
+    FIRST, SECOND, THIRD
+};
+
 const static std::vector<float> playerDimensions = {
     0.125f, 0.875f, 0.25f, 0.75f, 0.f, 1.9f
 };
 
 class Player : public Entity {
     private:
-        Camera m_camera;
+        Camera m_firstPersonCamera;
+        Camera m_secondPersonCamera;
         Camera m_thirdPersonCamera;
-        Camera m_frontViewCamera;
-        OpenGLContext* cntx;
 
         void processInputs();
 
-    public:
         void calculateThirdPersonCameraRotation();
-        void calculateFrontViewCameraRotation();
-        void changeCamera();
+        void calculateSecondPersonCameraRotation();
+    public:
+        CameraViews m_activeCameraView;
+
+        CameraViews changeActiveCamera();
+        Camera const& getActiveCamera();
+
         InventoryManager inventory;
-        const Terrain& mcr_terrain;
 
-        Player(glm::vec3 pos, const Terrain &terrain);
-        virtual ~Player() override;
-
-        // Readonly public reference to our camera
-        // for easy access from MyGL
-        Camera* mcr_camera;
-
-        Player(glm::vec3 pos, const Terrain& terrain, OpenGLContext* context);
+        Player(OpenGLContext& context, Terrain& terrain, glm::vec3 pos);
 
         void setCameraWidthHeight(unsigned int w, unsigned int h);
 

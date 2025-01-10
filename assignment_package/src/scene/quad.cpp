@@ -1,6 +1,6 @@
 #include "quad.h"
 
-Quad::Quad(OpenGLContext *context) : Drawable(context)
+Quad::Quad(OpenGLContext& context) : Drawable(context)
 {}
 
 void Quad::createVBOdata()
@@ -19,14 +19,14 @@ void Quad::createVBOdata()
     m_oCount = 6;
 
     generateOIdx();
-    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+    mp_context.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
+    mp_context.glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
 
     generateOPos();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(glm::vec4), positions.data(), GL_STATIC_DRAW);
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(glm::vec4), positions.data(), GL_STATIC_DRAW);
 
     generateOCol();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(glm::vec4), colors.data(), GL_STATIC_DRAW);
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(glm::vec4), colors.data(), GL_STATIC_DRAW);
 }

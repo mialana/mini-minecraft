@@ -17,14 +17,14 @@ void WorldAxes::createVBOdata()
     m_oCount = 6;
 
     generateOIdx();
-    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLuint), idx, GL_STATIC_DRAW);
+    mp_context.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
+    mp_context.glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLuint), idx, GL_STATIC_DRAW);
     generateOPos();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec4), pos, GL_STATIC_DRAW);
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec4), pos, GL_STATIC_DRAW);
     generateOCol();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec4), col, GL_STATIC_DRAW);
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(glm::vec4), col, GL_STATIC_DRAW);
 }
 
 GLenum WorldAxes::drawMode()

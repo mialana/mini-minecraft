@@ -1685,7 +1685,7 @@ class Chunk : public Drawable {
                                     std::vector<GLuint>);
 
         ChunkVBOData chunkVBOData;
-        Chunk(OpenGLContext* context);
+        Chunk(OpenGLContext& context);
 //        BlockType getBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
         BlockType getBlockAt(int x, int y, int z) const;
         void setBlockAt(int x, int y, int z, BlockType t);

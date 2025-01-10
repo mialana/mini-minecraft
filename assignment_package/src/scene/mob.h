@@ -10,11 +10,11 @@ public:
     bool needsRespawn;
     glm::vec3 directionOfTravel;
 
-    Mob(OpenGLContext*);
+    Mob(OpenGLContext&, Terrain&);
 
     void tick(float dT, Terrain& terrain) override;
 
-    void respawn(Chunk* c);
+    void respawn(Chunk* c, std::optional<glm::vec3> = std::nullopt);
 
     void pathFind();
 };

@@ -14,11 +14,13 @@
 #include <QJsonDocument>
 
 MyGL::MyGL(QWidget* parent)
-    : OpenGLContext(parent), m_worldAxes(this), m_progLambert(this),
+    : OpenGLContext(parent), m_worldAxes(*this), m_progLambert(this),
       m_progPlayer(this), m_progFlat(this), m_terrain(this),
       m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f),
       m_frameBuffer(this, this->width(), this->height(), this->devicePixelRatio()),
-      m_screenQuad(this), m_progLiquid(this), isInventoryOpen(false), m_player(glm::vec3(4.f, 70.f, 4.f), m_terrain, this) {
+      m_screenQuad(*this), m_progLiquid(this), isInventoryOpen(false),
+      m_player(*this, m_terrain, glm::vec3(4.f, 70.f, 4.f))
+{
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
     // Tell the timer to redraw 60 times per second
@@ -33,11 +35,11 @@ MyGL::MyGL(QWidget* parent)
 //        m_mobs.push_back(std::move(newMob));
 //    }
 
-//    for (int i = 0; i < 5; i++) {
-//        uPtr<Mob> newMob = mkU<Mob>(this);
-//        newMob->m_inputs.isZombie = true;
-//        m_mobs.push_back(std::move(newMob));
-//    }
+    for (int i = 0; i < 1; i++) {
+        uPtr<Mob> newMob = mkU<Mob>(*this, m_terrain);
+        newMob->m_inputs.isZombie = true;
+        m_mobs.push_back(std::move(newMob));
+    }
 }
 
 MyGL::~MyGL() {
@@ -128,7 +130,7 @@ void MyGL::initializeGL() {
 void MyGL::resizeGL(int w, int h) {
     // This code sets the concatenated view and perspective projection matrices used for our scene's camera view.
     m_player.setCameraWidthHeight(static_cast<unsigned int>(w), static_cast<unsigned int>(h));
-    glm::mat4 viewproj = m_player.mcr_camera->getViewProj();
+    glm::mat4 viewproj = m_player.getActiveCamera().getViewProj();
 
     // Upload the view-projection matrix to our shaders (i.e. onto the graphics card)
 
@@ -149,6 +151,7 @@ void MyGL::resizeGL(int w, int h) {
 // all per-frame actions here, such as performing physics updates on all
 // entities in the scene.
 void MyGL::tick() {
+    // Call `tick()` functions of current game objects
     glm::vec3 prevPlayerPos = m_player.m_position;
     float dT = (QDateTime::currentMSecsSinceEpoch() - m_currMSecSinceEpoch) / 1000.f;
     m_player.tick(dT, m_terrain);
@@ -157,8 +160,14 @@ void MyGL::tick() {
         mob->m_inputs.playerPosition = m_player.m_position;
         mob->tick(dT, m_terrain);
     }
+
+    m_terrain.tick(dT, m_player.m_position, prevPlayerPos);
+
+    // Updates for overall game `tick()`
     m_currMSecSinceEpoch = QDateTime::currentMSecsSinceEpoch();
 
+    // TODO: determine if shader programs can be updated within class
+    // screen effect for under water and under lava must be recalculated every tick.
     if (m_player.m_inputs.underWater) {
         m_progLiquid.setPlayerPosBiomeWts(m_terrain.getBiomeAt(prevPlayerPos.x, prevPlayerPos.z));
         m_progLiquid.setPlayerPos(prevPlayerPos);
@@ -169,7 +178,6 @@ void MyGL::tick() {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
     }
 
-//    m_terrain.multithreadedWork(m_player.m_position, prevPlayerPos, dT);
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
@@ -204,19 +212,21 @@ void MyGL::paintGL() {
     m_texture->bind(0);
     m_progLambert.setTexture(0);
 
-    m_progLambert.setViewProjMatrix(m_player.mcr_camera->getViewProj());
+    m_progLambert.setViewProjMatrix(m_player.getActiveCamera().getViewProj());
     m_progLambert.setModelMatrix(glm::mat4());
 
-    m_progPlayer.setViewProjMatrix(m_player.mcr_camera->getViewProj());
+    m_progPlayer.setViewProjMatrix(m_player.getActiveCamera().getViewProj());
     m_progPlayer.setModelMatrix(glm::mat4());
-    m_progPlayer.setCamPos(m_player.mcr_camera->m_position);
+    m_progPlayer.setCamPos(m_player.getActiveCamera().m_position);
 
     m_frameBuffer.bindFrameBuffer();
     glViewport(0, 0, this->width() * this->devicePixelRatio(),
                this->height() * this->devicePixelRatio());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (m_player.m_inputs.inThirdPerson) {
+
+    // TODO: Move into respective game object classes
+    if (m_player.m_activeCameraView == SECOND || m_player.m_activeCameraView == FIRST) {
         m_playerTexture->load(2);
         m_playerTexture->bind(2);
         m_progPlayer.setTexture(2);
@@ -227,6 +237,7 @@ void MyGL::paintGL() {
         glEnable(GL_CULL_FACE);
     }
 
+    // binds mob textures differently based on if the mob needs to be respawned
     for (auto& mob : m_mobs) {
         if (!mob->needsRespawn) {
             if (mob->m_inputs.isPig) {
@@ -260,6 +271,7 @@ void MyGL::paintGL() {
     glEnable(GL_DEPTH_TEST);
 }
 
+// TODO: delete all previous todos
 // TODO: Change this so it renders the nine zones of generated
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
@@ -279,7 +291,8 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
     }
 
     if (e->key() == Qt::Key_5) {
-        m_player.changeCamera();
+        // TODO: display
+        CameraViews new_cam = m_player.changeActiveCamera();
     }
     
     if (e->key() == Qt::Key_I) {

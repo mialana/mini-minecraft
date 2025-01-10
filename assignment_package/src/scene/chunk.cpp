@@ -5,7 +5,7 @@
 #include "biome.h"
 
 
-Chunk::Chunk(OpenGLContext* context) : Drawable(context), m_blocks(), m_neighbors{{XPOS, nullptr}, {XNEG, nullptr}, {ZPOS, nullptr}, {ZNEG, nullptr}} {
+Chunk::Chunk(OpenGLContext& context) : Drawable(context), m_blocks(), m_neighbors{{XPOS, nullptr}, {XNEG, nullptr}, {ZPOS, nullptr}, {ZNEG, nullptr}} {
     std::fill_n(m_blocks.begin(), 65536, EMPTY);
 }
 
@@ -833,25 +833,25 @@ void Chunk::createVBOdata() {
     m_oCount = oIndices.size();
 
     generateOIdx();
-    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, oIndices.size() * sizeof(GLuint), oIndices.data(),
+    mp_context.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
+    mp_context.glBufferData(GL_ELEMENT_ARRAY_BUFFER, oIndices.size() * sizeof(GLuint), oIndices.data(),
                              GL_STATIC_DRAW);
 
     generateOVertData();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufVertData);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, oVertData.size() * sizeof(glm::vec4), oVertData.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufVertData);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, oVertData.size() * sizeof(glm::vec4), oVertData.data(),
                              GL_STATIC_DRAW);
 
     m_tCount = tIndices.size();
 
     generateTIdx();
-    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndices.size() * sizeof(GLuint), tIndices.data(),
+    mp_context.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
+    mp_context.glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndices.size() * sizeof(GLuint), tIndices.data(),
                              GL_STATIC_DRAW);
 
     generateTVertData();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufVertData);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, tVertData.size() * sizeof(glm::vec4), tVertData.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_tBufVertData);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, tVertData.size() * sizeof(glm::vec4), tVertData.data(),
                              GL_STATIC_DRAW);
 
     hasVBOData = true;
@@ -894,62 +894,62 @@ void Chunk::redistributeVertexData(std::vector<glm::vec4> ovd, std::vector<GLuin
 
     m_oCount = oIndices.size();
     generateOIdx();
-    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, oIndices.size() * sizeof(GLuint), oIndices.data(),
+    mp_context.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
+    mp_context.glBufferData(GL_ELEMENT_ARRAY_BUFFER, oIndices.size() * sizeof(GLuint), oIndices.data(),
                              GL_STATIC_DRAW);
     generateOPos();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_positions.size() * sizeof(glm::vec4),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, o_positions.size() * sizeof(glm::vec4),
                              o_positions.data(), GL_STATIC_DRAW);
     generateONor();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufNor);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_normals.size() * sizeof(glm::vec4), o_normals.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufNor);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, o_normals.size() * sizeof(glm::vec4), o_normals.data(),
                              GL_STATIC_DRAW);
     generateOCol();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_colors.size() * sizeof(glm::vec4), o_colors.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, o_colors.size() * sizeof(glm::vec4), o_colors.data(),
                              GL_STATIC_DRAW);
     generateOUVs();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufUVs);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_uvs.size() * sizeof(glm::vec4), o_uvs.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufUVs);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, o_uvs.size() * sizeof(glm::vec4), o_uvs.data(),
                              GL_STATIC_DRAW);
     generateOBTs();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufBTs);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_bts.size() * sizeof(glm::vec4), o_bts.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufBTs);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, o_bts.size() * sizeof(glm::vec4), o_bts.data(),
                              GL_STATIC_DRAW);
     generateOBWts();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufBWts);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_bWts.size() * sizeof(glm::vec4), o_bWts.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufBWts);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, o_bWts.size() * sizeof(glm::vec4), o_bWts.data(),
                              GL_STATIC_DRAW);
 
     m_tCount = tIndices.size();
     generateTIdx();
-    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndices.size() * sizeof(GLuint), tIndices.data(),
+    mp_context.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
+    mp_context.glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndices.size() * sizeof(GLuint), tIndices.data(),
                              GL_STATIC_DRAW);
     generateTPos();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufPos);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_positions.size() * sizeof(glm::vec4),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_tBufPos);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, t_positions.size() * sizeof(glm::vec4),
                              t_positions.data(), GL_STATIC_DRAW);
     generateTNor();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufNor);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_normals.size() * sizeof(glm::vec4), t_normals.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_tBufNor);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, t_normals.size() * sizeof(glm::vec4), t_normals.data(),
                              GL_STATIC_DRAW);
     generateTCol();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_colors.size() * sizeof(glm::vec4), t_colors.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, t_colors.size() * sizeof(glm::vec4), t_colors.data(),
                              GL_STATIC_DRAW);
     generateTUVs();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufUVs);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_uvs.size() * sizeof(glm::vec4), t_uvs.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufUVs);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, t_uvs.size() * sizeof(glm::vec4), t_uvs.data(),
                              GL_STATIC_DRAW);
     generateTBTs();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufBTs);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_bts.size() * sizeof(glm::vec4), t_bts.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufBTs);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, t_bts.size() * sizeof(glm::vec4), t_bts.data(),
                              GL_STATIC_DRAW);
     generateTBWts();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufBWts);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_bWts.size() * sizeof(glm::vec4), t_bWts.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_tBufBWts);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, t_bWts.size() * sizeof(glm::vec4), t_bWts.data(),
                              GL_STATIC_DRAW);
 
 }
@@ -970,25 +970,25 @@ void Chunk::loadVBO() {
     m_oCount = oIndices.size();
 
     generateOIdx();
-    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, oIndices.size() * sizeof(GLuint), oIndices.data(),
+    mp_context.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
+    mp_context.glBufferData(GL_ELEMENT_ARRAY_BUFFER, oIndices.size() * sizeof(GLuint), oIndices.data(),
                              GL_STATIC_DRAW);
 
     generateOVertData();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufVertData);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, oVertData.size() * sizeof(glm::vec4), oVertData.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufVertData);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, oVertData.size() * sizeof(glm::vec4), oVertData.data(),
                              GL_STATIC_DRAW);
 
     m_tCount = tIndices.size();
 
     generateTIdx();
-    mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndices.size() * sizeof(GLuint), tIndices.data(),
+    mp_context.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
+    mp_context.glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndices.size() * sizeof(GLuint), tIndices.data(),
                              GL_STATIC_DRAW);
 
     generateTVertData();
-    mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufVertData);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, tVertData.size() * sizeof(glm::vec4), tVertData.data(),
+    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_tBufVertData);
+    mp_context.glBufferData(GL_ARRAY_BUFFER, tVertData.size() * sizeof(glm::vec4), tVertData.data(),
                              GL_STATIC_DRAW);
     //std::cout<<"I hath binded \n";
     hasBinded = true;

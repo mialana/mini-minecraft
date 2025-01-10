@@ -10,7 +10,7 @@ struct InputBundle {
     bool wPressed, aPressed, sPressed, dPressed, ePressed, fPressed, qPressed,
          spacePressed;
     float mouseX, mouseY;
-    bool flightMode, onGround, inLiquid, underWater, underLava, inThirdPerson, isMoving;
+    bool flightMode, onGround, inLiquid, underWater, underLava, isMoving;
     glm::vec3 playerPosition;
     bool collisionDetected, isZombie, isPig, isHoldingWheat;
 
@@ -18,8 +18,8 @@ struct InputBundle {
         : wPressed(false), aPressed(false), sPressed(false),
           dPressed(false), ePressed(false), fPressed(false),
           qPressed(false), spacePressed(false),
-          mouseX(0.f), mouseY(0.f), flightMode(true), onGround(false), isMoving(false),
-          inLiquid(false), underWater(false), underLava(false), inThirdPerson(false),
+          mouseX(0.f), mouseY(0.f), flightMode(true), onGround(false), inLiquid(false),
+          underWater(false), underLava(false), isMoving(false),
           isZombie(false), isPig(false), isHoldingWheat(false)
     {}
 };
@@ -28,6 +28,11 @@ class Terrain;
 
 class Entity {
 protected:
+    // Store reference to game context and terrain for easy access.
+    // Make class reference variables when there is no need to make null or reassign
+    OpenGLContext& mr_context;
+    Terrain& mr_terrain;
+
     void isInLiquid(Terrain& terrain);
     void isOnGround(Terrain& terrain);
     void isUnderLiquid(Terrain& terrain);
@@ -41,12 +46,11 @@ public:
     uPtr<Node> bodyT;
     std::unordered_map<QString, Node*> nodePointerMap;
 
-    // Various constructors
-    Entity(OpenGLContext* context);
-    Entity(glm::vec3 pos, OpenGLContext* context);
-    Entity(const Entity& e, OpenGLContext* context);
-    virtual ~Entity();
+    float m_timer;
 
+    Entity(OpenGLContext& context, Terrain& terrain, std::optional<glm::vec3> pos = glm::vec3(0, 0, 0));
+
+    // TODO: create class `Tickable`
     // To be called by MyGL::tick()
     virtual void tick(float dT, Terrain& terrain) = 0;
 
@@ -81,6 +85,4 @@ public:
     void drawSceneGraph(const uPtr<Node>& currNode, glm::mat4 currTransformation,
                         ShaderProgram& m_progLambert);
     virtual void animate(float dT);
-
-    float m_timer;
 };

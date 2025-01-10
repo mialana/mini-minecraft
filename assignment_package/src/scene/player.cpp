@@ -4,30 +4,32 @@
 #include <QJsonArray>
 #include "../mygl.h"
 
-Player::Player(glm::vec3 pos, const Terrain& terrain, OpenGLContext* context)
-    : Entity(pos, context),
-      m_camera(pos + glm::vec3(0, 1.5f, 0), context),
-      m_thirdPersonCamera(pos + glm::normalize(m_camera.m_up) * 2.f + glm::normalize(
-                              m_camera.m_forward) * -5.f, context),
-      m_frontViewCamera(pos + glm::normalize(m_camera.m_forward) * 5.f, context),
-      mcr_terrain(terrain), mcr_camera(&m_camera), cntx(context) {}
+Player::Player(OpenGLContext& context, Terrain& terrain, glm::vec3 pos)
+    : Entity(context, terrain, pos),
+      m_firstPersonCamera(context, terrain, pos + glm::vec3(0, 1.5f, 0)),
+      m_secondPersonCamera(context, terrain, pos + glm::normalize(m_firstPersonCamera.m_forward) * 5.f),
+      m_thirdPersonCamera(context, terrain,
+                          pos +
+                          glm::normalize(m_firstPersonCamera.m_up) * 2.f +
+                          glm::normalize(m_firstPersonCamera.m_forward) * -5.f
+                          ),
+      m_activeCameraView(FIRST)
+{
+}
 
-Player::~Player() {}
-
-void Player::changeCamera() {
-    if (mcr_camera == &m_camera) {
-        mcr_camera = &m_thirdPersonCamera;
+CameraViews Player::changeActiveCamera() {
+    if (m_activeCameraView == FIRST) {
         this->calculateThirdPersonCameraRotation();
-        m_inputs.inThirdPerson = true;
-    } else if (mcr_camera == &m_thirdPersonCamera) {
-        mcr_camera = &m_frontViewCamera;
-        this->calculateFrontViewCameraRotation();
-        m_inputs.inThirdPerson = true;
+        m_activeCameraView = THIRD;
+    } else if (m_activeCameraView == THIRD) {
+        this->calculateSecondPersonCameraRotation();
+        m_activeCameraView = SECOND;
+    } else if (m_activeCameraView == SECOND){
+        m_activeCameraView = FIRST;
     } else {
-        mcr_camera = &m_camera;
-        m_inputs.inThirdPerson = false;
+        std::cout << "Active Camera View variable set incorrectly" << std::endl;
     }
-
+    return m_activeCameraView;
 }
 
 
@@ -106,7 +108,7 @@ void Player::processInputs() {
 
 
 BlockType Player::removeBlock(Terrain* terrain) {
-    glm::vec3 rayOrigin = m_camera.m_position;
+    glm::vec3 rayOrigin = m_firstPersonCamera.m_position;
     glm::vec3 rayDirection = 3.f * glm::normalize(this->m_forward);
     float outDist = 0.f;
     glm::ivec3 outBlockHit = glm::ivec3();
@@ -127,7 +129,7 @@ BlockType Player::removeBlock(Terrain* terrain) {
 }
 
 BlockType Player::placeBlock(Terrain* terrain, BlockType currBlockType) {
-    glm::vec3 rayOrigin = m_camera.m_position;
+    glm::vec3 rayOrigin = m_firstPersonCamera.m_position;
     glm::vec3 rayDirection = 3.f * glm::normalize(this->m_forward);
     float outDist = 0.f;
     glm::ivec3 outBlockHit = glm::ivec3();
@@ -135,7 +137,7 @@ BlockType Player::placeBlock(Terrain* terrain, BlockType currBlockType) {
 
     if (gridMarch(rayOrigin, rayDirection, &outDist, &outBlockHit, *terrain, &outType)) {
         if (outType == CLOTH_1) {
-            MyGL* g = static_cast<MyGL*>(cntx);
+            MyGL* g = static_cast<MyGL*>(mcr_context);
             if (g) {
                 g->showRecipe();
             }
@@ -177,111 +179,111 @@ BlockType Player::placeBlock(Terrain* terrain, BlockType currBlockType) {
 }
 
 void Player::setCameraWidthHeight(unsigned int w, unsigned int h) {
-    m_camera.setWidthHeight(w, h);
+    m_firstPersonCamera.setWidthHeight(w, h);
     m_thirdPersonCamera.setWidthHeight(w, h);
-    m_frontViewCamera.setWidthHeight(w, h);
+    m_secondPersonCamera.setWidthHeight(w, h);
 }
 
 void Player::moveAlongVector(glm::vec3 dir) {
     Entity::moveAlongVector(dir);
-    m_camera.moveAlongVector(dir);
+    m_firstPersonCamera.moveAlongVector(dir);
     m_thirdPersonCamera.moveAlongVector(dir);
-    m_frontViewCamera.moveAlongVector(dir);
+    m_secondPersonCamera.moveAlongVector(dir);
     (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += dir;
 }
 void Player::moveForwardLocal(float amount) {
     Entity::moveForwardLocal(amount);
-    m_camera.moveForwardLocal(amount);
+    m_firstPersonCamera.moveForwardLocal(amount);
     m_thirdPersonCamera.moveForwardLocal(amount);
-    m_frontViewCamera.moveForwardLocal(amount);
+    m_secondPersonCamera.moveForwardLocal(amount);
     (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_forward * amount;
 }
 void Player::moveRightLocal(float amount) {
     Entity::moveRightLocal(amount);
-    m_camera.moveRightLocal(amount);
+    m_firstPersonCamera.moveRightLocal(amount);
     m_thirdPersonCamera.moveRightLocal(amount);
-    m_frontViewCamera.moveRightLocal(amount);
+    m_secondPersonCamera.moveRightLocal(amount);
     (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_right * amount;
 }
 void Player::moveUpLocal(float amount) {
     Entity::moveUpLocal(amount);
-    m_camera.moveUpLocal(amount);
+    m_firstPersonCamera.moveUpLocal(amount);
     m_thirdPersonCamera.moveUpLocal(amount);
-    m_frontViewCamera.moveUpLocal(amount);
+    m_secondPersonCamera.moveUpLocal(amount);
     (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += m_up * amount;
 }
 void Player::moveForwardGlobal(float amount) {
     Entity::moveForwardGlobal(amount);
-    m_camera.moveForwardGlobal(amount);
+    m_firstPersonCamera.moveForwardGlobal(amount);
     m_thirdPersonCamera.moveForwardGlobal(amount);
-    m_frontViewCamera.moveForwardGlobal(amount);
+    m_secondPersonCamera.moveForwardGlobal(amount);
     (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(0, 0, amount);
 }
 void Player::moveRightGlobal(float amount) {
     Entity::moveRightGlobal(amount);
-    m_camera.moveRightGlobal(amount);
+    m_firstPersonCamera.moveRightGlobal(amount);
     m_thirdPersonCamera.moveRightGlobal(amount);
-    m_frontViewCamera.moveRightGlobal(amount);
+    m_secondPersonCamera.moveRightGlobal(amount);
     (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(amount, 0, 0);
 }
 void Player::moveUpGlobal(float amount) {
     Entity::moveUpGlobal(amount);
-    m_camera.moveUpGlobal(amount);
+    m_firstPersonCamera.moveUpGlobal(amount);
     m_thirdPersonCamera.moveUpGlobal(amount);
-    m_frontViewCamera.moveUpGlobal(amount);
+    m_secondPersonCamera.moveUpGlobal(amount);
     (static_cast<TranslateNode*>(nodePointerMap["BodyT"]))->translation += glm::vec3(0, amount, 0);
 }
 
 void Player::calculateThirdPersonCameraRotation() {
-    m_thirdPersonCamera.m_position = m_camera.m_position + glm::normalize(
-                                         m_camera.m_up) * 2.f + glm::normalize(m_camera.m_forward) * -5.f;
-    m_thirdPersonCamera.m_forward = glm::normalize(m_camera.m_position -
+    m_thirdPersonCamera.m_position = m_firstPersonCamera.m_position + glm::normalize(
+                                         m_firstPersonCamera.m_up) * 2.f + glm::normalize(m_firstPersonCamera.m_forward) * -5.f;
+    m_thirdPersonCamera.m_forward = glm::normalize(m_firstPersonCamera.m_position -
                                                    m_thirdPersonCamera.m_position);
-    m_thirdPersonCamera.m_right = m_camera.m_right;
+    m_thirdPersonCamera.m_right = m_firstPersonCamera.m_right;
     m_thirdPersonCamera.m_up = -glm::cross(m_thirdPersonCamera.m_forward, m_thirdPersonCamera.m_right);
 }
-void Player::calculateFrontViewCameraRotation() {
-    m_frontViewCamera.m_position = m_camera.m_position + glm::normalize(m_camera.m_forward) * 5.f;
-    m_frontViewCamera.m_forward = glm::normalize(m_camera.m_position - m_frontViewCamera.m_position);
-    m_frontViewCamera.m_right = -m_camera.m_right;
-    m_frontViewCamera.m_up = -glm::cross(m_frontViewCamera.m_forward, m_frontViewCamera.m_right);
+void Player::calculateSecondPersonCameraRotation() {
+    m_secondPersonCamera.m_position = m_firstPersonCamera.m_position + glm::normalize(m_firstPersonCamera.m_forward) * 5.f;
+    m_secondPersonCamera.m_forward = glm::normalize(m_firstPersonCamera.m_position - m_secondPersonCamera.m_position);
+    m_secondPersonCamera.m_right = -m_firstPersonCamera.m_right;
+    m_secondPersonCamera.m_up = -glm::cross(m_secondPersonCamera.m_forward, m_secondPersonCamera.m_right);
 }
 
 void Player::rotateOnForwardLocal(float degrees) {
     Entity::rotateOnForwardLocal(degrees);
-    m_camera.rotateOnForwardLocal(degrees);
+    m_firstPersonCamera.rotateOnForwardLocal(degrees);
     this->calculateThirdPersonCameraRotation();
-    this->calculateFrontViewCameraRotation();
+    this->calculateSecondPersonCameraRotation();
 }
 void Player::rotateOnRightLocal(float degrees) {
     Entity::rotateOnRightLocal(degrees);
-    m_camera.rotateOnRightLocal(degrees);
+    m_firstPersonCamera.rotateOnRightLocal(degrees);
     this->calculateThirdPersonCameraRotation();
-    this->calculateFrontViewCameraRotation();
+    this->calculateSecondPersonCameraRotation();
 }
 void Player::rotateOnUpLocal(float degrees) {
     Entity::rotateOnUpLocal(degrees);
-    m_camera.rotateOnUpLocal(degrees);
+    m_firstPersonCamera.rotateOnUpLocal(degrees);
     this->calculateThirdPersonCameraRotation();
-    this->calculateFrontViewCameraRotation();
+    this->calculateSecondPersonCameraRotation();
 }
 void Player::rotateOnForwardGlobal(float degrees) {
     Entity::rotateOnForwardGlobal(degrees);
-    m_camera.rotateOnForwardGlobal(degrees);
+    m_firstPersonCamera.rotateOnForwardGlobal(degrees);
     this->calculateThirdPersonCameraRotation();
-    this->calculateFrontViewCameraRotation();
+    this->calculateSecondPersonCameraRotation();
 }
 void Player::rotateOnRightGlobal(float degrees) {
     Entity::rotateOnRightGlobal(degrees);
-    m_camera.rotateOnRightGlobal(degrees);
+    m_firstPersonCamera.rotateOnRightGlobal(degrees);
     this->calculateThirdPersonCameraRotation();
-    this->calculateFrontViewCameraRotation();
+    this->calculateSecondPersonCameraRotation();
 }
 void Player::rotateOnUpGlobal(float degrees) {
     Entity::rotateOnUpGlobal(degrees);
-    m_camera.rotateOnUpGlobal(degrees);
+    m_firstPersonCamera.rotateOnUpGlobal(degrees);
     this->calculateThirdPersonCameraRotation();
-    this->calculateFrontViewCameraRotation();
+    this->calculateSecondPersonCameraRotation();
 }
 
 QString Player::posAsQString() const {

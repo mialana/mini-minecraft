@@ -13,9 +13,8 @@ class Camera : public Entity {
         float m_aspect;    // Aspect ratio
 
     public:
-        Camera(glm::vec3 pos, OpenGLContext* context);
-        Camera(unsigned int w, unsigned int h, glm::vec3 pos, OpenGLContext* context);
-        Camera(const Camera& c, OpenGLContext* context);
+        Camera(OpenGLContext& context, Terrain& terrain, glm::vec3 pos, std::optional<unsigned int> w = 400, std::optional<unsigned int> h = 400);
+
         void setWidthHeight(unsigned int w, unsigned int h);
 
         void tick(float dT, Terrain& terrain) override;
