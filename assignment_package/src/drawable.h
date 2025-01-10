@@ -1,9 +1,11 @@
 #pragma once
-#include <openglcontext.h>
+#include <QOpenGLExtraFunctions>
 #include <glm_includes.h>
 
+class MyGL;
+
 //This defines a class which can be rendered by our shader program.
-//Make any geometry a subclass of ShaderProgram::Drawable in order to render it with the ShaderProgram class.
+//Make any geometry a subclass of Drawable in order to render it with the ShaderProgram class.
 class Drawable
 {
 public:
@@ -48,12 +50,12 @@ public:
     bool m_tBWtsGenerated;
     bool m_tVertDataGenerated;
 
-    OpenGLContext& mp_context; // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
+    MyGL& mr_context; // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
                           // we need to pass our OpenGL context to the Drawable in order to call GL functions
                           // from within this class.
 
 
-    Drawable(OpenGLContext& mp_context);
+    Drawable(MyGL& mr_context);
     virtual ~Drawable();
 
     virtual void createVBOdata() = 0; // To be implemented by subclasses. Populates the VBOs of the Drawable.
@@ -118,7 +120,7 @@ protected:
     bool m_offsetGenerated;
 
 public:
-    InstancedDrawable(OpenGLContext& mp_context);
+    InstancedDrawable(MyGL& mp_context);
     virtual ~InstancedDrawable();
     int instanceCount() const;
 

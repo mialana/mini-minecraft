@@ -1,13 +1,14 @@
 #pragma once
 
-#include <openglcontext.h>
-#include <la.h>
 #include <memory>
+#include <QImage>
+
+class MyGL;
 
 class Texture
 {
 public:
-    Texture(OpenGLContext* context);
+    Texture(MyGL& context);
     ~Texture();
 
     void create(const char *texturePath);
@@ -15,7 +16,7 @@ public:
     void bind(int texSlot);
 
 private:
-    OpenGLContext* context;
-    GLuint m_textureHandle;
-    std::shared_ptr<QImage> m_textureImage;
+    MyGL& mr_context;
+    unsigned int m_textureHandle;
+    std::shared_ptr<QImage> mp_textureImage;
 };

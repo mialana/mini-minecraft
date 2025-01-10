@@ -1,5 +1,4 @@
 #pragma once
-#include "glm_includes.h"
 #include <QJsonObject>
 #include "geometry3d.h"
 #include "scene/chunk.h"
@@ -7,8 +6,7 @@
 #include "shaderprogram.h"
 
 struct InputBundle {
-    bool wPressed, aPressed, sPressed, dPressed, ePressed, fPressed, qPressed,
-         spacePressed;
+    bool wPressed, aPressed, sPressed, dPressed, ePressed, fPressed, qPressed, spacePressed;
     float mouseX, mouseY;
     bool flightMode, onGround, inLiquid, underWater, underLava, isMoving;
     glm::vec3 playerPosition;
@@ -24,18 +22,21 @@ struct InputBundle {
     {}
 };
 
+class MyGL;
 class Terrain;
 
 class Entity {
 protected:
     // Store reference to game context and terrain for easy access.
     // Make class reference variables when there is no need to make null or reassign
-    OpenGLContext& mr_context;
+    MyGL& mr_context;
     Terrain& mr_terrain;
 
-    void isInLiquid(Terrain& terrain);
-    void isOnGround(Terrain& terrain);
-    void isUnderLiquid(Terrain& terrain);
+    static const inline std::vector<float> HUMANOID_DIMENSIONS = { 0.125f, 0.875f, 0.25f, 0.75f, 0.f, 1.9f };
+
+    void isInLiquid();
+    void isOnGround();
+    void isUnderLiquid();
 public:
     InputBundle m_inputs;
     int infAxis;
@@ -43,20 +44,19 @@ public:
     glm::vec3 m_forward, m_right, m_up;
     glm::vec3 m_position;
     Geometry3D m_geom3D;
-    uPtr<Node> bodyT;
-    std::unordered_map<QString, Node*> nodePointerMap;
+    uPtr<Node> mp_rootNode;
+    std::unordered_map<QString, Node*> mp_nodePointerMap;
 
     float m_timer;
 
-    Entity(OpenGLContext& context, Terrain& terrain, std::optional<glm::vec3> pos = glm::vec3(0, 0, 0));
+    Entity(MyGL& context, Terrain& terrain, std::optional<glm::vec3> pos = glm::vec3(0, 0, 0));
 
-    // TODO: create class `Tickable`
     // To be called by MyGL::tick()
-    virtual void tick(float dT, Terrain& terrain) = 0;
+    virtual void tick(float dT) = 0;
 
-    virtual void computePhysics(float dT, Terrain& terrain);
-    virtual void detectCollision(Terrain& terrain);
-    virtual bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit, Terrain& terrain, BlockType* out_type = nullptr);
+    virtual void computePhysics(float dT);
+    virtual void detectCollision();
+    virtual bool gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit, BlockType* out_type = nullptr);
 
     // Translate along the given vector
     virtual void moveAlongVector(glm::vec3 dir);
@@ -81,8 +81,8 @@ public:
     virtual void rotateOnRightGlobal(float degrees);
     virtual void rotateOnUpGlobal(float degrees);
 
+    // TODO: create humanoid subclass
     void constructSceneGraph(QJsonArray data);
-    void drawSceneGraph(const uPtr<Node>& currNode, glm::mat4 currTransformation,
-                        ShaderProgram& m_progLambert);
+    void drawSceneGraph(const uPtr<Node>& currNode, glm::mat4 currTransformation, ShaderProgram& m_progLambert);
     virtual void animate(float dT);
 };

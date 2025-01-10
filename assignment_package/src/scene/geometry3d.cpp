@@ -1,11 +1,12 @@
 #include "geometry3d.h"
-#include <QJsonArray>
 #include "mygl.h"
+
+#include <QJsonArray>
 
 static const int CUB_IDX_COUNT = 36;
 static const int CUB_VERT_COUNT = 24;
 
-Geometry3D::Geometry3D(OpenGLContext& context)
+Geometry3D::Geometry3D(MyGL& context)
     : Drawable(context) {
     QJsonObject dataObj = MyGL::importJson(":/data/geom3dData.json");
     QJsonArray jsonPosArr = dataObj["Geometry3DPositions"].toArray();
@@ -156,16 +157,16 @@ void Geometry3D::createVBOdata() {
     m_oCount = CUB_IDX_COUNT;
 
     generateOIdx();
-    mp_context.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    mp_context.glBufferData(GL_ELEMENT_ARRAY_BUFFER, CUB_IDX_COUNT * sizeof(GLuint), sph_idx, GL_STATIC_DRAW);
+    mr_context.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
+    mr_context.glBufferData(GL_ELEMENT_ARRAY_BUFFER, CUB_IDX_COUNT * sizeof(GLuint), sph_idx, GL_STATIC_DRAW);
     generateOPos();
-    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
-    mp_context.glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), m_positions.data(), GL_STATIC_DRAW);
+    mr_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
+    mr_context.glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), m_positions.data(), GL_STATIC_DRAW);
     generateONor();
-    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufNor);
-    mp_context.glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), sph_vert_nor, GL_STATIC_DRAW);
+    mr_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufNor);
+    mr_context.glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), sph_vert_nor, GL_STATIC_DRAW);
     generateOCol();
-    mp_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
-    mp_context.glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), m_uvs.data(), GL_STATIC_DRAW);
+    mr_context.glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
+    mr_context.glBufferData(GL_ARRAY_BUFFER, CUB_VERT_COUNT * sizeof(glm::vec4), m_uvs.data(), GL_STATIC_DRAW);
 
 }

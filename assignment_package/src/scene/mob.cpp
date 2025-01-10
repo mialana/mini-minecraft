@@ -2,7 +2,7 @@
 #include "biome.h"
 #include <iostream>
 
-Mob::Mob(OpenGLContext& context, Terrain& terrain)
+Mob::Mob(MyGL& context, Terrain& terrain)
     : Entity(context, terrain), needsRespawn(true)
 {
     this->m_inputs.flightMode = false;
@@ -20,27 +20,27 @@ void Mob::respawn(Chunk* c, std::optional<glm::vec3> pos) {
     }
 
     this->rotateOnUpGlobal(Biome::getRandomIntInRange(0, 359));
-    this->needsRespawn = false;
 
     glm::mat4 bodyRotateMatrix = glm::lookAt(glm::vec3(), glm::normalize(glm::vec3(m_forward.x, 0, m_forward.z)), glm::vec3(0, 1, 0));
-    (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->overriddenTransformMatrix = glm::inverse(bodyRotateMatrix);
+    (static_cast<RotateNode*>(mp_nodePointerMap["BodyR"]))->overriddenTransformMatrix = glm::inverse(bodyRotateMatrix);
 
     if (m_inputs.isZombie) {
         glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 1.65f, 0.f), m_position + glm::vec3(0.f, 1.65f, 0.f) + m_forward, glm::vec3(0, 1, 0));
-        (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
+        (static_cast<RotateNode*>(mp_nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
     } else if (m_inputs.isPig) {
         glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 0.9f, 0.f) + m_forward * 0.55f, m_position + glm::vec3(0.f, 0.9f, 0.f) + m_forward * 0.55f + m_forward, glm::vec3(0, 1, 0));
-        (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
+        (static_cast<RotateNode*>(mp_nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
     }
 
+    this->needsRespawn = false;
 }
 
-void Mob::tick(float dT, Terrain& terrain) {
+void Mob::tick(float dT) {
     if (!this->needsRespawn) {
-        computePhysics(dT, terrain);
+        computePhysics(dT);
         animate(dT);
-        isInLiquid(terrain);
-        isUnderLiquid(terrain);
+        isInLiquid();
+        isUnderLiquid();
         pathFind();
 
         timeSinceLastPathRecompute += dT;
@@ -83,34 +83,34 @@ void Mob::pathFind() {
         }
 
         glm::mat4 bodyRotateMatrix = glm::lookAt(glm::vec3(), glm::normalize(directionOfTravel), glm::vec3(0, 1, 0));
-        (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->overriddenTransformMatrix = glm::inverse(bodyRotateMatrix);
+        (static_cast<RotateNode*>(mp_nodePointerMap["BodyR"]))->overriddenTransformMatrix = glm::inverse(bodyRotateMatrix);
 
         if (m_inputs.isZombie && glm::distance(this->m_position, this->m_inputs.playerPosition) < 25.f) {
             glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 1.65f, 0.f), m_inputs.playerPosition + glm::vec3(0.f, 1.65f, 0.f), glm::vec3(0, 1, 0));
-            (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
+            (static_cast<RotateNode*>(mp_nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
 
             m_acceleration *= 10.f;
         } else {
             if (m_inputs.isZombie) {
                 glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 1.65f, 0.f), m_position + glm::vec3(0.f, 1.65f, 0.f) + glm::normalize(directionOfTravel), glm::vec3(0, 1, 0));
-                (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
+                (static_cast<RotateNode*>(mp_nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
             } else if (m_inputs.isPig) {
                 glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 0.9f, 0.f) + glm::normalize(directionOfTravel) * 0.55f, m_position + glm::vec3(0.f, 0.9f, 0.f) + glm::normalize(directionOfTravel), glm::vec3(0, 1, 0));
-                (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
+                (static_cast<RotateNode*>(mp_nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
             }
 
             m_acceleration *= 3.f;
         }
     } else {
         glm::mat4 bodyRotateMatrix = glm::lookAt(glm::vec3(), glm::normalize(glm::vec3(m_forward.x, 0, m_forward.z)), glm::vec3(0, 1, 0));
-        (static_cast<RotateNode*>(nodePointerMap["BodyR"]))->overriddenTransformMatrix = glm::inverse(bodyRotateMatrix);
+        (static_cast<RotateNode*>(mp_nodePointerMap["BodyR"]))->overriddenTransformMatrix = glm::inverse(bodyRotateMatrix);
 
         if (m_inputs.isZombie) {
             glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 1.65f, 0.f), m_position + glm::vec3(0.f, 1.65f, 0.f) + m_forward, glm::vec3(0, 1, 0));
-            (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
+            (static_cast<RotateNode*>(mp_nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
         } else if (m_inputs.isPig) {
             glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 0.9f, 0.f) + m_forward * 0.55f, m_position + glm::vec3(0.f, 0.9f, 0.f) + m_forward * 0.55f + m_forward, glm::vec3(0, 1, 0));
-            (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
+            (static_cast<RotateNode*>(mp_nodePointerMap["HeadR"]))->overriddenTransformMatrix = glm::inverse(headRotateMatrix);
         }
     }
 }

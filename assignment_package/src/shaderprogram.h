@@ -1,16 +1,12 @@
-#ifndef SHADERPROGRAM_H
-#define SHADERPROGRAM_H
-
-#include <openglcontext.h>
-#include <glm_includes.h>
-#include <glm/glm.hpp>
+#pragma once
 
 #include "drawable.h"
 
+class MyGL;
 
 class ShaderProgram {
     protected:
-        OpenGLContext* context;   // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
+        MyGL& mr_context;   // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
         // we need to pass our OpenGL context to the Drawable in order to call GL functions
         // from within this class.
     public:
@@ -40,7 +36,7 @@ class ShaderProgram {
         int unifCamPos;
 
 public:
-        ShaderProgram(OpenGLContext* context);
+        ShaderProgram(MyGL& context);
         // Sets up the requisite GL data and shaders from the given .glsl files
         virtual void create(const char *vertfile, const char *fragfile);
         // Tells our OpenGL context to use this shader to draw things
@@ -71,6 +67,3 @@ public:
         // Utility function that prints any shader linking errors to the console
         void printLinkInfoLog(int prog);
 };
-
-
-#endif // SHADERPROGRAM_H

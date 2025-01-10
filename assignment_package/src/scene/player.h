@@ -1,15 +1,10 @@
 #pragma once
 #include "entity.h"
 #include "camera.h"
-#include "scene/node.h"
 #include "InventoryManager.h"
 
 enum CameraViews : unsigned char {
     FIRST, SECOND, THIRD
-};
-
-const static std::vector<float> playerDimensions = {
-    0.125f, 0.875f, 0.25f, 0.75f, 0.f, 1.9f
 };
 
 class Player : public Entity {
@@ -30,14 +25,14 @@ class Player : public Entity {
 
         InventoryManager inventory;
 
-        Player(OpenGLContext& context, Terrain& terrain, glm::vec3 pos);
+        Player(MyGL& context, Terrain& terrain, glm::vec3 pos);
 
         void setCameraWidthHeight(unsigned int w, unsigned int h);
 
-        void tick(float dT, Terrain& terrain) override;
+        void tick(float dT) override;
 
-        BlockType placeBlock(Terrain* terrain, BlockType currBlock);
-        BlockType removeBlock(Terrain* terrain);
+        BlockType placeBlock(BlockType currBlock);
+        BlockType removeBlock();
 
         // Player overrides all of Entity's movement
         // functions so that it transforms its camera

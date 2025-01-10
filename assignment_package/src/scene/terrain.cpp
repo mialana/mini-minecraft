@@ -1,10 +1,13 @@
 #include "terrain.h"
+#include "biome.h"
+#include "workers.h"
+
 #include <stdexcept>
 #include <iostream>
 #include <cstdlib>
 
-Terrain::Terrain(OpenGLContext* context)
-    : m_chunks(), m_generatedTerrain(), mp_context(context)
+Terrain::Terrain(MyGL& context)
+    : m_chunks(), m_generatedTerrain(), mr_context(context)
 {}
 
 Terrain::~Terrain() {
@@ -305,7 +308,7 @@ void Terrain::setBiomeAt(int x, int z, glm::vec4 b) {
 }
 
 Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord) {
-    uPtr<Chunk> chunk = mkU<Chunk>(*mp_context);
+    uPtr<Chunk> chunk = mkU<Chunk>(mr_context);
     chunk->setWorldPos(xcoord, zcoord);
     m_chunks[toKey(xcoord, zcoord)] = std::move(chunk);
     Chunk* cPtr = m_chunks[toKey(xcoord, zcoord)].get();

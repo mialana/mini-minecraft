@@ -16,7 +16,6 @@
 #include <QOpenGLShaderProgram>
 #include <smartpointerhelp.h>
 
-
 class MyGL : public OpenGLContext {
         Q_OBJECT
     private:
@@ -88,14 +87,14 @@ class MyGL : public OpenGLContext {
     protected:
         // Automatically invoked when the user
         // presses a key on the keyboard
-        void keyPressEvent(QKeyEvent* e);
-        void keyReleaseEvent(QKeyEvent* e);
+        void keyPressEvent(QKeyEvent* e) override;
+        void keyReleaseEvent(QKeyEvent* e) override;
         // Automatically invoked when the user
         // moves the mouse
-        void mouseMoveEvent(QMouseEvent* e);
+        void mouseMoveEvent(QMouseEvent* e) override;
         // Automatically invoked when the user
         // presses a mouse button
-        void mousePressEvent(QMouseEvent* e);
+        void mousePressEvent(QMouseEvent* e) override;
 
     private slots:
         void tick(); // Slot that gets called ~60 times per second by m_timer firing.

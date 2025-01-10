@@ -1,15 +1,14 @@
 #pragma once
 #include "smartpointerhelp.h"
 #include "chunk.h"
+#include "shaderprogram.h"
+#include "scene/mob.h"
+
 #include <array>
 #include <unordered_map>
 #include <unordered_set>
-#include "shaderprogram.h"
-#include "scene/mob.h"
-#include "biome.h"
 #include <QMutex>
 #include <QThreadPool>
-#include "workers.h"
 
 const static std::vector<glm::ivec2> directionHelper = {
     glm::ivec2(16, 0),
@@ -69,10 +68,10 @@ private:
 
 //    bool firstTick = true;
 
-    OpenGLContext* mp_context;
+    MyGL& mr_context;
 
 public:
-    Terrain(OpenGLContext* context);
+    Terrain(MyGL& context);
     ~Terrain();
 
     void tick(float dT, glm::vec3 playerPos, glm::vec3 prevPlayerPos);

@@ -1,5 +1,5 @@
 {
-  "PlayerNodes": [
+  "HumanoidNodes": [
     {
       "name": "BodyR",
       "nodeType": "rotation",

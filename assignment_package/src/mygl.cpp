@@ -14,11 +14,11 @@
 #include <QJsonDocument>
 
 MyGL::MyGL(QWidget* parent)
-    : OpenGLContext(parent), m_worldAxes(*this), m_progLambert(this),
-      m_progPlayer(this), m_progFlat(this), m_terrain(this),
+    : OpenGLContext(parent), m_worldAxes(*this), m_progLambert(*this),
+      m_progPlayer(*this), m_progFlat(*this), m_terrain(*this),
       m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f),
-      m_frameBuffer(this, this->width(), this->height(), this->devicePixelRatio()),
-      m_screenQuad(*this), m_progLiquid(this), isInventoryOpen(false),
+      m_frameBuffer(*this, this->width(), this->height(), this->devicePixelRatio()),
+      m_screenQuad(*this), m_progLiquid(*this), isInventoryOpen(false),
       m_player(*this, m_terrain, glm::vec3(4.f, 70.f, 4.f))
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
@@ -35,11 +35,11 @@ MyGL::MyGL(QWidget* parent)
 //        m_mobs.push_back(std::move(newMob));
 //    }
 
-    for (int i = 0; i < 1; i++) {
-        uPtr<Mob> newMob = mkU<Mob>(*this, m_terrain);
-        newMob->m_inputs.isZombie = true;
-        m_mobs.push_back(std::move(newMob));
-    }
+//    for (int i = 0; i < 1; i++) {
+//        uPtr<Mob> newMob = mkU<Mob>(*this, m_terrain);
+//        newMob->m_inputs.isZombie = true;
+//        m_mobs.push_back(std::move(newMob));
+//    }
 }
 
 MyGL::~MyGL() {
@@ -82,7 +82,7 @@ void MyGL::initializeGL() {
     QJsonObject nodeDataJsonObject = importJson(":/data/nodeData.json");
     m_player.m_geom3D.destroyVBOdata();
     m_player.m_geom3D.createVBOdata();
-    m_player.constructSceneGraph(nodeDataJsonObject["PlayerNodes"].toArray());
+    m_player.constructSceneGraph(nodeDataJsonObject["HumanoidNodes"].toArray());
 
     for (auto& mob : m_mobs) {
         mob->m_geom3D.destroyVBOdata();
@@ -90,7 +90,7 @@ void MyGL::initializeGL() {
         if (mob->m_inputs.isPig) {
             mob->constructSceneGraph(nodeDataJsonObject["PigNodes"].toArray());
         } else {
-            mob->constructSceneGraph(nodeDataJsonObject["PlayerNodes"].toArray());
+            mob->constructSceneGraph(nodeDataJsonObject["HumanoidNodes"].toArray());
         }
     }
 
@@ -100,19 +100,19 @@ void MyGL::initializeGL() {
     m_progLiquid.create(":/glsl/liquid.vert.glsl", ":/glsl/liquid.frag.glsl");
     m_progPlayer.create(":/glsl/player.vert.glsl", ":/glsl/player.frag.glsl");
 
-    m_texture = std::make_shared<Texture>(this);
+    m_texture = std::make_shared<Texture>(*this);
     m_texture->create(":/textures/custom_minecraft_textures.png");
     m_texture->load(0);
 
-    m_playerTexture = std::make_shared<Texture>(this);
+    m_playerTexture = std::make_shared<Texture>(*this);
     m_playerTexture->create(":/textures/player_texture.png");
     m_playerTexture->load(2);
 
-    m_pigTexture = std::make_shared<Texture>(this);
+    m_pigTexture = std::make_shared<Texture>(*this);
     m_pigTexture->create(":/textures/pig.png");
     m_pigTexture->load(3);
 
-    m_zombieTexture = std::make_shared<Texture>(this);
+    m_zombieTexture = std::make_shared<Texture>(*this);
     m_zombieTexture->create(":/textures/zombie_texture.png");
     m_zombieTexture->load(4);
 
@@ -154,11 +154,11 @@ void MyGL::tick() {
     // Call `tick()` functions of current game objects
     glm::vec3 prevPlayerPos = m_player.m_position;
     float dT = (QDateTime::currentMSecsSinceEpoch() - m_currMSecSinceEpoch) / 1000.f;
-    m_player.tick(dT, m_terrain);
+    m_player.tick(dT);
 
     for (auto& mob : m_mobs) {
         mob->m_inputs.playerPosition = m_player.m_position;
-        mob->tick(dT, m_terrain);
+        mob->tick(dT);
     }
 
     m_terrain.tick(dT, m_player.m_position, prevPlayerPos);
@@ -233,7 +233,7 @@ void MyGL::paintGL() {
 
         glDisable(GL_CULL_FACE);
         m_progPlayer.setModelMatrix(glm::mat4());
-        m_player.drawSceneGraph(m_player.bodyT, glm::mat4(), m_progPlayer);
+        m_player.drawSceneGraph(m_player.mp_rootNode, glm::mat4(), m_progPlayer);
         glEnable(GL_CULL_FACE);
     }
 
@@ -251,7 +251,7 @@ void MyGL::paintGL() {
             }
             glDisable(GL_CULL_FACE);
             m_progPlayer.setModelMatrix(glm::mat4());
-            mob->drawSceneGraph(mob->bodyT, glm::translate(mob->m_position), m_progPlayer);
+            mob->drawSceneGraph(mob->mp_rootNode, glm::translate(mob->m_position), m_progPlayer);
             glEnable(GL_CULL_FACE);
         }
     }
@@ -412,9 +412,9 @@ void MyGL::mouseMoveEvent(QMouseEvent* e) {
 void MyGL::mousePressEvent(QMouseEvent *e) {
 
         if (e->button() == Qt::LeftButton) {
-            BlockType removed = m_player.removeBlock(&m_terrain);
+            BlockType removed = m_player.removeBlock();
         } else if (e->button() == Qt::RightButton) {
-            m_player.placeBlock(&m_terrain, currBlock);
+            m_player.placeBlock(currBlock);
         }
 
 }

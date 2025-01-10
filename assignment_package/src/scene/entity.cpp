@@ -4,7 +4,7 @@
 #include "mygl.h"
 #include "terrain.h"
 
-Entity::Entity(OpenGLContext& context, Terrain& terrain, std::optional<glm::vec3> pos)
+Entity::Entity(MyGL& context, Terrain& terrain, std::optional<glm::vec3> pos)
     : mr_context(context), mr_terrain(terrain),
       m_inputs(InputBundle()), infAxis(-1),
       m_velocity(glm::vec3(0, 0, 0)), m_acceleration(glm::vec3(0, 0, 0)), m_forward(0, 0, -1), m_right(1, 0, 0),
@@ -84,14 +84,14 @@ void Entity::rotateOnUpGlobal(float degrees) {
 
 void Entity::constructSceneGraph(QJsonArray data) {
     if (m_inputs.isPig) {
-        bodyT = mkU<TranslateNode>(
+        mp_rootNode = mkU<TranslateNode>(
                     &m_geom3D, glm::vec3(m_position.x, m_position.y + 0.8, m_position.z));
     } else {
-        bodyT = mkU<TranslateNode>(
+        mp_rootNode = mkU<TranslateNode>(
                     &m_geom3D, glm::vec3(m_position.x, m_position.y + 1.05f, m_position.z));
     }
 
-    nodePointerMap.insert({"BodyT", bodyT.get()});
+    mp_nodePointerMap.insert({"BodyT", mp_rootNode.get()});
 
     for (auto i = data.begin(), end = data.end(); i != end; i++) {
         QJsonObject obj = i->toObject();
@@ -120,10 +120,10 @@ void Entity::constructSceneGraph(QJsonArray data) {
         }
 
         newNode->name = key;
-        nodePointerMap.insert({key, newNode.get()});
+        mp_nodePointerMap.insert({key, newNode.get()});
 
         QString parent = obj["parent"].toString();
-        nodePointerMap.at(parent)->addChild(std::move(newNode));
+        mp_nodePointerMap.at(parent)->addChild(std::move(newNode));
     }
 }
 
@@ -134,43 +134,42 @@ void Entity::animate(float dT) {
     }
     float maxAngle = 30.f;
 
-    if (m_inputs.inThirdPerson) {
-        if (m_inputs.isMoving) {
-            if (nodePointerMap["LeftArmR"] != nullptr && !m_inputs.isZombie) {
-                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
-            }
-            if (nodePointerMap["RightArmR"] != nullptr && !m_inputs.isZombie) {
-                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
-            }
-            if (nodePointerMap["LeftLegR"] != nullptr) {
-                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
-            }
-            if (nodePointerMap["RightLegR"] != nullptr) {
-                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
-            }
+    if (m_inputs.isMoving) {
+        if (mp_nodePointerMap["LeftArmR"] != nullptr && !m_inputs.isZombie) {
+            (static_cast<RotateNode*>(mp_nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+        }
+        if (mp_nodePointerMap["RightArmR"] != nullptr && !m_inputs.isZombie) {
+            (static_cast<RotateNode*>(mp_nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
+        }
+        if (mp_nodePointerMap["LeftLegR"] != nullptr) {
+            (static_cast<RotateNode*>(mp_nodePointerMap["LeftLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
+        }
+        if (mp_nodePointerMap["RightLegR"] != nullptr) {
+            (static_cast<RotateNode*>(mp_nodePointerMap["RightLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+        }
+    } else {
+        if (mp_nodePointerMap["LeftArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(mp_nodePointerMap["LeftArmR"]))->degrees && !m_inputs.isZombie) >= 3.f) {
+            (static_cast<RotateNode*>(mp_nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+        } else if (!m_inputs.isZombie) {
+            (static_cast<RotateNode*>(mp_nodePointerMap["LeftArmR"]))->degrees = 0.f;
+        }
+        if (mp_nodePointerMap["RightArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(mp_nodePointerMap["RightArmR"]))->degrees && !m_inputs.isZombie) >= 3.f) {
+            (static_cast<RotateNode*>(mp_nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
+        } else if (!m_inputs.isZombie) {
+            (static_cast<RotateNode*>(mp_nodePointerMap["RightArmR"]))->degrees = 0.f;
+        }
+        if (mp_nodePointerMap["LeftLegR"] != nullptr && glm::abs((static_cast<RotateNode*>(mp_nodePointerMap["LeftLegR"]))->degrees) >= 3.f) {
+            (static_cast<RotateNode*>(mp_nodePointerMap["LeftLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
         } else {
-            if (nodePointerMap["LeftArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees && !m_inputs.isZombie) >= 3.f) {
-                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
-            } else if (!m_inputs.isZombie) {
-                (static_cast<RotateNode*>(nodePointerMap["LeftArmR"]))->degrees = 0.f;
-            }
-            if (nodePointerMap["RightArmR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees && !m_inputs.isZombie) >= 3.f) {
-                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
-            } else if (!m_inputs.isZombie) {
-                (static_cast<RotateNode*>(nodePointerMap["RightArmR"]))->degrees = 0.f;
-            }
-            if (nodePointerMap["LeftLegR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees) >= 3.f) {
-                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f);
-            } else {
-                (static_cast<RotateNode*>(nodePointerMap["LeftLegR"]))->degrees = 0.f;
-            }
-            if (nodePointerMap["RightLegR"] != nullptr && glm::abs((static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees) >= 3.f) {
-                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
-            } else {
-                (static_cast<RotateNode*>(nodePointerMap["RightLegR"]))->degrees = 0.f;
-            }
+            (static_cast<RotateNode*>(mp_nodePointerMap["LeftLegR"]))->degrees = 0.f;
+        }
+        if (mp_nodePointerMap["RightLegR"] != nullptr && glm::abs((static_cast<RotateNode*>(mp_nodePointerMap["RightLegR"]))->degrees) >= 3.f) {
+            (static_cast<RotateNode*>(mp_nodePointerMap["RightLegR"]))->degrees = maxAngle * glm::sin(m_timer * 10.f + M_PI);
+        } else {
+            (static_cast<RotateNode*>(mp_nodePointerMap["RightLegR"]))->degrees = 0.f;
         }
     }
+
 }
 
 void Entity::drawSceneGraph(const uPtr<Node>& currNode, glm::mat4 currTransformation, ShaderProgram& progShader) {
@@ -198,7 +197,7 @@ void Entity::drawSceneGraph(const uPtr<Node>& currNode, glm::mat4 currTransforma
     }
 }
 
-void Entity::computePhysics(float dT, Terrain& terrain) {
+void Entity::computePhysics(float dT) {
     glm::vec3 rayDirection = glm::vec3();
 
     if (!m_inputs.flightMode) {
@@ -222,14 +221,14 @@ void Entity::computePhysics(float dT, Terrain& terrain) {
 
     if (!m_inputs.flightMode) {
         m_velocity = glm::vec3(m_velocity.x, glm::min(m_velocity.y, 0.5f), m_velocity.z);
-        detectCollision(terrain);
+        detectCollision();
     }
 
     this->moveAlongVector(m_velocity);
     m_inputs.isMoving = (glm::abs(m_velocity.x / (dT / 1000.f)) >= 3.f) || (glm::abs(m_velocity.z / (dT / 1000.f)) >= 3.f);
 }
 
-void Entity::detectCollision(Terrain& terrain) {
+void Entity::detectCollision() {
     glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, 0.f, 0.5f);
     glm::vec3 rayDirectionX = glm::vec3(m_velocity.x, 0.f, 0.f);
     glm::vec3 rayDirectionY = glm::vec3(0.f, m_velocity.y, 0.f);
@@ -247,19 +246,19 @@ void Entity::detectCollision(Terrain& terrain) {
                 float outDistX = 0.f;
                 float outDistY = 0.f;
                 float outDistZ = 0.f;
-                glm::vec3 rayOrigin = bottomLeftVertex + glm::vec3(playerDimensions[x],
-                                                                   playerDimensions[y],
-                                                                   playerDimensions[z]);
+                glm::vec3 rayOrigin = bottomLeftVertex + glm::vec3(HUMANOID_DIMENSIONS[x],
+                                                                   HUMANOID_DIMENSIONS[y],
+                                                                   HUMANOID_DIMENSIONS[z]);
 
-                if (gridMarch(rayOrigin, rayDirectionX, &outDistX, &outBlockHitX, terrain) && (outDistX < minOutDistX)) {
+                if (gridMarch(rayOrigin, rayDirectionX, &outDistX, &outBlockHitX) && (outDistX < minOutDistX)) {
                     minOutDistX = outDistX;
                 }
 
-                if (gridMarch(rayOrigin, rayDirectionY, &outDistY, &outBlockHitY, terrain) && (outDistY < minOutDistY)) {
+                if (gridMarch(rayOrigin, rayDirectionY, &outDistY, &outBlockHitY) && (outDistY < minOutDistY)) {
                     minOutDistY = outDistY;
                 }
 
-                if (gridMarch(rayOrigin, rayDirectionZ, &outDistZ, &outBlockHitZ, terrain) && (outDistZ < minOutDistZ)) {
+                if (gridMarch(rayOrigin, rayDirectionZ, &outDistZ, &outBlockHitZ) && (outDistZ < minOutDistZ)) {
                     minOutDistZ = outDistZ;
                 }
             }
@@ -300,7 +299,7 @@ void Entity::detectCollision(Terrain& terrain) {
     }
 }
 
-bool Entity::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit, Terrain& terrain, BlockType* out_type) {
+bool Entity::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_dist, glm::ivec3* out_blockHit, BlockType* out_type) {
     float maxLen = glm::length(rayDirection);
     glm::ivec3 currCell = glm::ivec3(glm::floor(rayOrigin));
     rayDirection = glm::normalize(rayDirection);
@@ -343,7 +342,7 @@ bool Entity::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_d
         BlockType cellType;
 
         try {
-            cellType = terrain.getBlockAt(currCell.x, currCell.y, currCell.z);
+            cellType = mr_terrain.getBlockAt(currCell.x, currCell.y, currCell.z);
         } catch (std::exception){
             continue;
         }
@@ -363,18 +362,18 @@ bool Entity::gridMarch(glm::vec3 rayOrigin, glm::vec3 rayDirection, float* out_d
     return false;
 }
 
-void Entity::isInLiquid(Terrain& terrain) {
+void Entity::isInLiquid() {
     glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, 0.f, 0.5f);
     bool acc = false;
 
     for (int x = 0; x <= 1; x++) {
         for (int z = 2; z <= 3; z++) {
             for (int y = 0; y <= 1; y++) {
-                glm::vec3 p = glm::vec3(bottomLeftVertex.x + playerDimensions[x],
+                glm::vec3 p = glm::vec3(bottomLeftVertex.x + HUMANOID_DIMENSIONS[x],
                                         bottomLeftVertex.y + y,
-                                        bottomLeftVertex.z + playerDimensions[z]);
+                                        bottomLeftVertex.z + HUMANOID_DIMENSIONS[z]);
 
-                if (terrain.getBlockAt(p) == WATER || terrain.getBlockAt(p) == LAVA) {
+                if (mr_terrain.getBlockAt(p) == WATER || mr_terrain.getBlockAt(p) == LAVA) {
                     acc = acc || true;
                 } else {
                     acc = acc || false;
@@ -386,22 +385,22 @@ void Entity::isInLiquid(Terrain& terrain) {
     m_inputs.inLiquid = acc;
 }
 
-void Entity::isOnGround(Terrain& terrain) {
+void Entity::isOnGround() {
     glm::vec3 bottomLeftVertex = this->m_position - glm::vec3(0.5f, 0, 0.5f);
     bool acc = false;
 
     for (int x = 0; x <= 1; x++) {
         for (int z = 2; z <= 3; z++) {
-            glm::vec3 p = glm::vec3(bottomLeftVertex.x + playerDimensions[x],
+            glm::vec3 p = glm::vec3(bottomLeftVertex.x + HUMANOID_DIMENSIONS[x],
                                     bottomLeftVertex.y - 0.05f,
-                                    bottomLeftVertex.z + playerDimensions[z]);
+                                    bottomLeftVertex.z + HUMANOID_DIMENSIONS[z]);
 
-            if (terrain.getBlockAt(p) != EMPTY &&
-                !Chunk::isHPlane(terrain.getBlockAt(p)) &&
-                !Chunk::isCross2(terrain.getBlockAt(p)) &&
-                !Chunk::isCross4(terrain.getBlockAt(p)) &&
-                terrain.getBlockAt(p) != WATER &&
-                terrain.getBlockAt(p) != LAVA) {
+            if (mr_terrain.getBlockAt(p) != EMPTY &&
+                !Chunk::isHPlane(mr_terrain.getBlockAt(p)) &&
+                !Chunk::isCross2(mr_terrain.getBlockAt(p)) &&
+                !Chunk::isCross4(mr_terrain.getBlockAt(p)) &&
+                mr_terrain.getBlockAt(p) != WATER &&
+                mr_terrain.getBlockAt(p) != LAVA) {
                 acc = acc || true;
             } else {
                 acc = acc || false;
@@ -413,20 +412,20 @@ void Entity::isOnGround(Terrain& terrain) {
 }
 
 
-void Entity::isUnderLiquid(Terrain& terrain) {
+void Entity::isUnderLiquid() {
     glm::vec3 middleLeftVertex = this->m_position - glm::vec3(0.5f, 0.f, 0.5f);
     bool underWater = false;
     bool underLava = false;
 
     for (int x = 0; x <= 1; x++) {
         for (int z = 2; z <= 3; z++) {
-            glm::vec3 p = glm::vec3(middleLeftVertex.x + playerDimensions[x],
+            glm::vec3 p = glm::vec3(middleLeftVertex.x + HUMANOID_DIMENSIONS[x],
                                     middleLeftVertex.y + 1.f,
-                                    middleLeftVertex.z + playerDimensions[z]);
+                                    middleLeftVertex.z + HUMANOID_DIMENSIONS[z]);
 
-            if (terrain.getBlockAt(p) == WATER) {
+            if (mr_terrain.getBlockAt(p) == WATER) {
                 underWater = underWater || true;
-            } else if (terrain.getBlockAt(p) == LAVA) {
+            } else if (mr_terrain.getBlockAt(p) == LAVA) {
                 underLava = underLava || true;
             } else {
                 underWater = underWater || false;

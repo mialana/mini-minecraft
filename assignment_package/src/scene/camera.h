@@ -1,5 +1,4 @@
 #pragma once
-#include "glm_includes.h"
 #include "scene/entity.h"
 
 //A perspective projection camera
@@ -13,11 +12,12 @@ class Camera : public Entity {
         float m_aspect;    // Aspect ratio
 
     public:
-        Camera(OpenGLContext& context, Terrain& terrain, glm::vec3 pos, std::optional<unsigned int> w = 400, std::optional<unsigned int> h = 400);
+        Camera(MyGL& context, Terrain& terrain, glm::vec3 pos, std::optional<unsigned int> w = 400, std::optional<unsigned int> h = 400);
+
+        // Camera tick does nothing for know.
+        void tick(float dT) override {};
 
         void setWidthHeight(unsigned int w, unsigned int h);
-
-        void tick(float dT, Terrain& terrain) override;
 
         glm::mat4 getViewProj() const;
 };

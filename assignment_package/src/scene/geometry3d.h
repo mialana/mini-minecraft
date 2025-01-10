@@ -3,11 +3,6 @@
 #include "drawable.h"
 #include <glm_includes.h>
 
-#include <QOpenGLContext>
-#include <QOpenGLBuffer>
-#include <QOpenGLShaderProgram>
-#include <QJsonObject>
-
 class Geometry3D : public Drawable {
     public:
         QString m_type;
@@ -15,7 +10,7 @@ class Geometry3D : public Drawable {
         std::vector<glm::vec4> m_uvs;
         std::unordered_map<QString, std::vector<glm::vec4>> m_uvObj;
 
-        Geometry3D(OpenGLContext& context);
+        Geometry3D(MyGL& context);
         virtual ~Geometry3D() {}
 
         void addType(QString t);

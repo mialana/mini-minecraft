@@ -1,4 +1,5 @@
 #include "la.h"
+#include "glm/gtc/type_ptr.hpp"
 
 QMatrix4x4 la::to_qmat(const glm::mat4 &m)
 {
