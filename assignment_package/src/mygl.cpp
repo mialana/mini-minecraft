@@ -35,11 +35,11 @@ MyGL::MyGL(QWidget* parent)
 //        m_mobs.push_back(std::move(newMob));
 //    }
 
-//    for (int i = 0; i < 1; i++) {
-//        uPtr<Mob> newMob = mkU<Mob>(*this, m_terrain);
-//        newMob->m_inputs.isZombie = true;
-//        m_mobs.push_back(std::move(newMob));
-//    }
+    for (int i = 0; i < 1; i++) {
+        uPtr<Mob> newMob = mkU<Mob>(*this, m_terrain);
+        newMob->m_inputs.isZombie = true;
+        m_mobs.push_back(std::move(newMob));
+    }
 }
 
 MyGL::~MyGL() {

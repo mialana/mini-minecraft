@@ -1,7 +1,6 @@
 #include "texture.h"
 #include "mygl.h"
 #include <QOpenGLWidget>
-#include <iostream>
 
 Texture::Texture(MyGL& context)
     : mr_context(context), m_textureHandle(-1), mp_textureImage(nullptr)

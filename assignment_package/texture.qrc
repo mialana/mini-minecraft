@@ -4,5 +4,8 @@
         <file>textures/player_texture.png</file>
         <file>textures/pig.png</file>
         <file>textures/zombie_texture.png</file>
+        <file>textures/minecraft_textures_all_copy.png</file>
+        <file>textures/minecraft_textures_all.png</file>
+        <file>textures/minecraft_normals_all.png</file>
     </qresource>
 </RCC>

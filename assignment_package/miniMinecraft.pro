@@ -3,7 +3,7 @@ QT += core widgets openglwidgets
 TARGET = MiniMinecraft
 TEMPLATE = app
 CONFIG += console
-CONFIG += c++1z
+CONFIG += c++20
 win32 {
     LIBS += -lopengl32
 #    LIBS += -lglut32
@@ -29,9 +29,10 @@ RESOURCES += glsl.qrc \
 *-clang*|*-g++* {
     message("Enabling additional warnings")
     CONFIG -= warn_on
-    QMAKE_CXXFLAGS += -Wall -Wextra -pedantic -Winit-self
+    QMAKE_CXXFLAGS += -Wall -Wextra -pedantic -Winit-self -std=c++20
     QMAKE_CXXFLAGS += -Wno-strict-aliasing
     QMAKE_CXXFLAGS += -fno-omit-frame-pointer
+    QMAKE_LFLAGS += -std=c++20
 }
 linux-clang*|linux-g++*|macx-clang*|macx-g++* {
     message("Enabling stack protector")
@@ -52,15 +53,7 @@ address_sanitizer {
     QMAKE_LFLAGS += -fsanitize=address
 }
 
-DISTFILES += \
-    ../README.md \
-    geom3dData.json \
-    help-log-amy.txt \
-    nodeData.json \
-    textures/custom_minecraft_textures.png \
-    textures/minecraft_normals_all.png \
-    textures/minecraft_textures_all.png \
-    textures/minecraft_textures_all_copy.png
+DISTFILES += .clang-format
 
 HEADERS +=
 

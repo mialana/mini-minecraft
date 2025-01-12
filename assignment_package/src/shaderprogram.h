@@ -6,9 +6,7 @@ class MyGL;
 
 class ShaderProgram {
     protected:
-        MyGL& mr_context;   // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
-        // we need to pass our OpenGL context to the Drawable in order to call GL functions
-        // from within this class.
+        MyGL& mr_context;   // Pass Qt's OpenGL context to the Drawable in order to call GL functions.
     public:
         GLuint vertShader; // A handle for the vertex shader stored in this shader program
         GLuint fragShader; // A handle for the fragment shader stored in this shader program

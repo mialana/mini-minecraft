@@ -5,9 +5,7 @@
 #include <QStringBuilder>
 #include <QTextStream>
 #include <QDebug>
-#include <iostream>
 #include <stdexcept>
-#include <iostream>
 
 
 ShaderProgram::ShaderProgram(MyGL& context)

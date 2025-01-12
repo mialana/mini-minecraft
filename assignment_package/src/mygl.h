@@ -1,5 +1,4 @@
-#ifndef MYGL_H
-#define MYGL_H
+#pragma once
 
 #include "openglcontext.h"
 #include "scene/quad.h"
@@ -111,6 +110,3 @@ signals:
 
     void sig_sendRecipeWindow() const;
 };
-
-
-#endif // MYGL_H
