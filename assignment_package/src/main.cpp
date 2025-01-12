@@ -1,7 +1,6 @@
 #include "mainwindow.h"
+#include "myutils.h"
 
-#include "la.h"
-#include <iomanip>
 #include <iostream>
 #include <QApplication>
 #include <QDebug>
@@ -13,34 +12,47 @@ QDebug operator<<(QDebug qDebugInstance, const auto& data) {
     return qDebugInstance;
 }
 
-void myMessageOutput(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
+QString getTimestamp() {
+    QString s = "[";
+
+    QDateTime dateTime = QDateTime::currentDateTime();
+    QString dtString = dateTime.toString(Qt::DateFormat ::ISODateWithMs);
+    dtString = dtString.replace('T', ' ');
+    QString timeZone = dateTime.timeZoneAbbreviation();
+
+    s += dtString + " " + timeZone + "] ";
+    return s;
+}
+
+void handleQLogging(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
+    QString timeStr = getTimestamp();
+
     std::string file = context.file ? std::string(context.file) : "";
     std::string function = context.function ? std::string(context.function) : "";
     std::string line = context.line ? std::to_string(context.line) : "";
-    std::string loc = console::black + " [" + file + ":" + line + " in `" + function + "`]";
+    std::string location = std::string(console::black) + " [" + file + ":" + line + " in `"
+                           + function + "`]";
 
-    QString timeStr = qFormatLogMessage(type, context, msg);
+    // location << console::black << msg;
 
-    std::string end = console::reset + "\n";
+    std::string end = "\n";
 
-    std::string fullMsg = qPrintable(timeStr);
+    std::ostringstream fullMsg;
+    fullMsg << qPrintable(timeStr) << qPrintable(msg);
 
     switch (type) {
-        case QtInfoMsg:
-            std::clog << console::green << "[INFO] " << fullMsg << qPrintable(msg) << end;
-            break;
+        case QtInfoMsg: std::clog << console::green << "[INFO] " << fullMsg.str() << end; break;
         case QtDebugMsg:
-            std::clog << console::cyan << "[DEBUG] " << fullMsg << std::setw(16) << loc << end;
+            std::clog << console::cyan << "[DEBUG] " << fullMsg.str() << location << end;
             break;
-
         case QtWarningMsg:
-            std::cerr << console::yellow << "[WARN] " << fullMsg << std::setw(16) << loc << end;
+            std::cerr << console::yellow << "[WARN] " << fullMsg.str() << location << end;
             break;
         case QtCriticalMsg:
-            std::cerr << console::orange << "[CRITICAL] " << fullMsg << std::setw(16) << loc << end;
+            std::cerr << console::orange << "[CRITICAL] " << fullMsg.str() << location << end;
             break;
         case QtFatalMsg:
-            std::cerr << console::red << "[FATAL] " << fullMsg << std::setw(16) << loc << end;
+            std::cerr << console::red << "[FATAL] " << fullMsg.str() << location << end;
             break;
     }
 }
@@ -79,27 +91,20 @@ void setOpenGLFormat() {
     QSurfaceFormat::OpenGLContextProfile newProfile = format.profile();
     int newSamples = format.samples();
 
-    qInfo().setQuoteStrings(false);
-    std::cout << qInfo().quoteStrings() << std::endl;
-
-    qInfo() << "OpenGL Format Info:";
-    qInfo().noquote() << "  Version:" << getVersionString(newVersion);
-    qInfo() << "  Profile:" << getProfileString(newProfile);
-    qInfo() << "  Samples:" << newSamples;
-    qDebug() << "Debugging" << samples;
-    qWarning() << "Debugging" << samples;
-    qCritical() << "Critical" << samples;
-    qFatal() << "Fatal" << samples;
+    qInfo() << "OpenGL Format Info: (expected | actual)";
+    console::qInfoNq() << "  Version:" << getVersionString(version) << "|"
+                       << getVersionString(newVersion);
+    qInfo() << "  Profile:" << getProfileString(profile) << "|" << getProfileString(newProfile);
+    qInfo() << "  Samples:" << samples << "|" << newSamples;
 }
 
 int main(int argc, char* argv[]) {
-    qSetMessagePattern("[%{time yyyy-MM-dd h:mm:ss.zzz t}] ");
-    qInstallMessageHandler(myMessageOutput);
+    qInstallMessageHandler(handleQLogging);
 
     QApplication a(argc, argv);
 
 #ifdef __cplusplus
-    qInfo() << "C++ version: " << __cplusplus;
+    qInfo() << "C++ version:" << __cplusplus;
 #endif
 
     setOpenGLFormat();

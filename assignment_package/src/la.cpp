@@ -1,12 +1,14 @@
-#include "la.h"
-#include "glm/gtc/type_ptr.hpp"
 
-QMatrix4x4 la::to_qmat(const glm::mat4 &m)
+
+namespace console
 {
-    return QMatrix4x4(glm::value_ptr(glm::transpose(m)));
-}
+const char* black("\033[0;30m");
+const char* red("\033[0;31m");
+const char* green("\033[0;32m");
+const char* yellow("\033[0;33m");
+const char* cyan("\033[0;36m");
 
+const char* orange("\033[38;5;208m");  // not available on some systems
 
-QVector4D la::to_qvec(const glm::vec4 &v){
-    return QVector4D(v[0], v[1], v[2], v[3]);
-}
+const char* reset("\033[0m");
+}  // namespace console

@@ -4,10 +4,10 @@ DEPENDPATH += $$PWD
 SOURCES += \
     $$PWD/framebuffer.cpp \
     $$PWD/inventorywindow.cpp \
-    $$PWD/la.cpp \
     $$PWD/main.cpp \
     $$PWD/mainwindow.cpp \
     $$PWD/mygl.cpp \
+    $$PWD/myutils.cpp \
     $$PWD/recipewindow.cpp \
     $$PWD/scene/InventoryManager.cpp \
     $$PWD/scene/biome.cpp \
@@ -32,9 +32,9 @@ SOURCES += \
 HEADERS += \
     $$PWD/framebuffer.h \
     $$PWD/inventorywindow.h \
-    $$PWD/la.h \
     $$PWD/mainwindow.h \
     $$PWD/mygl.h \
+    $$PWD/myutils.h \
     $$PWD/recipewindow.h \
     $$PWD/scene/InventoryManager.h \
     $$PWD/scene/biome.h \

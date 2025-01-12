@@ -1,39 +1,46 @@
 #include "mygl.h"
 #include <glm_includes.h>
 
+#include <iostream>
 #include <QApplication>
 #include <QDateTime>
 #include <QKeyEvent>
-#include <iostream>
 
+#include <iostream>
 #include <QFile>
 #include <QImage>
-#include <QOpenGLWidget>
-#include <iostream>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QOpenGLWidget>
 
 MyGL::MyGL(QWidget* parent)
-    : OpenGLContext(parent), m_worldAxes(*this), m_progLambert(*this),
-      m_progPlayer(*this), m_progFlat(*this), m_terrain(*this),
-      m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch()), m_time(0.0f),
-      m_frameBuffer(*this, this->width(), this->height(), this->devicePixelRatio()),
-      m_screenQuad(*this), m_progLiquid(*this), isInventoryOpen(false),
-      m_player(*this, m_terrain, glm::vec3(4.f, 70.f, 4.f))
-{
+    : OpenGLContext(parent)
+    , m_worldAxes(*this)
+    , m_progLambert(*this)
+    , m_progPlayer(*this)
+    , m_progFlat(*this)
+    , m_terrain(*this)
+    , m_currMSecSinceEpoch(QDateTime::currentMSecsSinceEpoch())
+    , m_time(0.0f)
+    , m_frameBuffer(*this, this->width(), this->height(), this->devicePixelRatio())
+    , m_screenQuad(*this)
+    , m_progLiquid(*this)
+    , isInventoryOpen(false)
+    , m_player(*this, m_terrain, glm::vec3(4.f, 70.f, 4.f)) {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
     // Tell the timer to redraw 60 times per second
     m_timer.start(16);
     setFocusPolicy(Qt::ClickFocus);
-    setMouseTracking(true);     // MyGL will track the mouse's movements even if a mouse button is not pressed
-    setCursor(Qt::BlankCursor); // Make the cursor invisible
+    setMouseTracking(
+        true);  // MyGL will track the mouse's movements even if a mouse button is not pressed
+    setCursor(Qt::BlankCursor);  // Make the cursor invisible
 
-//    for (int i = 0; i < 15; i++) {
-//        uPtr<Mob> newMob = mkU<Mob>(this);
-//        newMob->m_inputs.isPig = true;
-//        m_mobs.push_back(std::move(newMob));
-//    }
+    //    for (int i = 0; i < 15; i++) {
+    //        uPtr<Mob> newMob = mkU<Mob>(this);
+    //        newMob->m_inputs.isPig = true;
+    //        m_mobs.push_back(std::move(newMob));
+    //    }
 
     for (int i = 0; i < 1; i++) {
         uPtr<Mob> newMob = mkU<Mob>(*this, m_terrain);
@@ -178,8 +185,8 @@ void MyGL::tick() {
         m_progLiquid.setGeometryColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
     }
 
-    update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
-    sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
+    update();               // Calls paintGL() as part of a larger QOpenGLWidget pipeline
+    sendPlayerDataToGUI();  // Updates the info in the secondary window displaying player data
 
     //m_terrain.loadNewChunks(m_player.mcr_position);
     m_time++;
@@ -193,8 +200,10 @@ void MyGL::sendPlayerDataToGUI() const {
     glm::vec2 pPos(m_player.m_position.x, m_player.m_position.z);
     glm::ivec2 chunk(16 * glm::ivec2(glm::floor(pPos / 16.f)));
     glm::ivec2 zone(64 * glm::ivec2(glm::floor(pPos / 64.f)));
-    emit sig_sendPlayerChunk(QString::fromStdString("( " + std::to_string(chunk.x) + ", " + std::to_string(chunk.y) + " )"));
-    emit sig_sendPlayerTerrainZone(QString::fromStdString("( " + std::to_string(zone.x) + ", " + std::to_string(zone.y) + " )"));
+    emit sig_sendPlayerChunk(QString::fromStdString("( " + std::to_string(chunk.x) + ", "
+                                                    + std::to_string(chunk.y) + " )"));
+    emit sig_sendPlayerTerrainZone(QString::fromStdString("( " + std::to_string(zone.x) + ", "
+                                                          + std::to_string(zone.y) + " )"));
 }
 
 // This function is called whenever update() is called.
@@ -204,7 +213,9 @@ void MyGL::paintGL() {
     m_progLambert.setTime(m_time);
 
     // Clear the screen so that we only see newly drawn images
-    glViewport(0, 0, this->width() * this->devicePixelRatio(),
+    glViewport(0,
+               0,
+               this->width() * this->devicePixelRatio(),
                this->height() * this->devicePixelRatio());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -220,10 +231,11 @@ void MyGL::paintGL() {
     m_progPlayer.setCamPos(m_player.getActiveCamera().m_position);
 
     m_frameBuffer.bindFrameBuffer();
-    glViewport(0, 0, this->width() * this->devicePixelRatio(),
+    glViewport(0,
+               0,
+               this->width() * this->devicePixelRatio(),
                this->height() * this->devicePixelRatio());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
     // TODO: Move into respective game object classes
     if (m_player.m_activeCameraView == SECOND || m_player.m_activeCameraView == FIRST) {
@@ -266,7 +278,7 @@ void MyGL::paintGL() {
 
     glDisable(GL_DEPTH_TEST);
 
-//    m_progFlat.draw(m_worldAxes);
+    //    m_progFlat.draw(m_worldAxes);
 
     glEnable(GL_DEPTH_TEST);
 }
@@ -276,7 +288,6 @@ void MyGL::paintGL() {
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
 void MyGL::renderTerrain() {
-
     int xFloor = static_cast<int>(glm::floor(m_player.m_position.x / 16.f));
     int zFloor = static_cast<int>(glm::floor(m_player.m_position.z / 16.f));
     int x = 16 * xFloor;
@@ -294,7 +305,7 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
         // TODO: display
         CameraViews new_cam = m_player.changeActiveCamera();
     }
-    
+
     if (e->key() == Qt::Key_I) {
         isInventoryOpen = !isInventoryOpen;
 
@@ -335,29 +346,29 @@ void MyGL::keyPressEvent(QKeyEvent* e) {
         }
     }
 
-//    if (QSysInfo().productType() == "macos") {
-        float amount = 2.0f;
+    //    if (QSysInfo().productType() == "macos") {
+    float amount = 2.0f;
 
-        if (e->modifiers() & Qt::ShiftModifier) {
-            amount = 10.0f;
-        }
+    if (e->modifiers() & Qt::ShiftModifier) {
+        amount = 10.0f;
+    }
 
-        if (e->key() == Qt::Key_Right) {
-            m_player.rotateOnUpGlobal(3 * -amount);
-        }
+    if (e->key() == Qt::Key_Right) {
+        m_player.rotateOnUpGlobal(3 * -amount);
+    }
 
-        if (e->key() == Qt::Key_Left) {
-            m_player.rotateOnUpGlobal(3 * amount);
-        }
+    if (e->key() == Qt::Key_Left) {
+        m_player.rotateOnUpGlobal(3 * amount);
+    }
 
-        if (e->key() == Qt::Key_Up) {
-            m_player.rotateOnRightLocal(3 * amount);
-        }
+    if (e->key() == Qt::Key_Up) {
+        m_player.rotateOnRightLocal(3 * amount);
+    }
 
-        if (e->key() == Qt::Key_Down) {
-            m_player.rotateOnRightLocal(3 * -amount);
-        }
-//    }
+    if (e->key() == Qt::Key_Down) {
+        m_player.rotateOnRightLocal(3 * -amount);
+    }
+    //    }
 }
 
 void MyGL::keyReleaseEvent(QKeyEvent* e) {
@@ -391,32 +402,30 @@ void MyGL::keyReleaseEvent(QKeyEvent* e) {
 }
 
 void MyGL::mouseMoveEvent(QMouseEvent* e) {
-//    if (QSysInfo().productType() != "macos") {
-        const float SENSITIVITY = 50.0;
-        float dx = this->width() * 0.5 - e->pos().x();
+    //    if (QSysInfo().productType() != "macos") {
+    const float SENSITIVITY = 50.0;
+    float dx = this->width() * 0.5 - e->pos().x();
 
-        if (dx != 0) {
-            m_player.rotateOnUpGlobal(dx / width() * SENSITIVITY);
-        }
+    if (dx != 0) {
+        m_player.rotateOnUpGlobal(dx / width() * SENSITIVITY);
+    }
 
-        float dy = this->height() * 0.5 - e->pos().y() - 0.5;
+    float dy = this->height() * 0.5 - e->pos().y() - 0.5;
 
-        if (dy != 0) {
-            m_player.rotateOnRightLocal(dy / height() * SENSITIVITY);
-        }
+    if (dy != 0) {
+        m_player.rotateOnRightLocal(dy / height() * SENSITIVITY);
+    }
 
-        moveMouseToCenter();
-//    }
+    moveMouseToCenter();
+    //    }
 }
 
-void MyGL::mousePressEvent(QMouseEvent *e) {
-
-        if (e->button() == Qt::LeftButton) {
-            BlockType removed = m_player.removeBlock();
-        } else if (e->button() == Qt::RightButton) {
-            m_player.placeBlock(currBlock);
-        }
-
+void MyGL::mousePressEvent(QMouseEvent* e) {
+    if (e->button() == Qt::LeftButton) {
+        BlockType removed = m_player.removeBlock();
+    } else if (e->button() == Qt::RightButton) {
+        m_player.placeBlock(currBlock);
+    }
 }
 
 QJsonObject MyGL::importJson(const char* path) {
