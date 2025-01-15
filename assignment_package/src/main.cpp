@@ -109,6 +109,12 @@ int main(int argc, char* argv[]) {
 
     setOpenGLFormat();
 
+    console::setColor(FG_BLUE);
+    std::cout << "is this blue?";
+    console::setColor(FG_GREEN);
+    std::cout << "is this green?" << std::endl;
+    console::resetAll();
+
     MainWindow w;
     w.show();
 

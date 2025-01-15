@@ -1,4 +1,6 @@
 #include "myutils.h"
+#include <iostream>
+
 const char* console::black("\033[0;30m");
 const char* console::red("\033[0;31m");
 const char* console::green("\033[0;32m");
@@ -15,4 +17,12 @@ QDebug console::qInfoNq() {
 
 QDebug console::qDebugNq() {
     return qDebug().noquote();
+}
+
+void console::resetAll() {
+    std::cout << "\033[0m" << std::flush;
+}
+
+void console::setColor(Code code) {
+    std::cout << "\033[0;" << code << "m" << std::flush;
 }
