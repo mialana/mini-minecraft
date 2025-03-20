@@ -487,7 +487,7 @@ void Entity::drawPath(Terrain &terrain) {
   isOnGround(terrain);
 
   if (this->m_inputs.onGround) {
-    glm::vec3 bottomCell = this->m_position - glm::vec3(0.f, 0.5f, 0.f);
+    glm::vec3 bottomCell = this->m_position + glm::vec3(0.f, -0.05f, 0.f);
 
     BlockType cellType = terrain.getBlockAt(bottomCell);
 
