@@ -29,12 +29,20 @@ private slots:
 
     void slot_showRecipeWindow();
 
+    /**
+     * @brief slot_changeMobPathsText
+     * @param newState: true if all mob paths are now showing, false otherwise.
+     */
+    void slot_changeMobPathsText(bool newState);
+
 private:
     Ui::MainWindow* ui;
     CameraControlsHelp cHelp;
     PlayerInfo playerInfoWindow;
     InventoryWindow inventoryWindow;
     RecipeWindow recipeWindow;
+
+    virtual void closeEvent(QCloseEvent* e);
 };
 
 #endif  // MAINWINDOW_H

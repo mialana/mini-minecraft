@@ -18,8 +18,6 @@ public:
 
     Geometry3D(OpenGLContext* context);
 
-    virtual ~Geometry3D() {}
-
     void addType(QString t);
     static void createIndices(std::vector<GLuint>& indices);
     static void createNormals(std::vector<glm::vec4>& normals);

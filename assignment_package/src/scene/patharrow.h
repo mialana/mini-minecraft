@@ -45,4 +45,6 @@ public:
     bool changeLength(float l);
 
     virtual void createVBOdata() override;
+
+    bool hasVBOdata();  // makes sure all needed buffers for desired shader are filled
 };

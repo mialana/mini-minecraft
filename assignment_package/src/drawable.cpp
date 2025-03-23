@@ -39,7 +39,10 @@ Drawable::Drawable(OpenGLContext* context)
     , mp_context(context)
 {}
 
-Drawable::~Drawable() {}
+Drawable::~Drawable()
+{
+    destroyVBOdata();
+}
 
 void Drawable::destroyVBOdata()
 {

@@ -78,7 +78,6 @@ void PathArrow::_generateNormals()
     m_normals.push_back(glm::vec4(-1.f, 0.f, 0.f, 1.f));
     m_normals.push_back(glm::vec4(-1.f, 0.f, 0.f, 1.f));
 
-    //
     m_normals.push_back(glm::vec4(0.f, 1.f, 0.f, 1.f));
     m_normals.push_back(glm::vec4(0.f, 1.f, 0.f, 1.f));
 
@@ -92,32 +91,6 @@ void PathArrow::_generateNormals()
     m_normals.push_back(glm::vec4(0.f, -1.f, 0.f, 1.f));
     m_normals.push_back(glm::vec4(0.f, 1.f, 0.f, 1.f));
     m_normals.push_back(glm::vec4(0.f, 1.f, 0.f, 1.f));
-
-    // for (size_t i = 0; i < m_indices.size(); i += 3) {
-    //     // Indices of the triangle
-    //     unsigned int i0 = m_indices[i];
-    //     unsigned int i1 = m_indices[i + 1];
-    //     unsigned int i2 = m_indices[i + 2];
-
-    //     // Get triangle vertices
-    //     glm::vec3 v0 = glm::vec3(m_positions[i0]);
-    //     glm::vec3 v1 = glm::vec3(m_positions[i1]);
-    //     glm::vec3 v2 = glm::vec3(m_positions[i2]);
-
-    //     // Compute edge vectors
-    //     glm::vec3 edge1 = v1 - v0;
-    //     glm::vec3 edge2 = v2 - v0;
-
-    //     // Compute the normal vector
-    //     glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
-
-    //     // Convert to vec4 (w = 0 for direction)
-    //     glm::vec4 normal4 = glm::vec4(normal, 0.0f);
-
-    //     m_normals.push_back(normal4);
-
-    //     qDebug() << i / 3 << ":" << glm::to_string(normal4);
-    // }
 }
 
 bool PathArrow::changeColor(glm::vec4 c)
@@ -186,4 +159,10 @@ void PathArrow::createVBOdata()
                              m_colors.size() * sizeof(glm::vec4),
                              m_colors.data(),
                              GL_STATIC_DRAW);
+}
+
+bool PathArrow::hasVBOdata()
+{
+    return this->m_oIdxGenerated && this->m_oPosGenerated && this->m_oNorGenerated
+           && this->m_oColGenerated;
 }

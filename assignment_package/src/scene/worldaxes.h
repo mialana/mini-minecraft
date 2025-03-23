@@ -10,7 +10,6 @@ public:
         : Drawable(context)
     {}
 
-    virtual ~WorldAxes() override;
     void createVBOdata() override;
     GLenum drawMode() override;
 };
