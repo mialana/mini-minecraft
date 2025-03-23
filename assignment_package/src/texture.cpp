@@ -4,13 +4,15 @@
 #include <iostream>
 
 Texture::Texture(OpenGLContext* context)
-    : context(context), m_textureHandle(-1), m_textureImage(nullptr)
+    : context(context)
+    , m_textureHandle(-1)
+    , m_textureImage(nullptr)
 {}
 
-Texture::~Texture()
-{}
+Texture::~Texture() {}
 
-void Texture::create(const char* texturePath) {
+void Texture::create(const char* texturePath)
+{
     context->printGLErrorLog();
 
     QImage img(texturePath);
@@ -22,7 +24,8 @@ void Texture::create(const char* texturePath) {
     context->printGLErrorLog();
 }
 
-void Texture::load(int texSlot) {
+void Texture::load(int texSlot)
+{
     context->printGLErrorLog();
 
     context->glActiveTexture(GL_TEXTURE0 + texSlot);
@@ -36,14 +39,20 @@ void Texture::load(int texSlot) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    context->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                          m_textureImage->width(), m_textureImage->height(),
-                          0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, m_textureImage->bits());
+    context->glTexImage2D(GL_TEXTURE_2D,
+                          0,
+                          GL_RGBA,
+                          m_textureImage->width(),
+                          m_textureImage->height(),
+                          0,
+                          GL_BGRA,
+                          GL_UNSIGNED_INT_8_8_8_8_REV,
+                          m_textureImage->bits());
     context->printGLErrorLog();
 }
 
-
-void Texture::bind(int texSlot) {
+void Texture::bind(int texSlot)
+{
     context->glActiveTexture(GL_TEXTURE0 + texSlot);
     context->glBindTexture(GL_TEXTURE_2D, m_textureHandle);
 }

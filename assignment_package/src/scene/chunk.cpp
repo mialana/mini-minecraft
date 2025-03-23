@@ -4,13 +4,17 @@
 #include <algorithm>
 #include "biome.h"
 
-
-Chunk::Chunk(OpenGLContext* context) : Drawable(context), m_blocks(), m_neighbors{{XPOS, nullptr}, {XNEG, nullptr}, {ZPOS, nullptr}, {ZNEG, nullptr}} {
+Chunk::Chunk(OpenGLContext* context)
+    : Drawable(context)
+    , m_blocks()
+    , m_neighbors{{XPOS, nullptr}, {XNEG, nullptr}, {ZPOS, nullptr}, {ZNEG, nullptr}}
+{
     std::fill_n(m_blocks.begin(), 65536, EMPTY);
 }
 
 // Does bounds checking with at()
-BlockType Chunk::getBlockAt(int x, int y, int z) const {
+BlockType Chunk::getBlockAt(int x, int y, int z) const
+{
     if (isInBounds(glm::ivec3(x, y, z))) {
         return m_blocks.at(x + 16 * y + 16 * 256 * z);
     } else if (x < 0 && m_neighbors.at(XNEG) != nullptr) {
@@ -31,16 +35,19 @@ BlockType Chunk::getBlockAt(int x, int y, int z) const {
 //                      static_cast<unsigned int>(z));
 //}
 
-glm::vec4 Chunk::getBiomeAt(unsigned int x, unsigned int z) const {
+glm::vec4 Chunk::getBiomeAt(unsigned int x, unsigned int z) const
+{
     return m_biomes.at(x + 16 * z);
 }
 
-glm::vec4 Chunk::getBiomeAt(int x, int z) const {
+glm::vec4 Chunk::getBiomeAt(int x, int z) const
+{
     return getBiomeAt(static_cast<unsigned int>(x), static_cast<unsigned int>(z));
 }
 
 // Does bounds checking with at()
-void Chunk::setBlockAt(int x, int y, int z, BlockType t) {
+void Chunk::setBlockAt(int x, int y, int z, BlockType t)
+{
     if (isInBounds(glm::ivec3(x, y, z))) {
         m_blocks.at(x + 16 * y + 16 * 256 * z) = t;
     } else if (x < 0 && m_neighbors.at(XNEG) != nullptr) {
@@ -54,48 +61,66 @@ void Chunk::setBlockAt(int x, int y, int z, BlockType t) {
     }
 }
 
-void Chunk::setBiomeAt(unsigned int x, unsigned int z, glm::vec4 b) {
+void Chunk::setBiomeAt(unsigned int x, unsigned int z, glm::vec4 b)
+{
     m_biomes.at(x + 16 * z) = b;
 }
 
-void Chunk::linkNeighbor(uPtr<Chunk>& neighbor, Direction dir) {
+void Chunk::linkNeighbor(uPtr<Chunk>& neighbor, Direction dir)
+{
     if (neighbor != nullptr) {
         this->m_neighbors[dir] = neighbor.get();
         neighbor->m_neighbors[oppositeDirection.at(dir)] = this;
     }
 }
 
-bool Chunk::isInBounds(glm::ivec3 pos) {
-    return (pos.x >= 0 && pos.x < 16 &&
-            pos.y >= 0 && pos.y < 256 &&
-            pos.z >= 0 && pos.z < 16);
+bool Chunk::isInBounds(glm::ivec3 pos)
+{
+    return (pos.x >= 0 && pos.x < 16 && pos.y >= 0 && pos.y < 256 && pos.z >= 0 && pos.z < 16);
 }
 
-bool Chunk::isHPlane(BlockType bt) {
+bool Chunk::isHPlane(BlockType bt)
+{
     return hPlane.find(bt) != hPlane.end();
 }
-bool Chunk::isCross2(BlockType bt) {
+
+bool Chunk::isCross2(BlockType bt)
+{
     return cross2.find(bt) != cross2.end();
 }
-bool Chunk::isCross4(BlockType bt) {
+
+bool Chunk::isCross4(BlockType bt)
+{
     return cross4.find(bt) != cross4.end();
 }
-bool Chunk::isPartialX(BlockType bt) {
+
+bool Chunk::isPartialX(BlockType bt)
+{
     return partialX.find(bt) != partialX.end();
 }
-bool Chunk::isPartialY(BlockType bt) {
+
+bool Chunk::isPartialY(BlockType bt)
+{
     return partialY.find(bt) != partialY.end();
 }
-bool Chunk::isPartialZ(BlockType bt) {
+
+bool Chunk::isPartialZ(BlockType bt)
+{
     return partialZ.find(bt) != partialZ.end();
 }
-bool Chunk::isFullCube(BlockType bt) {
+
+bool Chunk::isFullCube(BlockType bt)
+{
     return fullCube.find(bt) != fullCube.end();
 }
-bool Chunk::isTransparent(BlockType bt) {
+
+bool Chunk::isTransparent(BlockType bt)
+{
     return transparent.find(bt) != transparent.end();
 }
-bool Chunk::isVisible(int x, int y, int z, BlockType bt) {
+
+bool Chunk::isVisible(int x, int y, int z, BlockType bt)
+{
     for (const DirectionVector& dv : directionIter) {
         glm::ivec3 adjBlockPos = glm::ivec3(x, y, z) + dv.vec;
         bool inSameChunk = Chunk::isInBounds(adjBlockPos);
@@ -115,7 +140,9 @@ bool Chunk::isVisible(int x, int y, int z, BlockType bt) {
 
     return false;
 }
-bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
+
+bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt)
+{
     glm::ivec3 adjBlockPos = glm::ivec3(x, y, z) + dv.vec;
     bool inSameChunk = Chunk::isInBounds(adjBlockPos);
     Direction d = dv.dir;
@@ -140,9 +167,9 @@ bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
         return false;
     }
 
-    if ((bt == WATER || bt == LAVA || bt == ICE) &&
-        (bt == adjBlockType ||
-         ((isCross4(adjBlockType) || isCross2(adjBlockType)) && d != YPOS))) {
+    if ((bt == WATER || bt == LAVA || bt == ICE)
+        && (bt == adjBlockType
+            || ((isCross4(adjBlockType) || isCross2(adjBlockType)) && d != YPOS))) {
         return false;
     }
 
@@ -150,15 +177,18 @@ bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
         return false;
     }
 
-    if ((d == XPOS || d == XNEG) && isPartialX(bt) && !isPartialY(bt) && !isPartialZ(bt) && bt == adjBlockType) {
+    if ((d == XPOS || d == XNEG) && isPartialX(bt) && !isPartialY(bt) && !isPartialZ(bt)
+        && bt == adjBlockType) {
         return false;
     }
 
-    if ((d == YPOS || d == YNEG) && isPartialY(bt) && !isPartialX(bt) && !isPartialZ(bt) && bt == adjBlockType) {
+    if ((d == YPOS || d == YNEG) && isPartialY(bt) && !isPartialX(bt) && !isPartialZ(bt)
+        && bt == adjBlockType) {
         return false;
     }
 
-    if ((d == ZPOS || d == ZNEG) && isPartialZ(bt) && !isPartialX(bt) && !isPartialY(bt) && bt == adjBlockType) {
+    if ((d == ZPOS || d == ZNEG) && isPartialZ(bt) && !isPartialX(bt) && !isPartialY(bt)
+        && bt == adjBlockType) {
         return false;
     }
     // if the block adjacent to this face is EMPTY or transparent and is of a different type
@@ -166,11 +196,11 @@ bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
         return true;
     }
 
-    if ((bt == CEDAR_LEAVES || bt == TEAK_LEAVES ||
-        bt == CHERRY_BLOSSOMS_1 || bt == CHERRY_BLOSSOMS_2 || bt == CHERRY_BLOSSOMS_3 || bt == CHERRY_BLOSSOMS_4 ||
-        bt == MAPLE_LEAVES_1 || bt == MAPLE_LEAVES_2 || bt == MAPLE_LEAVES_3 ||
-        bt == PINE_LEAVES ||
-        bt == WISTERIA_BLOSSOMS_1 || bt == WISTERIA_BLOSSOMS_2 || bt == WISTERIA_BLOSSOMS_3) && bt == adjBlockType) {
+    if ((bt == CEDAR_LEAVES || bt == TEAK_LEAVES || bt == CHERRY_BLOSSOMS_1
+         || bt == CHERRY_BLOSSOMS_2 || bt == CHERRY_BLOSSOMS_3 || bt == CHERRY_BLOSSOMS_4
+         || bt == MAPLE_LEAVES_1 || bt == MAPLE_LEAVES_2 || bt == MAPLE_LEAVES_3 || bt == PINE_LEAVES
+         || bt == WISTERIA_BLOSSOMS_1 || bt == WISTERIA_BLOSSOMS_2 || bt == WISTERIA_BLOSSOMS_3)
+        && bt == adjBlockType) {
         return true;
     }
 
@@ -184,60 +214,65 @@ bool Chunk::isVisible(int x, int y, int z, DirectionVector dv, BlockType bt) {
     }
 
     // if this face or adjacent block face doesn't reach the bounds of a full block
-    if (((d == XPOS || d == XNEG) && (isPartialX(bt) || isPartialX(adjBlockType)
-                                      || isPartialY(adjBlockType) || isPartialZ(adjBlockType))) ||
-        ((d == YPOS) && (isPartialY(bt) || isPartialX(adjBlockType) || isPartialZ(adjBlockType))) ||
-        ((d == YNEG) && (isPartialX(adjBlockType) || isPartialY(adjBlockType) || isPartialZ(adjBlockType)))
-        ||
-        ((d == ZPOS || d == ZNEG) && (isPartialZ(bt) || isPartialX(adjBlockType)
-                                      || isPartialY(adjBlockType) || isPartialZ(adjBlockType)))) {
+    if (((d == XPOS || d == XNEG)
+         && (isPartialX(bt) || isPartialX(adjBlockType) || isPartialY(adjBlockType)
+             || isPartialZ(adjBlockType)))
+        || ((d == YPOS) && (isPartialY(bt) || isPartialX(adjBlockType) || isPartialZ(adjBlockType)))
+        || ((d == YNEG)
+            && (isPartialX(adjBlockType) || isPartialY(adjBlockType) || isPartialZ(adjBlockType)))
+        || ((d == ZPOS || d == ZNEG)
+            && (isPartialZ(bt) || isPartialX(adjBlockType) || isPartialY(adjBlockType)
+                || isPartialZ(adjBlockType)))) {
         return true;
     }
 
-    if (d == YNEG && (bt == CEDAR_PLANKS_2 || bt == TEAK_PLANKS_2 || bt == CHERRY_PLANKS_2 ||
-                      bt == MAPLE_PLANKS_2 || bt == PINE_PLANKS_2 || bt == WISTERIA_PLANKS_2 ||
-                      bt == ROOF_TILES_2 || bt == STRAW_2)) {
+    if (d == YNEG
+        && (bt == CEDAR_PLANKS_2 || bt == TEAK_PLANKS_2 || bt == CHERRY_PLANKS_2
+            || bt == MAPLE_PLANKS_2 || bt == PINE_PLANKS_2 || bt == WISTERIA_PLANKS_2
+            || bt == ROOF_TILES_2 || bt == STRAW_2)) {
         return true;
     }
 
-    if (d == YPOS && (adjBlockType == CEDAR_PLANKS_2 || adjBlockType == TEAK_PLANKS_2 || adjBlockType == CHERRY_PLANKS_2 ||
-                      adjBlockType == MAPLE_PLANKS_2 || adjBlockType == PINE_PLANKS_2 || adjBlockType == WISTERIA_PLANKS_2 ||
-                      adjBlockType == ROOF_TILES_2 || adjBlockType == STRAW_2)) {
+    if (d == YPOS
+        && (adjBlockType == CEDAR_PLANKS_2 || adjBlockType == TEAK_PLANKS_2
+            || adjBlockType == CHERRY_PLANKS_2 || adjBlockType == MAPLE_PLANKS_2
+            || adjBlockType == PINE_PLANKS_2 || adjBlockType == WISTERIA_PLANKS_2
+            || adjBlockType == ROOF_TILES_2 || adjBlockType == STRAW_2)) {
         return true;
     }
-
-
 
     return false;
 }
 
-BlockType Chunk::getAdjBlockType(Direction d, glm::ivec3 pos) {
+BlockType Chunk::getAdjBlockType(Direction d, glm::ivec3 pos)
+{
     Chunk* neighborChunk = m_neighbors[d];
 
     if (neighborChunk != nullptr) {
         switch (d) {
-            case XPOS:
-                return neighborChunk->getBlockAt(0, pos.y, pos.z);
+            case XPOS: return neighborChunk->getBlockAt(0, pos.y, pos.z);
 
-            case XNEG:
-                return neighborChunk->getBlockAt(15, pos.y, pos.z);
+            case XNEG: return neighborChunk->getBlockAt(15, pos.y, pos.z);
 
-            case ZPOS:
-                return neighborChunk->getBlockAt(pos.x, pos.y, 0);
+            case ZPOS: return neighborChunk->getBlockAt(pos.x, pos.y, 0);
 
-            case ZNEG:
-                return neighborChunk->getBlockAt(pos.x, pos.y, 15);
+            case ZNEG: return neighborChunk->getBlockAt(pos.x, pos.y, 15);
 
-            default:
-                return EMPTY;
+            default: return EMPTY;
         }
     }
 
     return EMPTY;
 }
 
-void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float currY, float currZ,
-                              DirectionVector dirVec, BlockType bt, glm::vec4 bWts) {
+void Chunk::createFaceVBOData(std::vector<Vertex>& verts,
+                              float currX,
+                              float currY,
+                              float currZ,
+                              DirectionVector dirVec,
+                              BlockType bt,
+                              glm::vec4 bWts)
+{
     Direction d = dirVec.dir;
 
     float offsetXPOS = 1.f;
@@ -247,7 +282,7 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
     float offsetZPOS = 1.f;
     float offsetZNEG = 0.f;
     float offsetDiag = (std::sqrt(0.5) - 0.5) / std::sqrt(2);
-    bool keepEdges = false; // keep portions of face outside intersection ex: wheat vs lantern
+    bool keepEdges = false;  // keep portions of face outside intersection ex: wheat vs lantern
 
     float x1 = currX;
     float x2 = currX;
@@ -259,9 +294,7 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
     switch (bt) {
         case LILY_PAD:
         case LOTUS_1:
-        case LOTUS_2:
-            offsetYPOS = 0.005f;
-            break;
+        case LOTUS_2: offsetYPOS = 0.005f; break;
 
         case WHEAT_1:
         case WHEAT_2:
@@ -278,47 +311,64 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetZNEG = 0.25f;
             keepEdges = true;
             break;
-        case TATAMI_XL: case TATAMI_XR: case TATAMI_ZT: case TATAMI_ZB:
-            offsetYPOS = 0.0625;
-            break;
-        case SNOW_1: case CLOTH_1:
-            offsetYPOS = 0.125;
-            break;
-        case SNOW_2: case CLOTH_2:
-            offsetYPOS = 0.25;
-            break;
-        case SNOW_3: case CLOTH_3:
-            offsetYPOS = 0.375;
-            break;
-        case SNOW_4: case ROOF_TILES_1: case STRAW_1: case CLOTH_4:
-        case CEDAR_PLANKS_1: case TEAK_PLANKS_1: case CHERRY_PLANKS_1: case MAPLE_PLANKS_1: case PINE_PLANKS_1: case WISTERIA_PLANKS_1:
-            offsetYPOS = 0.5;
-            break;
-        case ROOF_TILES_2: case STRAW_2:
-        case CEDAR_PLANKS_2: case TEAK_PLANKS_2: case CHERRY_PLANKS_2: case MAPLE_PLANKS_2: case PINE_PLANKS_2: case WISTERIA_PLANKS_2:
-            offsetYNEG = 0.5;
-            break;
-        case SNOW_5: case CLOTH_5:
-            offsetYPOS = 0.625;
-            break;
-        case SNOW_6: case CLOTH_6:
-            offsetYPOS = 0.75;
-            break;
-        case SNOW_7: case CLOTH_7:
-            offsetYPOS = 0.875;
-            break;
-        case CEDAR_WINDOW_X: case TEAK_WINDOW_X: case CHERRY_WINDOW_X: case MAPLE_WINDOW_X: case PINE_WINDOW_X: case WISTERIA_WINDOW_X:
-            offsetXPOS = 0.5625; // may be offsetX or offsetZ
+        case TATAMI_XL:
+        case TATAMI_XR:
+        case TATAMI_ZT:
+        case TATAMI_ZB: offsetYPOS = 0.0625; break;
+        case SNOW_1:
+        case CLOTH_1: offsetYPOS = 0.125; break;
+        case SNOW_2:
+        case CLOTH_2: offsetYPOS = 0.25; break;
+        case SNOW_3:
+        case CLOTH_3: offsetYPOS = 0.375; break;
+        case SNOW_4:
+        case ROOF_TILES_1:
+        case STRAW_1:
+        case CLOTH_4:
+        case CEDAR_PLANKS_1:
+        case TEAK_PLANKS_1:
+        case CHERRY_PLANKS_1:
+        case MAPLE_PLANKS_1:
+        case PINE_PLANKS_1:
+        case WISTERIA_PLANKS_1: offsetYPOS = 0.5; break;
+        case ROOF_TILES_2:
+        case STRAW_2:
+        case CEDAR_PLANKS_2:
+        case TEAK_PLANKS_2:
+        case CHERRY_PLANKS_2:
+        case MAPLE_PLANKS_2:
+        case PINE_PLANKS_2:
+        case WISTERIA_PLANKS_2: offsetYNEG = 0.5; break;
+        case SNOW_5:
+        case CLOTH_5: offsetYPOS = 0.625; break;
+        case SNOW_6:
+        case CLOTH_6: offsetYPOS = 0.75; break;
+        case SNOW_7:
+        case CLOTH_7: offsetYPOS = 0.875; break;
+        case CEDAR_WINDOW_X:
+        case TEAK_WINDOW_X:
+        case CHERRY_WINDOW_X:
+        case MAPLE_WINDOW_X:
+        case PINE_WINDOW_X:
+        case WISTERIA_WINDOW_X:
+            offsetXPOS = 0.5625;  // may be offsetX or offsetZ
             offsetXNEG = 0.4375;
             break;
-        case CEDAR_WINDOW_Z: case TEAK_WINDOW_Z: case CHERRY_WINDOW_Z: case MAPLE_WINDOW_Z: case PINE_WINDOW_Z: case WISTERIA_WINDOW_Z:
+        case CEDAR_WINDOW_Z:
+        case TEAK_WINDOW_Z:
+        case CHERRY_WINDOW_Z:
+        case MAPLE_WINDOW_Z:
+        case PINE_WINDOW_Z:
+        case WISTERIA_WINDOW_Z:
             offsetZPOS = 0.5625;
             offsetZNEG = 0.4375;
             break;
-        case TILLED_DIRT: case PATH: case IRRIGATED_SOIL:
-            offsetYPOS = 0.9375;
-            break;
-        case BAMBOO_1: case BAMBOO_2: case BAMBOO_3:
+        case TILLED_DIRT:
+        case PATH:
+        case IRRIGATED_SOIL: offsetYPOS = 0.9375; break;
+        case BAMBOO_1:
+        case BAMBOO_2:
+        case BAMBOO_3:
             offsetXPOS = 0.5625;
             offsetXNEG = 0.4375;
             offsetZPOS = 0.5625;
@@ -337,46 +387,73 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetZPOS = 0.9375;
             offsetZNEG = 0.0625;
             break;
-        case PAINTING_1_XP: case PAINTING_2_XP: case PAINTING_3_XP: case PAINTING_4_XP: case PAINTING_5_XP:
-        case PAINTING_7T_XP: case PAINTING_7B_XP: case PAINTING_6L_XP: case PAINTING_6R_XP:
-            offsetXPOS = 0.0625;
-            break;
-        case PAINTING_1_XN: case PAINTING_2_XN: case PAINTING_3_XN: case PAINTING_4_XN: case PAINTING_5_XN:
-        case PAINTING_7T_XN: case PAINTING_7B_XN: case PAINTING_6L_XN: case PAINTING_6R_XN:
-            offsetXNEG = 0.9375;
-            break;
-        case PAINTING_1_ZP: case PAINTING_2_ZP: case PAINTING_3_ZP: case PAINTING_4_ZP: case PAINTING_5_ZP:
-        case PAINTING_7T_ZP: case PAINTING_7B_ZP: case PAINTING_6L_ZP: case PAINTING_6R_ZP:
-            offsetZPOS = 0.0625;
-            break;
-        case PAINTING_1_ZN: case PAINTING_2_ZN: case PAINTING_3_ZN: case PAINTING_4_ZN: case PAINTING_5_ZN:
-        case PAINTING_7T_ZN: case PAINTING_7B_ZN: case PAINTING_6L_ZN: case PAINTING_6R_ZN:
-            offsetZNEG = 0.9375;
-            break;
-        case BONSAI_TREE: case MAGNOLIA_IKEBANA: case LOTUS_IKEBANA:
+        case PAINTING_1_XP:
+        case PAINTING_2_XP:
+        case PAINTING_3_XP:
+        case PAINTING_4_XP:
+        case PAINTING_5_XP:
+        case PAINTING_7T_XP:
+        case PAINTING_7B_XP:
+        case PAINTING_6L_XP:
+        case PAINTING_6R_XP: offsetXPOS = 0.0625; break;
+        case PAINTING_1_XN:
+        case PAINTING_2_XN:
+        case PAINTING_3_XN:
+        case PAINTING_4_XN:
+        case PAINTING_5_XN:
+        case PAINTING_7T_XN:
+        case PAINTING_7B_XN:
+        case PAINTING_6L_XN:
+        case PAINTING_6R_XN: offsetXNEG = 0.9375; break;
+        case PAINTING_1_ZP:
+        case PAINTING_2_ZP:
+        case PAINTING_3_ZP:
+        case PAINTING_4_ZP:
+        case PAINTING_5_ZP:
+        case PAINTING_7T_ZP:
+        case PAINTING_7B_ZP:
+        case PAINTING_6L_ZP:
+        case PAINTING_6R_ZP: offsetZPOS = 0.0625; break;
+        case PAINTING_1_ZN:
+        case PAINTING_2_ZN:
+        case PAINTING_3_ZN:
+        case PAINTING_4_ZN:
+        case PAINTING_5_ZN:
+        case PAINTING_7T_ZN:
+        case PAINTING_7B_ZN:
+        case PAINTING_6L_ZN:
+        case PAINTING_6R_ZN: offsetZNEG = 0.9375; break;
+        case BONSAI_TREE:
+        case MAGNOLIA_IKEBANA:
+        case LOTUS_IKEBANA:
             offsetXPOS = 0.9375;
             offsetXNEG = 0.0625;
             offsetZPOS = 0.9375;
             offsetZNEG = 0.0625;
             offsetYPOS = 0.125;
             break;
-        case GREEN_HYDRANGEA_IKEBANA: case CHRYSANTHEMUM_IKEBANA:
+        case GREEN_HYDRANGEA_IKEBANA:
+        case CHRYSANTHEMUM_IKEBANA:
             offsetXPOS = 0.75;
             offsetXNEG = 0.25;
             offsetZPOS = 0.75;
             offsetZNEG = 0.25;
             offsetYPOS = 0.25;
             break;
-        case CHERRY_BLOSSOM_IKEBANA: case BLUE_HYDRANGEA_IKEBANA:
-        case TULIP_IKEBANA: case DAFFODIL_IKEBANA:
+        case CHERRY_BLOSSOM_IKEBANA:
+        case BLUE_HYDRANGEA_IKEBANA:
+        case TULIP_IKEBANA:
+        case DAFFODIL_IKEBANA:
             offsetXPOS = 0.6875;
             offsetXNEG = 0.3125;
             offsetZPOS = 0.6875;
             offsetZNEG = 0.3125;
             offsetYPOS = 0.375;
             break;
-        case PLUM_BLOSSOM_IKEBANA: case MAGNOLIA_BUD_IKEBANA:
-        case POPPY_IKEBANA: case MAPLE_IKEBANA:
+        case PLUM_BLOSSOM_IKEBANA:
+        case MAGNOLIA_BUD_IKEBANA:
+        case POPPY_IKEBANA:
+        case MAPLE_IKEBANA:
         case ONCIDIUM_IKEBANA:
             offsetXPOS = 0.5625;
             offsetXNEG = 0.4375;
@@ -384,8 +461,7 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             offsetZNEG = 0.4375;
             offsetYPOS = 0.5;
             break;
-        default:
-            break;
+        default: break;
     }
 
     switch (d) {
@@ -409,44 +485,108 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             x2 = currX + offsetXPOS;
 
             if (d == XNEG) {
-                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG,
-                                                                                              offsetYNEG), bWts));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG,
-                                                                                              offsetYPOS), bWts));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS,
-                                                                                              offsetYPOS), bWts));
-                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS,
-                                                                                              offsetYNEG), bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetZNEG, offsetYNEG),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetZNEG, offsetYPOS),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetZPOS, offsetYPOS),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetZPOS, offsetYNEG),
+                                       bWts));
 
                 if (isCross4(bt)) {
-                    verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG,
-                                                                                                  offsetYNEG), bWts));
-                    verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG,
-                                                                                                  offsetYPOS), bWts));
-                    verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS,
-                                                                                                  offsetYPOS), bWts));
-                    verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS,
-                                                                                                  offsetYNEG), bWts));
+                    verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetZNEG, offsetYNEG),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetZNEG, offsetYPOS),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetZPOS, offsetYPOS),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetZPOS, offsetYNEG),
+                                           bWts));
                 }
             } else {
-                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS,
-                                                                                              offsetYNEG), bWts));
-                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS,
-                                                                                              offsetYPOS), bWts));
-                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG,
-                                                                                              offsetYPOS), bWts));
-                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG,
-                                                                                              offsetYNEG), bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetZPOS, offsetYNEG),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetZPOS, offsetYPOS),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetZNEG, offsetYPOS),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetZNEG, offsetYNEG),
+                                       bWts));
 
                 if (isCross4(bt)) {
-                    verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS,
-                                                                                                  offsetYNEG), bWts));
-                    verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetZPOS,
-                                                                                                  offsetYPOS), bWts));
-                    verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG,
-                                                                                                  offsetYPOS), bWts));
-                    verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetZNEG,
-                                                                                                  offsetYNEG), bWts));
+                    verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetZPOS, offsetYNEG),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetZPOS, offsetYPOS),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetZNEG, offsetYPOS),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetZNEG, offsetYNEG),
+                                           bWts));
                 }
             }
 
@@ -472,23 +612,55 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             y2 = currY + offsetYPOS;
 
             if (d == YNEG) {
-                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                              offsetZPOS), bWts));
-                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                              offsetZPOS), bWts));
-                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                              offsetZNEG), bWts));
-                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                              offsetZNEG), bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXNEG, offsetZPOS),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXPOS, offsetZPOS),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXPOS, offsetZNEG),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXNEG, offsetZNEG),
+                                       bWts));
             } else {
-                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                              offsetZNEG), bWts));
-                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                              offsetZNEG), bWts));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                              offsetZPOS), bWts));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                              offsetZPOS), bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXNEG, offsetZNEG),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXPOS, offsetZNEG),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXPOS, offsetZPOS),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXNEG, offsetZPOS),
+                                       bWts));
             }
 
             break;
@@ -513,44 +685,108 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             z2 = currZ + offsetZPOS;
 
             if (d == ZNEG) {
-                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                              offsetYNEG), bWts));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                              offsetYPOS), bWts));
-                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                              offsetYPOS), bWts));
-                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                              offsetYNEG), bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXNEG, offsetYNEG),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXNEG, offsetYPOS),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXPOS, offsetYPOS),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXPOS, offsetYNEG),
+                                       bWts));
 
                 if (isCross4(bt)) {
-                    verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                                  offsetYNEG), bWts));
-                    verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                                  offsetYPOS), bWts));
-                    verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                                  offsetYPOS), bWts));
-                    verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                                  offsetYNEG), bWts));
+                    verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetXNEG, offsetYNEG),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetXNEG, offsetYPOS),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetXPOS, offsetYPOS),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetXPOS, offsetYNEG),
+                                           bWts));
                 }
             } else {
-                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                              offsetYNEG), bWts));
-                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                              offsetYPOS), bWts));
-                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                              offsetYPOS), bWts));
-                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                              offsetYNEG), bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXPOS, offsetYNEG),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXPOS, offsetYPOS),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXNEG, offsetYPOS),
+                                       bWts));
+                verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1),
+                                       dirVec.vec,
+                                       bt,
+                                       d,
+                                       glm::vec2(offsetXNEG, offsetYNEG),
+                                       bWts));
 
                 if (isCross4(bt)) {
-                    verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                                  offsetYNEG), bWts));
-                    verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXPOS,
-                                                                                                  offsetYPOS), bWts));
-                    verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                                  offsetYPOS), bWts));
-                    verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(offsetXNEG,
-                                                                                                  offsetYNEG), bWts));
+                    verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetXPOS, offsetYNEG),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetXPOS, offsetYPOS),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetXNEG, offsetYPOS),
+                                           bWts));
+                    verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1),
+                                           dirVec.vec,
+                                           bt,
+                                           d,
+                                           glm::vec2(offsetXNEG, offsetYNEG),
+                                           bWts));
                 }
             }
 
@@ -563,11 +799,14 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             z1 += offsetDiag;
             z2 += 1 - offsetDiag;
 
-            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 0), bWts));
-            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0), bWts));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 1), bWts));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 1), bWts));
-
+            verts.push_back(
+                Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 0), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 1), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 1), bWts));
 
             break;
 
@@ -578,10 +817,14 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             z1 += offsetDiag;
             z2 += 1 - offsetDiag;
 
-            verts.push_back(Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0), bWts));
-            verts.push_back(Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0), bWts));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1), bWts));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x2, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x1, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x1, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x2, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1), bWts));
 
             break;
 
@@ -592,10 +835,14 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             z1 += offsetDiag;
             z2 += 1 - offsetDiag;
 
-            verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 0), bWts));
-            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0), bWts));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 1), bWts));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 1), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 0), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 0), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(1, 1), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(0, 1), bWts));
 
             break;
 
@@ -606,16 +853,21 @@ void Chunk::createFaceVBOData(std::vector<Vertex>& verts, float currX, float cur
             z1 += offsetDiag;
             z2 += 1 - offsetDiag;
 
-            verts.push_back(Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0), bWts));
-            verts.push_back(Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0), bWts));
-            verts.push_back(Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1), bWts));
-            verts.push_back(Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x1, y1, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 0), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x2, y1, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 0), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x2, y2, z2, 1), dirVec.vec, bt, d, glm::vec2(1, 1), bWts));
+            verts.push_back(
+                Vertex(glm::vec4(x1, y2, z1, 1), dirVec.vec, bt, d, glm::vec2(0, 1), bWts));
 
             break;
     }
 }
 
-void Chunk::createVBOdata() {
+void Chunk::createVBOdata()
+{
     // opaque
     std::vector<GLuint> oIndices = std::vector<GLuint>();
     std::vector<glm::vec4> oVertData = std::vector<glm::vec4>();
@@ -692,7 +944,6 @@ void Chunk::createVBOdata() {
                         // check if the block is exposed to air
                         if (isVisible(x, y, z, currType)) {
                             for (const DirectionVector& dv : cross4DirIter) {
-
                                 std::vector<Vertex> faceVerts;
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
 
@@ -729,7 +980,13 @@ void Chunk::createVBOdata() {
                             if (isVisible(x, y, z, dv, currType)) {
                                 if (!isTransparent(currType)) {
                                     std::vector<Vertex> faceVerts;
-                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+                                    Chunk::createFaceVBOData(faceVerts,
+                                                             x,
+                                                             y,
+                                                             z,
+                                                             dv,
+                                                             currType,
+                                                             biomeWts);
 
                                     for (const Vertex& v : faceVerts) {
                                         oVertData.push_back(v.position);
@@ -750,7 +1007,13 @@ void Chunk::createVBOdata() {
                                     oVertCount += 4;
                                 } else {
                                     std::vector<Vertex> faceVerts;
-                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+                                    Chunk::createFaceVBOData(faceVerts,
+                                                             x,
+                                                             y,
+                                                             z,
+                                                             dv,
+                                                             currType,
+                                                             biomeWts);
 
                                     for (const Vertex& v : faceVerts) {
                                         tVertData.push_back(v.position);
@@ -779,7 +1042,13 @@ void Chunk::createVBOdata() {
                             if (isVisible(x, y, z, dv, currType)) {
                                 if (!isTransparent(currType)) {
                                     std::vector<Vertex> faceVerts;
-                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+                                    Chunk::createFaceVBOData(faceVerts,
+                                                             x,
+                                                             y,
+                                                             z,
+                                                             dv,
+                                                             currType,
+                                                             biomeWts);
 
                                     for (const Vertex& v : faceVerts) {
                                         oVertData.push_back(v.position);
@@ -800,7 +1069,13 @@ void Chunk::createVBOdata() {
                                     oVertCount += 4;
                                 } else {
                                     std::vector<Vertex> faceVerts;
-                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+                                    Chunk::createFaceVBOData(faceVerts,
+                                                             x,
+                                                             y,
+                                                             z,
+                                                             dv,
+                                                             currType,
+                                                             biomeWts);
 
                                     for (const Vertex& v : faceVerts) {
                                         tVertData.push_back(v.position);
@@ -831,32 +1106,43 @@ void Chunk::createVBOdata() {
 
     generateOIdx();
     mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, oIndices.size() * sizeof(GLuint), oIndices.data(),
+    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                             oIndices.size() * sizeof(GLuint),
+                             oIndices.data(),
                              GL_STATIC_DRAW);
 
     generateOVertData();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufVertData);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, oVertData.size() * sizeof(glm::vec4), oVertData.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             oVertData.size() * sizeof(glm::vec4),
+                             oVertData.data(),
                              GL_STATIC_DRAW);
 
     m_tCount = tIndices.size();
 
     generateTIdx();
     mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndices.size() * sizeof(GLuint), tIndices.data(),
+    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                             tIndices.size() * sizeof(GLuint),
+                             tIndices.data(),
                              GL_STATIC_DRAW);
 
     generateTVertData();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufVertData);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, tVertData.size() * sizeof(glm::vec4), tVertData.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             tVertData.size() * sizeof(glm::vec4),
+                             tVertData.data(),
                              GL_STATIC_DRAW);
 
     hasVBOData = true;
     hasBinded = true;
 }
 
-void Chunk::redistributeVertexData(std::vector<glm::vec4> ovd, std::vector<GLuint> oIndices,
-                                   std::vector<glm::vec4> tvd, std::vector<GLuint> tIndices) {
+void Chunk::redistributeVertexData(std::vector<glm::vec4> ovd,
+                                   std::vector<GLuint> oIndices,
+                                   std::vector<glm::vec4> tvd,
+                                   std::vector<GLuint> tIndices)
+{
     std::vector<glm::vec4> o_positions;
     std::vector<glm::vec4> o_normals;
     std::vector<glm::vec4> o_colors;
@@ -892,71 +1178,99 @@ void Chunk::redistributeVertexData(std::vector<glm::vec4> ovd, std::vector<GLuin
     m_oCount = oIndices.size();
     generateOIdx();
     mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, oIndices.size() * sizeof(GLuint), oIndices.data(),
+    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                             oIndices.size() * sizeof(GLuint),
+                             oIndices.data(),
                              GL_STATIC_DRAW);
     generateOPos();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_positions.size() * sizeof(glm::vec4),
-                             o_positions.data(), GL_STATIC_DRAW);
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             o_positions.size() * sizeof(glm::vec4),
+                             o_positions.data(),
+                             GL_STATIC_DRAW);
     generateONor();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufNor);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_normals.size() * sizeof(glm::vec4), o_normals.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             o_normals.size() * sizeof(glm::vec4),
+                             o_normals.data(),
                              GL_STATIC_DRAW);
     generateOCol();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_colors.size() * sizeof(glm::vec4), o_colors.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             o_colors.size() * sizeof(glm::vec4),
+                             o_colors.data(),
                              GL_STATIC_DRAW);
     generateOUVs();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufUVs);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_uvs.size() * sizeof(glm::vec4), o_uvs.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             o_uvs.size() * sizeof(glm::vec4),
+                             o_uvs.data(),
                              GL_STATIC_DRAW);
     generateOBTs();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufBTs);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_bts.size() * sizeof(glm::vec4), o_bts.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             o_bts.size() * sizeof(glm::vec4),
+                             o_bts.data(),
                              GL_STATIC_DRAW);
     generateOBWts();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufBWts);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, o_bWts.size() * sizeof(glm::vec4), o_bWts.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             o_bWts.size() * sizeof(glm::vec4),
+                             o_bWts.data(),
                              GL_STATIC_DRAW);
 
     m_tCount = tIndices.size();
     generateTIdx();
     mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndices.size() * sizeof(GLuint), tIndices.data(),
+    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                             tIndices.size() * sizeof(GLuint),
+                             tIndices.data(),
                              GL_STATIC_DRAW);
     generateTPos();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufPos);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_positions.size() * sizeof(glm::vec4),
-                             t_positions.data(), GL_STATIC_DRAW);
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             t_positions.size() * sizeof(glm::vec4),
+                             t_positions.data(),
+                             GL_STATIC_DRAW);
     generateTNor();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufNor);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_normals.size() * sizeof(glm::vec4), t_normals.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             t_normals.size() * sizeof(glm::vec4),
+                             t_normals.data(),
                              GL_STATIC_DRAW);
     generateTCol();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_colors.size() * sizeof(glm::vec4), t_colors.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             t_colors.size() * sizeof(glm::vec4),
+                             t_colors.data(),
                              GL_STATIC_DRAW);
     generateTUVs();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufUVs);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_uvs.size() * sizeof(glm::vec4), t_uvs.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             t_uvs.size() * sizeof(glm::vec4),
+                             t_uvs.data(),
                              GL_STATIC_DRAW);
     generateTBTs();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufBTs);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_bts.size() * sizeof(glm::vec4), t_bts.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             t_bts.size() * sizeof(glm::vec4),
+                             t_bts.data(),
                              GL_STATIC_DRAW);
     generateTBWts();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufBWts);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, t_bWts.size() * sizeof(glm::vec4), t_bWts.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             t_bWts.size() * sizeof(glm::vec4),
+                             t_bWts.data(),
                              GL_STATIC_DRAW);
-
 }
 
-void Chunk::create() {
+void Chunk::create()
+{
     loadVBO();
 }
 
-void Chunk::loadVBO() {
-
+void Chunk::loadVBO()
+{
     // opaque
     std::vector<GLuint> oIndices = chunkVBOData.m_OIndexeData;
     std::vector<glm::vec4> oVertData = chunkVBOData.m_OVertData;
@@ -968,30 +1282,39 @@ void Chunk::loadVBO() {
 
     generateOIdx();
     mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, oIndices.size() * sizeof(GLuint), oIndices.data(),
+    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                             oIndices.size() * sizeof(GLuint),
+                             oIndices.data(),
                              GL_STATIC_DRAW);
 
     generateOVertData();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufVertData);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, oVertData.size() * sizeof(glm::vec4), oVertData.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             oVertData.size() * sizeof(glm::vec4),
+                             oVertData.data(),
                              GL_STATIC_DRAW);
 
     m_tCount = tIndices.size();
 
     generateTIdx();
     mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, tIndices.size() * sizeof(GLuint), tIndices.data(),
+    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                             tIndices.size() * sizeof(GLuint),
+                             tIndices.data(),
                              GL_STATIC_DRAW);
 
     generateTVertData();
     mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufVertData);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, tVertData.size() * sizeof(glm::vec4), tVertData.data(),
+    mp_context->glBufferData(GL_ARRAY_BUFFER,
+                             tVertData.size() * sizeof(glm::vec4),
+                             tVertData.data(),
                              GL_STATIC_DRAW);
     //std::cout<<"I hath binded \n";
     hasBinded = true;
 }
 
-void Chunk::generateVBOData() {
+void Chunk::generateVBOData()
+{
     // opaque
     std::vector<GLuint> oIndices = std::vector<GLuint>();
     std::vector<glm::vec4> oVertData = std::vector<glm::vec4>();
@@ -1068,7 +1391,6 @@ void Chunk::generateVBOData() {
                         // check if the block is exposed to air
                         if (isVisible(x, y, z, currType)) {
                             for (const DirectionVector& dv : cross4DirIter) {
-
                                 std::vector<Vertex> faceVerts;
                                 Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
 
@@ -1105,7 +1427,13 @@ void Chunk::generateVBOData() {
                             if (isVisible(x, y, z, dv, currType)) {
                                 if (!isTransparent(currType)) {
                                     std::vector<Vertex> faceVerts;
-                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+                                    Chunk::createFaceVBOData(faceVerts,
+                                                             x,
+                                                             y,
+                                                             z,
+                                                             dv,
+                                                             currType,
+                                                             biomeWts);
 
                                     for (const Vertex& v : faceVerts) {
                                         oVertData.push_back(v.position);
@@ -1126,7 +1454,13 @@ void Chunk::generateVBOData() {
                                     oVertCount += 4;
                                 } else {
                                     std::vector<Vertex> faceVerts;
-                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+                                    Chunk::createFaceVBOData(faceVerts,
+                                                             x,
+                                                             y,
+                                                             z,
+                                                             dv,
+                                                             currType,
+                                                             biomeWts);
 
                                     for (const Vertex& v : faceVerts) {
                                         tVertData.push_back(v.position);
@@ -1155,7 +1489,13 @@ void Chunk::generateVBOData() {
                             if (isVisible(x, y, z, dv, currType)) {
                                 if (!isTransparent(currType)) {
                                     std::vector<Vertex> faceVerts;
-                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+                                    Chunk::createFaceVBOData(faceVerts,
+                                                             x,
+                                                             y,
+                                                             z,
+                                                             dv,
+                                                             currType,
+                                                             biomeWts);
 
                                     for (const Vertex& v : faceVerts) {
                                         oVertData.push_back(v.position);
@@ -1176,7 +1516,13 @@ void Chunk::generateVBOData() {
                                     oVertCount += 4;
                                 } else {
                                     std::vector<Vertex> faceVerts;
-                                    Chunk::createFaceVBOData(faceVerts, x, y, z, dv, currType, biomeWts);
+                                    Chunk::createFaceVBOData(faceVerts,
+                                                             x,
+                                                             y,
+                                                             z,
+                                                             dv,
+                                                             currType,
+                                                             biomeWts);
 
                                     for (const Vertex& v : faceVerts) {
                                         tVertData.push_back(v.position);
@@ -1212,18 +1558,21 @@ void Chunk::generateVBOData() {
     chunkVBOData.m_TVertData = tVertData;
 }
 
-void Chunk::setWorldPos(int x, int z) {
+void Chunk::setWorldPos(int x, int z)
+{
     int x_floor = static_cast<int>(glm::floor(x / 16.f));
     int z_floor = static_cast<int>(glm::floor(z / 16.f));
     worldPos_x = 16 * x_floor;
     worldPos_z = 16 * z_floor;
 }
 
-glm::ivec2 Chunk::getWorldPos() {
+glm::ivec2 Chunk::getWorldPos()
+{
     return glm::ivec2(worldPos_x, worldPos_z);
 }
 
-void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
+void Chunk::helperCreate(int worldXOrigin, int worldZOrigin)
+{
     std::vector<glm::vec3> cedarPos;
     std::vector<glm::vec3> teakPos;
     std::vector<glm::vec3> cottagePos;
@@ -1243,8 +1592,8 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
             float hF = Biome::forest(glm::vec2(worldX, worldZ));
             float hI = Biome::islands(glm::vec2(worldX, worldZ));
 
-            std::pair<float, BiomeEnum> hb = blendMultipleBiomes(glm::vec2(worldX, worldZ), glm::vec2(x, z), hM,
-                                                                 hH, hF, hI);
+            std::pair<float, BiomeEnum> hb
+                = blendMultipleBiomes(glm::vec2(worldX, worldZ), glm::vec2(x, z), hM, hH, hF, hI);
             float h = hb.first;
             BiomeEnum b = hb.second;
 
@@ -1376,16 +1725,10 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
             glm::vec2 wSparseTree = Biome::voronoi(glm::vec2(worldX, worldZ), 12);
             glm::vec2 wHouse = Biome::voronoi(glm::vec2(worldX, worldZ), 107);
 
-
-
             if (getBlockAt(x, h, z) == EMPTY || getBlockAt(x, h, z) == SNOW_1) {
-
                 // TALL_GRASS
-                if ((b == MOUNTAINS && p1 < 0.15) ||
-                    (b == HILLS && p1 < 0.35) ||
-                    (b == FOREST && p1 < 0.05) ||
-                    (b == ISLANDS && p1 < 0.1)) {
-
+                if ((b == MOUNTAINS && p1 < 0.15) || (b == HILLS && p1 < 0.35)
+                    || (b == FOREST && p1 < 0.05) || (b == ISLANDS && p1 < 0.1)) {
                     setBlockAt(x, h, z, TALL_GRASS);
                 }
 
@@ -1493,7 +1836,8 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
             std::vector<float> treePos;
             for (int currY = 1; currY <= 106; currY++) {
                 float cavePerlin3D = Biome::perlin3D(glm::vec3(worldX, currY, worldZ) * 0.06f);
-                float cavePerlin3DTwo = Biome::perlin3D(glm::vec3(worldX, currY, glm::mix(worldX, worldZ, 0.35f)) * 0.06f);
+                float cavePerlin3DTwo = Biome::perlin3D(
+                    glm::vec3(worldX, currY, glm::mix(worldX, worldZ, 0.35f)) * 0.06f);
 
                 float p3 = Biome::noise1D(glm::vec3(worldX, currY, worldZ));
 
@@ -1503,7 +1847,6 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                     } else {
                         setBlockAt(x, currY, z, EMPTY);
                         if (!prevNotGround) {
-
                             setBlockAt(x, currY - 1, z, GRASS);
 
                             if (p3 < 0.02) {
@@ -1512,8 +1855,7 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
                                 setBlockAt(x, currY, z, GHOST_WEED);
                             } else if (p3 < 0.1) {
                                 setBlockAt(x, currY, z, TALL_GRASS);
-                            }
-                            else if (p3 < 0.1075) {
+                            } else if (p3 < 0.1075) {
                                 treePos.push_back(currY);
                             }
                         }
@@ -1595,22 +1937,26 @@ void Chunk::helperCreate(int worldXOrigin, int worldZOrigin) {
     }
 }
 
-std::pair<float, BiomeEnum> Chunk::blendMultipleBiomes(glm::vec2 worldXZ, glm::vec2 localXZ,
-                                                       float mountH, float hillH,
-                                                       float forestH, float islandH) {
-
+std::pair<float, BiomeEnum> Chunk::blendMultipleBiomes(glm::vec2 worldXZ,
+                                                       glm::vec2 localXZ,
+                                                       float mountH,
+                                                       float hillH,
+                                                       float forestH,
+                                                       float islandH)
+{
     // perform bilinear interpolation
 
     BiomeEnum b;
     glm::vec4 biomeWts;
 
-//    double elev = std::clamp((Biome::perlin1(worldXZ / 237.f) + 1.f) / 2.f, 0.f, 1.f); // remap perlin noise from (-1, 1) to (0, 1)
-//    double temp = std::clamp((Biome::perlin2(worldXZ / 189.f) + 1.f) / 2.f, 0.f, 1.f);
-    double elev = std::clamp(Biome::fbm(worldXZ / 237.f), 0.f, 1.f); // remap perlin noise from (-1, 1) to (0, 1)
+    //    double elev = std::clamp((Biome::perlin1(worldXZ / 237.f) + 1.f) / 2.f, 0.f, 1.f); // remap perlin noise from (-1, 1) to (0, 1)
+    //    double temp = std::clamp((Biome::perlin2(worldXZ / 189.f) + 1.f) / 2.f, 0.f, 1.f);
+    double elev = std::clamp(Biome::fbm(worldXZ / 237.f),
+                             0.f,
+                             1.f);  // remap perlin noise from (-1, 1) to (0, 1)
     double temp = std::clamp(Biome::fbm(worldXZ / 189.f), 0.f, 1.f);
 
-
-//    std::cout<<elev<<","<<temp<<std::endl;
+    //    std::cout<<elev<<","<<temp<<std::endl;
 
     if (elev >= 0.5 && temp < 0.5) {
         b = MOUNTAINS;
@@ -1629,19 +1975,18 @@ std::pair<float, BiomeEnum> Chunk::blendMultipleBiomes(glm::vec2 worldXZ, glm::v
     biomeWts.w = (1.f - elev) * temp;
     setBiomeAt(localXZ[0], localXZ[1], biomeWts);
 
-//    std::cout<<"("<<biomeWts.x<<","<<biomeWts.y<<","<<biomeWts.z<<","<<biomeWts.w<<")"<<std::endl;
-//    if (biomeWts.x + biomeWts.y + biomeWts.z + biomeWts.w > 1.00001 || biomeWts.x + biomeWts.y + biomeWts.z + biomeWts.w < 0.99999) {
-//        std::cout << "something is wrong" << std::endl;
-//    }
+    //    std::cout<<"("<<biomeWts.x<<","<<biomeWts.y<<","<<biomeWts.z<<","<<biomeWts.w<<")"<<std::endl;
+    //    if (biomeWts.x + biomeWts.y + biomeWts.z + biomeWts.w > 1.00001 || biomeWts.x + biomeWts.y + biomeWts.z + biomeWts.w < 0.99999) {
+    //        std::cout << "something is wrong" << std::endl;
+    //    }
 
-    float h = (biomeWts.x * mountH) +
-              (biomeWts.y * hillH) +
-              (biomeWts.z * forestH) +
-              (biomeWts.w * islandH);
+    float h = (biomeWts.x * mountH) + (biomeWts.y * hillH) + (biomeWts.z * forestH)
+              + (biomeWts.w * islandH);
     return std::pair(h, b);
 }
 
-void Chunk::createToriiGate(int x, int y, int z, int rot) {
+void Chunk::createToriiGate(int x, int y, int z, int rot)
+{
     if (rot == 0) {
         setBlockAt(x, y, z, BLACK_PAINTED_WOOD);
         setBlockAt(x + 6, y, z, BLACK_PAINTED_WOOD);
@@ -1685,7 +2030,8 @@ void Chunk::createToriiGate(int x, int y, int z, int rot) {
     }
 }
 
-void Chunk::createHut(int x, int y, int z) {
+void Chunk::createHut(int x, int y, int z)
+{
     for (int y1 = y; y1 <= y + 3; y1++) {
         setBlockAt(x, y1, z, MAPLE_WOOD_Y);
         setBlockAt(x + 8, y1, z, MAPLE_WOOD_Y);
@@ -1707,7 +2053,6 @@ void Chunk::createHut(int x, int y, int z) {
     setBlockAt(x + 10, y + 4, z + 10, MAPLE_WOOD_X);
     setBlockAt(x + 11, y + 4, z - 2, MAPLE_WOOD_X);
     setBlockAt(x + 11, y + 4, z + 10, MAPLE_WOOD_X);
-
 
     for (int y2 = y + 5; y2 <= y + 10; y2++) {
         for (int x2 = x; x2 <= x + 8; x2++) {
@@ -1743,17 +2088,18 @@ void Chunk::createHut(int x, int y, int z) {
     setBlockAt(x + 4, y + 5, z, EMPTY);
     setBlockAt(x + 4, y + 6, z, EMPTY);
 
-//    setBlockAt(x + 4, y + 5, z + 8, EMPTY);
-//    setBlockAt(x + 4, y + 6, z + 8, EMPTY);
+    //    setBlockAt(x + 4, y + 5, z + 8, EMPTY);
+    //    setBlockAt(x + 4, y + 6, z + 8, EMPTY);
 
-//    setBlockAt(x, y + 5, z + 4, EMPTY);
-//    setBlockAt(x, y + 6, z + 4, EMPTY);
+    //    setBlockAt(x, y + 5, z + 4, EMPTY);
+    //    setBlockAt(x, y + 6, z + 4, EMPTY);
 
     setBlockAt(x + 8, y + 5, z + 4, EMPTY);
     setBlockAt(x + 8, y + 6, z + 4, EMPTY);
 }
 
-void Chunk::createCottage1(int x, int y, int z) {
+void Chunk::createCottage1(int x, int y, int z)
+{
     for (int x1 = x; x1 <= x + 10; x1++) {
         for (int z1 = z; z1 <= z + 7; z1++) {
             for (int y1 = y; y1 <= y + 10; y1++) {
@@ -1831,7 +2177,6 @@ void Chunk::createCottage1(int x, int y, int z) {
     setBlockAt(x + 2, y + 5, z + 4, CHRYSANTHEMUM_IKEBANA);
     setBlockAt(x + 2, y + 5, z + 5, PAPER_LANTERN);
 
-
     // floor
     for (int x2 = x; x2 <= x + 10; x2++) {
         for (int z2 = z; z2 <= z + 7; z2++) {
@@ -1881,7 +2226,8 @@ void Chunk::createCottage1(int x, int y, int z) {
     setBlockAt(x + 7, y + 3, z + 2, EMPTY);
 }
 
-void Chunk::createCottage2(int x, int y, int z) {
+void Chunk::createCottage2(int x, int y, int z)
+{
     for (int x1 = x - 2; x1 <= x + 12; x1++) {
         for (int z1 = z - 2; z1 <= z + 11; z1++) {
             for (int y1 = y - 1; y1 <= y + 15; y1++) {
@@ -1913,7 +2259,6 @@ void Chunk::createCottage2(int x, int y, int z) {
         setBlockAt(x, y, z1, PINE_WOOD_Z);
         setBlockAt(x + 10, y, z1, PINE_WOOD_Z);
     }
-
 
     // walls
     for (int y1 = y + 1; y1 <= y + 7; y1++) {
@@ -2051,7 +2396,8 @@ void Chunk::createCottage2(int x, int y, int z) {
     setBlockAt(x + 9, y + 2, z + 8, LOTUS_IKEBANA);
 }
 
-void Chunk::createTeaHouse(int x, int y, int z) {
+void Chunk::createTeaHouse(int x, int y, int z)
+{
     for (int x1 = x - 1; x1 <= x + 16; x1++) {
         for (int z1 = z - 1; z1 <= z + 11; z1++) {
             for (int y1 = y; y1 <= y + 15; y1++) {
@@ -2059,7 +2405,6 @@ void Chunk::createTeaHouse(int x, int y, int z) {
             }
         }
     }
-
 
     // platform
     for (int x1 = x - 2; x1 <= x + 16; x1++) {
@@ -2270,7 +2615,8 @@ void Chunk::createTeaHouse(int x, int y, int z) {
     }
 }
 
-void Chunk::createConifer1(int x, int y, int z, BlockType leaf, BlockType wood) {
+void Chunk::createConifer1(int x, int y, int z, BlockType leaf, BlockType wood)
+{
     for (int x1 = x - 3; x1 <= x + 3; x1++) {
         for (int z1 = z - 3; z1 <= z + 3; z1++) {
             for (int y1 = y + 1; y1 <= y + 7; y1++) {
@@ -2331,7 +2677,9 @@ void Chunk::createConifer1(int x, int y, int z, BlockType leaf, BlockType wood) 
         setBlockAt(x, y1, z, wood);
     }
 }
-void Chunk::createConifer2(int x, int y, int z, BlockType leaf, BlockType wood) {
+
+void Chunk::createConifer2(int x, int y, int z, BlockType leaf, BlockType wood)
+{
     for (int x1 = x - 2; x1 <= x + 2; x1++) {
         for (int z1 = z - 2; z1 <= z + 2; z1++) {
             for (int y1 = y + 1; y1 <= y + 9; y1++) {
@@ -2397,7 +2745,9 @@ void Chunk::createConifer2(int x, int y, int z, BlockType leaf, BlockType wood) 
         setBlockAt(x, y1, z, wood);
     }
 }
-void Chunk::createConifer3(int x, int y, int z, BlockType leaf, BlockType wood) {
+
+void Chunk::createConifer3(int x, int y, int z, BlockType leaf, BlockType wood)
+{
     for (int x1 = x - 2; x1 <= x + 2; x1++) {
         for (int z1 = z - 2; z1 <= z + 2; z1++) {
             for (int y1 = y + 1; y1 <= y + 6; y1++) {
@@ -2444,7 +2794,9 @@ void Chunk::createConifer3(int x, int y, int z, BlockType leaf, BlockType wood) 
         setBlockAt(x, y1, z, wood);
     }
 }
-void Chunk::createDeciduous1(int x, int y, int z, BlockType leaf, BlockType wood) {
+
+void Chunk::createDeciduous1(int x, int y, int z, BlockType leaf, BlockType wood)
+{
     for (int x1 = x - 2; x1 <= x + 2; x1++) {
         for (int z1 = z - 2; z1 <= z + 2; z1++) {
             for (int y1 = y + 1; y1 <= y + 6; y1++) {
@@ -2483,7 +2835,9 @@ void Chunk::createDeciduous1(int x, int y, int z, BlockType leaf, BlockType wood
         setBlockAt(x, y1, z, wood);
     }
 }
-void Chunk::createDeciduous2(int x, int y, int z, BlockType leaf, BlockType wood) {
+
+void Chunk::createDeciduous2(int x, int y, int z, BlockType leaf, BlockType wood)
+{
     for (int x1 = x - 3; x1 <= x + 3; x1++) {
         for (int z1 = z - 3; z1 <= z + 3; z1++) {
             for (int y1 = y + 1; y1 <= y + 6; y1++) {
@@ -2522,7 +2876,9 @@ void Chunk::createDeciduous2(int x, int y, int z, BlockType leaf, BlockType wood
         setBlockAt(x, y1, z, wood);
     }
 }
-void Chunk::createDeciduous3(int x, int y, int z, BlockType leaf, BlockType wood) {
+
+void Chunk::createDeciduous3(int x, int y, int z, BlockType leaf, BlockType wood)
+{
     for (int x1 = x - 2; x1 <= x + 2; x1++) {
         for (int z1 = z - 2; z1 <= z + 2; z1++) {
             for (int y1 = y + 1; y1 <= y + 4; y1++) {
@@ -2552,4 +2908,3 @@ void Chunk::createDeciduous3(int x, int y, int z, BlockType leaf, BlockType wood
     setBlockAt(x, y, z, wood);
     setBlockAt(x, y + 1, z, wood);
 }
-

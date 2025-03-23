@@ -12,9 +12,10 @@
 // from the frame buffer's output texture by invoking
 // bindToTextureSlot() and then associating a ShaderProgram's
 // sampler2d with the appropriate texture slot.
-class FrameBuffer {
+class FrameBuffer
+{
 private:
-    OpenGLContext *mp_context;
+    OpenGLContext* mp_context;
     GLuint m_frameBuffer;
     GLuint m_outputTexture;
     GLuint m_depthRenderBuffer;
@@ -25,7 +26,10 @@ private:
     unsigned int m_textureSlot;
 
 public:
-    FrameBuffer(OpenGLContext *context, unsigned int width, unsigned int height, unsigned int devicePixelRatio);
+    FrameBuffer(OpenGLContext* context,
+                unsigned int width,
+                unsigned int height,
+                unsigned int devicePixelRatio);
     // Make sure to call resize from MyGL::resizeGL to keep your frame buffer up to date with
     // your screen dimensions
     void resize(unsigned int width, unsigned int height, unsigned int devicePixelRatio);

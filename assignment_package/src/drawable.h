@@ -7,19 +7,19 @@
 class Drawable
 {
 public:
-    int m_oCount;     // The number of indices stored in bufIdx.
+    int m_oCount;      // The number of indices stored in bufIdx.
 
-    GLuint m_oBufIdx; // A Vertex Buffer Object that we will use to store triangle indices (GLuints)
-    GLuint m_oBufPos; // A Vertex Buffer Object that we will use to store mesh vertices (vec4s)
-    GLuint m_oBufNor; // A Vertex Buffer Object that we will use to store mesh normals (vec4s)
-    GLuint m_oBufCol; // Can be used to pass per-vertex color information to the shader, but is currently unused.
-                   // Instead, we use a uniform vec4 in the shader to set an overall color for the geometry
+    GLuint m_oBufIdx;  // A Vertex Buffer Object that we will use to store triangle indices (GLuints)
+    GLuint m_oBufPos;  // A Vertex Buffer Object that we will use to store mesh vertices (vec4s)
+    GLuint m_oBufNor;  // A Vertex Buffer Object that we will use to store mesh normals (vec4s)
+    GLuint m_oBufCol;  // Can be used to pass per-vertex color information to the shader, but is currently unused.
+        // Instead, we use a uniform vec4 in the shader to set an overall color for the geometry
     GLuint m_oBufUVs;
     GLuint m_oBufBTs;
     GLuint m_oBufBWts;
     GLuint m_oBufVertData;
 
-    bool m_oIdxGenerated; // Set to TRUE by generateIdx(), returned by bindIdx().
+    bool m_oIdxGenerated;  // Set to TRUE by generateIdx(), returned by bindIdx().
     bool m_oPosGenerated;
     bool m_oNorGenerated;
     bool m_oColGenerated;
@@ -39,7 +39,7 @@ public:
     GLuint m_tBufBWts;
     GLuint m_tBufVertData;
 
-    bool m_tIdxGenerated; // Set to TRUE by generateIdx(), returned by bindIdx().
+    bool m_tIdxGenerated;  // Set to TRUE by generateIdx(), returned by bindIdx().
     bool m_tPosGenerated;
     bool m_tNorGenerated;
     bool m_tColGenerated;
@@ -48,17 +48,18 @@ public:
     bool m_tBWtsGenerated;
     bool m_tVertDataGenerated;
 
-    OpenGLContext* mp_context; // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
-                          // we need to pass our OpenGL context to the Drawable in order to call GL functions
-                          // from within this class.
-
+    OpenGLContext*
+        mp_context;  // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
+        // we need to pass our OpenGL context to the Drawable in order to call GL functions
+        // from within this class.
 
 public:
     Drawable(OpenGLContext* mp_context);
     virtual ~Drawable();
 
-    virtual void createVBOdata() = 0; // To be implemented by subclasses. Populates the VBOs of the Drawable.
-    void destroyVBOdata(); // Frees the VBOs of the Drawable.
+    virtual void createVBOdata()
+        = 0;                // To be implemented by subclasses. Populates the VBOs of the Drawable.
+    void destroyVBOdata();  // Frees the VBOs of the Drawable.
 
     // Getter functions for various GL data
     virtual GLenum drawMode();
@@ -94,7 +95,7 @@ public:
     void generateTUVs();
     void generateTBTs();
     void generateTBWts();
-    void generateTVertData();    
+    void generateTVertData();
 
     bool bindTIdx();
     bool bindTPos();
@@ -111,7 +112,8 @@ public:
 // You will not have need for this class when completing the base requirements
 // for Mini Minecraft, but you might consider using instanced rendering for
 // some of the milestone 3 ideas.
-class InstancedDrawable : public Drawable {
+class InstancedDrawable : public Drawable
+{
 protected:
     int m_numInstances;
     GLuint m_bufPosOffset;
@@ -128,5 +130,7 @@ public:
     void clearOffsetBuf();
     void clearColorBuf();
 
-    virtual void createInstancedVBOdata(std::vector<glm::vec3> &offsets, std::vector<glm::vec3> &colors) = 0;
+    virtual void createInstancedVBOdata(std::vector<glm::vec3>& offsets,
+                                        std::vector<glm::vec3>& colors)
+        = 0;
 };

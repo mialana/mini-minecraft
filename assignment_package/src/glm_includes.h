@@ -9,12 +9,12 @@
 
 #define GLM_FORCE_RADIANS
 // Primary GLM library
-#    include <glm/glm.hpp>
+#include <glm/glm.hpp>
 // For glm::translate, glm::rotate, and glm::scale.
-#    include <glm/gtc/matrix_transform.hpp>
-#    include <glm/gtx/transform.hpp>
-#    include <glm/gtx/projection.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/projection.hpp>
 // For glm::to_string.
-#    include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/string_cast.hpp>
 // For glm::value_ptr.
-#    include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/type_ptr.hpp>

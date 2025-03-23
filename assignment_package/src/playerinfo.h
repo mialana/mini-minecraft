@@ -3,14 +3,17 @@
 
 #include <QWidget>
 
-namespace Ui {
+namespace Ui
+{
 class PlayerInfo;
 }
 
-class PlayerInfo : public QWidget {
+class PlayerInfo : public QWidget
+{
     Q_OBJECT
+
 public:
-    explicit PlayerInfo(QWidget *parent = nullptr);
+    explicit PlayerInfo(QWidget* parent = nullptr);
     ~PlayerInfo();
 
 public slots:
@@ -22,7 +25,7 @@ public slots:
     void slot_setZoneText(QString);
 
 private:
-    Ui::PlayerInfo *ui;
+    Ui::PlayerInfo* ui;
 };
 
-#endif // PLAYERINFO_H
+#endif  // PLAYERINFO_H

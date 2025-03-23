@@ -54,13 +54,15 @@ address_sanitizer {
 
 DISTFILES += \
     ../README.md \
+    .clang-format \
     geom3dData.json \
     help-log-amy.txt \
     nodeData.json \
     textures/custom_minecraft_textures.png \
     textures/minecraft_normals_all.png \
     textures/minecraft_textures_all.png \
-    textures/minecraft_textures_all_copy.png
+    textures/minecraft_textures_all_copy.png \
+    assignment_package/.clang-format
 
 HEADERS +=
 

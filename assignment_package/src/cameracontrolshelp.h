@@ -3,7 +3,8 @@
 
 #include <QWidget>
 
-namespace Ui {
+namespace Ui
+{
 class CameraControlsHelp;
 }
 
@@ -12,11 +13,11 @@ class CameraControlsHelp : public QWidget
     Q_OBJECT
 
 public:
-    explicit CameraControlsHelp(QWidget *parent = 0);
+    explicit CameraControlsHelp(QWidget* parent = 0);
     ~CameraControlsHelp();
 
 private:
-    Ui::CameraControlsHelp *ui;
+    Ui::CameraControlsHelp* ui;
 };
 
-#endif // CAMERACONTROLSHELP_H
+#endif  // CAMERACONTROLSHELP_H

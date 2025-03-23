@@ -4,14 +4,10 @@
 #include <QTimer>
 #include <QOpenGLExtraFunctions>
 
-
-class OpenGLContext
-    : public QOpenGLWidget,
-      public QOpenGLExtraFunctions
+class OpenGLContext : public QOpenGLWidget, public QOpenGLExtraFunctions
 {
-
 public:
-    OpenGLContext(QWidget *parent);
+    OpenGLContext(QWidget* parent);
     ~OpenGLContext();
 
     void debugContextVersion();

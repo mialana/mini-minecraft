@@ -6,38 +6,35 @@
 #include <QOpenGLContext>
 #include <QDebug>
 
-
-OpenGLContext::OpenGLContext(QWidget *parent)
+OpenGLContext::OpenGLContext(QWidget* parent)
     : QOpenGLWidget(parent)
 {}
 
-OpenGLContext::~OpenGLContext()
-{}
+OpenGLContext::~OpenGLContext() {}
 
-inline const char *glGS(GLenum e)
+inline const char* glGS(GLenum e)
 {
-    return reinterpret_cast<const char *>(glGetString(e));
+    return reinterpret_cast<const char*>(glGetString(e));
 }
 
 void OpenGLContext::debugContextVersion()
 {
-    QOpenGLContext *ctx = context();
+    QOpenGLContext* ctx = context();
     QSurfaceFormat form = format();
     QSurfaceFormat ctxform = ctx->format();
     QSurfaceFormat::OpenGLContextProfile prof = ctxform.profile();
 
-    const char *profile =
-        prof == QSurfaceFormat::CoreProfile ? "Core" :
-        prof == QSurfaceFormat::CompatibilityProfile ? "Compatibility" :
-        "None";
+    const char* profile = prof == QSurfaceFormat::CoreProfile            ? "Core"
+                          : prof == QSurfaceFormat::CompatibilityProfile ? "Compatibility"
+                                                                         : "None";
     int ctxmajor = ctxform.majorVersion();
     int ctxminor = ctxform.minorVersion();
     bool valid = ctx->isValid();
     int formmajor = form.majorVersion();
     int formminor = form.minorVersion();
-    const char *vendor = glGS(GL_VENDOR);
-    const char *renderer = glGS(GL_RENDERER);
-    const char *version = glGS(GL_VERSION);
+    const char* vendor = glGS(GL_VENDOR);
+    const char* renderer = glGS(GL_RENDERER);
+    const char* version = glGS(GL_VERSION);
     const char* s_glsl = glGS(GL_SHADING_LANGUAGE_VERSION);
 
     printf("Widget version: %d.%d\n", ctxmajor, ctxminor);
@@ -56,7 +53,8 @@ void OpenGLContext::debugContextVersion()
                "If your hardware should support it, update your drivers. "
                "If you have switchable graphics, make sure that you are using the discrete GPU.\n");
         QApplication::exit();
-    } else if ((ctxmajor == 3 && ctxminor < 2) || glsl.startsWith("1.30") || glsl.startsWith("1.40")) {
+    } else if ((ctxmajor == 3 && ctxminor < 2) || glsl.startsWith("1.30")
+               || glsl.startsWith("1.40")) {
         printf("WARNING: "
                "Enable to get an OpenGL 3.2 context with GLSL 1.50. "
                "If your hardware should support it, update your drivers. "
@@ -74,13 +72,13 @@ void OpenGLContext::printGLErrorLog()
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
         std::cerr << "OpenGL error " << error << ": ";
-        const char *e =
-            error == GL_INVALID_OPERATION             ? "GL_INVALID_OPERATION" :
-            error == GL_INVALID_ENUM                  ? "GL_INVALID_ENUM" :
-            error == GL_INVALID_VALUE                 ? "GL_INVALID_VALUE" :
-            error == GL_INVALID_INDEX                 ? "GL_INVALID_INDEX" :
-            error == GL_INVALID_OPERATION             ? "GL_INVALID_OPERATION" :
-            QString::number(error).toUtf8().constData();
+        const char* e = error == GL_INVALID_OPERATION ? "GL_INVALID_OPERATION"
+                        : error == GL_INVALID_ENUM    ? "GL_INVALID_ENUM"
+                        : error == GL_INVALID_VALUE   ? "GL_INVALID_VALUE"
+                        : error == GL_INVALID_INDEX   ? "GL_INVALID_INDEX"
+                        : error == GL_INVALID_OPERATION
+                            ? "GL_INVALID_OPERATION"
+                            : QString::number(error).toUtf8().constData();
         std::cerr << e << std::endl;
         // Throwing here allows us to use the debugger to track down the error.
 #ifndef __APPLE__
@@ -102,7 +100,7 @@ void OpenGLContext::printLinkInfoLog(int prog)
 
     int infoLogLen = 0;
     int charsWritten = 0;
-    GLchar *infoLog;
+    GLchar* infoLog;
 
     glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &infoLogLen);
 
@@ -128,7 +126,7 @@ void OpenGLContext::printShaderInfoLog(int shader)
 
     int infoLogLen = 0;
     int charsWritten = 0;
-    GLchar *infoLog;
+    GLchar* infoLog;
 
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLen);
 

@@ -7,17 +7,17 @@
 #include "inventorywindow.h"
 #include "recipewindow.h"
 
-namespace Ui {
+namespace Ui
+{
 class MainWindow;
 }
-
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
 
 private slots:
@@ -30,13 +30,11 @@ private slots:
     void slot_showRecipeWindow();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow* ui;
     CameraControlsHelp cHelp;
     PlayerInfo playerInfoWindow;
     InventoryWindow inventoryWindow;
     RecipeWindow recipeWindow;
-
 };
 
-
-#endif // MAINWINDOW_H
+#endif  // MAINWINDOW_H

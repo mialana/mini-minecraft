@@ -2,46 +2,44 @@
 #include <glm_includes.h>
 
 Drawable::Drawable(OpenGLContext* context)
-    : m_oCount(-1),
-      m_oBufIdx(),
-      m_oBufPos(),
-      m_oBufNor(),
-      m_oBufCol(),
-      m_oBufUVs(),
-      m_oBufBTs(),
-      m_oBufBWts(),
-      m_oBufVertData(),
-      m_oIdxGenerated(false),
-      m_oPosGenerated(false),
-      m_oNorGenerated(false),
-      m_oColGenerated(false),
-      m_oUVsGenerated(false),
-      m_oBTsGenerated(false),
-      m_oBWtsGenerated(false),
-      m_oVertDataGenerated(false),
-      m_tCount(-1),
-      m_tBufIdx(),
-      m_tBufPos(),
-      m_tBufNor(),
-      m_tBufCol(),
-      m_tBufUVs(),
-      m_tBufBTs(),
-      m_tBufBWts(),
-      m_tBufVertData(),
-      m_tIdxGenerated(false),
-      m_tPosGenerated(false),
-      m_tNorGenerated(false),
-      m_tColGenerated(false),
-      m_tUVsGenerated(false),
-      m_tBTsGenerated(false),
-      m_tBWtsGenerated(false),
-      m_tVertDataGenerated(false),
-      mp_context(context)
+    : m_oCount(-1)
+    , m_oBufIdx()
+    , m_oBufPos()
+    , m_oBufNor()
+    , m_oBufCol()
+    , m_oBufUVs()
+    , m_oBufBTs()
+    , m_oBufBWts()
+    , m_oBufVertData()
+    , m_oIdxGenerated(false)
+    , m_oPosGenerated(false)
+    , m_oNorGenerated(false)
+    , m_oColGenerated(false)
+    , m_oUVsGenerated(false)
+    , m_oBTsGenerated(false)
+    , m_oBWtsGenerated(false)
+    , m_oVertDataGenerated(false)
+    , m_tCount(-1)
+    , m_tBufIdx()
+    , m_tBufPos()
+    , m_tBufNor()
+    , m_tBufCol()
+    , m_tBufUVs()
+    , m_tBufBTs()
+    , m_tBufBWts()
+    , m_tBufVertData()
+    , m_tIdxGenerated(false)
+    , m_tPosGenerated(false)
+    , m_tNorGenerated(false)
+    , m_tColGenerated(false)
+    , m_tUVsGenerated(false)
+    , m_tBTsGenerated(false)
+    , m_tBWtsGenerated(false)
+    , m_tVertDataGenerated(false)
+    , mp_context(context)
 {}
 
-Drawable::~Drawable()
-{}
-
+Drawable::~Drawable() {}
 
 void Drawable::destroyVBOdata()
 {
@@ -51,7 +49,8 @@ void Drawable::destroyVBOdata()
     mp_context->glDeleteBuffers(1, &m_oBufCol);
     mp_context->glDeleteBuffers(1, &m_oBufBWts);
     mp_context->glDeleteBuffers(1, &m_oBufVertData);
-    m_oIdxGenerated = m_oPosGenerated = m_oNorGenerated = m_oColGenerated = m_oBWtsGenerated = m_oVertDataGenerated = false;
+    m_oIdxGenerated = m_oPosGenerated = m_oNorGenerated = m_oColGenerated = m_oBWtsGenerated
+        = m_oVertDataGenerated = false;
     m_oCount = -1;
 
     mp_context->glDeleteBuffers(1, &m_tBufIdx);
@@ -60,7 +59,8 @@ void Drawable::destroyVBOdata()
     mp_context->glDeleteBuffers(1, &m_tBufCol);
     mp_context->glDeleteBuffers(1, &m_tBufBWts);
     mp_context->glDeleteBuffers(1, &m_tBufVertData);
-    m_tIdxGenerated = m_tPosGenerated = m_tNorGenerated = m_tColGenerated = m_oBWtsGenerated = m_tVertDataGenerated = false;
+    m_tIdxGenerated = m_tPosGenerated = m_tNorGenerated = m_tColGenerated = m_oBWtsGenerated
+        = m_tVertDataGenerated = false;
     m_tCount = -1;
 }
 
@@ -108,17 +108,20 @@ void Drawable::generateOCol()
     mp_context->glGenBuffers(1, &m_oBufCol);
 }
 
-void Drawable::generateOUVs() {
+void Drawable::generateOUVs()
+{
     m_oUVsGenerated = true;
     mp_context->glGenBuffers(1, &m_oBufUVs);
 }
 
-void Drawable::generateOBTs() {
+void Drawable::generateOBTs()
+{
     m_oBTsGenerated = true;
     mp_context->glGenBuffers(1, &m_oBufBTs);
 }
 
-void Drawable::generateOBWts() {
+void Drawable::generateOBWts()
+{
     m_oBWtsGenerated = true;
     mp_context->glGenBuffers(1, &m_oBufBWts);
 }
@@ -132,7 +135,7 @@ void Drawable::generateOVertData()
 
 bool Drawable::bindOIdx()
 {
-    if(m_oIdxGenerated) {
+    if (m_oIdxGenerated) {
         mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_oBufIdx);
     }
     return m_oIdxGenerated;
@@ -140,7 +143,7 @@ bool Drawable::bindOIdx()
 
 bool Drawable::bindOPos()
 {
-    if(m_oPosGenerated){
+    if (m_oPosGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufPos);
     }
     return m_oPosGenerated;
@@ -148,7 +151,7 @@ bool Drawable::bindOPos()
 
 bool Drawable::bindONor()
 {
-    if(m_oNorGenerated){
+    if (m_oNorGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufNor);
     }
     return m_oNorGenerated;
@@ -156,7 +159,7 @@ bool Drawable::bindONor()
 
 bool Drawable::bindOCol()
 {
-    if(m_oColGenerated){
+    if (m_oColGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufCol);
     }
     return m_oColGenerated;
@@ -164,7 +167,7 @@ bool Drawable::bindOCol()
 
 bool Drawable::bindOUVs()
 {
-    if(m_oUVsGenerated){
+    if (m_oUVsGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufUVs);
     }
     return m_oUVsGenerated;
@@ -172,14 +175,15 @@ bool Drawable::bindOUVs()
 
 bool Drawable::bindOBTs()
 {
-    if(m_oBTsGenerated){
+    if (m_oBTsGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufBTs);
     }
     return m_oBTsGenerated;
 }
 
-bool Drawable::bindOBWts() {
-    if(m_oBWtsGenerated){
+bool Drawable::bindOBWts()
+{
+    if (m_oBWtsGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufBWts);
     }
     return m_oBWtsGenerated;
@@ -187,7 +191,7 @@ bool Drawable::bindOBWts() {
 
 bool Drawable::bindOVertData()
 {
-    if(m_oVertDataGenerated){
+    if (m_oVertDataGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_oBufVertData);
     }
     return m_oVertDataGenerated;
@@ -221,17 +225,20 @@ void Drawable::generateTCol()
     mp_context->glGenBuffers(1, &m_tBufCol);
 }
 
-void Drawable::generateTUVs() {
+void Drawable::generateTUVs()
+{
     m_tUVsGenerated = true;
     mp_context->glGenBuffers(1, &m_tBufUVs);
 }
 
-void Drawable::generateTBTs() {
+void Drawable::generateTBTs()
+{
     m_tBTsGenerated = true;
     mp_context->glGenBuffers(1, &m_tBufBTs);
 }
 
-void Drawable::generateTBWts() {
+void Drawable::generateTBWts()
+{
     m_tBWtsGenerated = true;
     mp_context->glGenBuffers(1, &m_tBufBWts);
 }
@@ -245,7 +252,7 @@ void Drawable::generateTVertData()
 
 bool Drawable::bindTIdx()
 {
-    if(m_tIdxGenerated) {
+    if (m_tIdxGenerated) {
         mp_context->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_tBufIdx);
     }
     return m_tIdxGenerated;
@@ -253,7 +260,7 @@ bool Drawable::bindTIdx()
 
 bool Drawable::bindTPos()
 {
-    if(m_tPosGenerated){
+    if (m_tPosGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufPos);
     }
     return m_tPosGenerated;
@@ -261,7 +268,7 @@ bool Drawable::bindTPos()
 
 bool Drawable::bindTNor()
 {
-    if(m_tNorGenerated){
+    if (m_tNorGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufNor);
     }
     return m_tNorGenerated;
@@ -269,7 +276,7 @@ bool Drawable::bindTNor()
 
 bool Drawable::bindTCol()
 {
-    if(m_tColGenerated){
+    if (m_tColGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufCol);
     }
     return m_tColGenerated;
@@ -277,7 +284,7 @@ bool Drawable::bindTCol()
 
 bool Drawable::bindTUVs()
 {
-    if(m_tUVsGenerated){
+    if (m_tUVsGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufUVs);
     }
     return m_tUVsGenerated;
@@ -285,14 +292,15 @@ bool Drawable::bindTUVs()
 
 bool Drawable::bindTBTs()
 {
-    if(m_tBTsGenerated){
+    if (m_tBTsGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufBTs);
     }
     return m_tBTsGenerated;
 }
 
-bool Drawable::bindTBWts() {
-    if(m_tBWtsGenerated){
+bool Drawable::bindTBWts()
+{
+    if (m_tBWtsGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufBWts);
     }
     return m_tBWtsGenerated;
@@ -300,43 +308,51 @@ bool Drawable::bindTBWts() {
 
 bool Drawable::bindTVertData()
 {
-    if(m_tVertDataGenerated){
+    if (m_tVertDataGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_tBufVertData);
     }
     return m_tVertDataGenerated;
 }
 
-InstancedDrawable::InstancedDrawable(OpenGLContext *context)
-    : Drawable(context), m_numInstances(0), m_bufPosOffset(-1), m_offsetGenerated(false)
+InstancedDrawable::InstancedDrawable(OpenGLContext* context)
+    : Drawable(context)
+    , m_numInstances(0)
+    , m_bufPosOffset(-1)
+    , m_offsetGenerated(false)
 {}
 
-InstancedDrawable::~InstancedDrawable(){}
+InstancedDrawable::~InstancedDrawable() {}
 
-int InstancedDrawable::instanceCount() const {
+int InstancedDrawable::instanceCount() const
+{
     return m_numInstances;
 }
 
-void InstancedDrawable::generateOffsetBuf() {
+void InstancedDrawable::generateOffsetBuf()
+{
     m_offsetGenerated = true;
     mp_context->glGenBuffers(1, &m_bufPosOffset);
 }
 
-bool InstancedDrawable::bindOffsetBuf() {
-    if(m_offsetGenerated){
+bool InstancedDrawable::bindOffsetBuf()
+{
+    if (m_offsetGenerated) {
         mp_context->glBindBuffer(GL_ARRAY_BUFFER, m_bufPosOffset);
     }
     return m_offsetGenerated;
 }
 
-
-void InstancedDrawable::clearOffsetBuf() {
-    if(m_offsetGenerated) {
+void InstancedDrawable::clearOffsetBuf()
+{
+    if (m_offsetGenerated) {
         mp_context->glDeleteBuffers(1, &m_bufPosOffset);
         m_offsetGenerated = false;
     }
 }
-void InstancedDrawable::clearColorBuf() {
-    if(m_oColGenerated) {
+
+void InstancedDrawable::clearColorBuf()
+{
+    if (m_oColGenerated) {
         mp_context->glDeleteBuffers(1, &m_oBufCol);
         m_oColGenerated = false;
     }

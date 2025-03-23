@@ -9,17 +9,16 @@ void debugFormatVersion()
     QSurfaceFormat form = QSurfaceFormat::defaultFormat();
     QSurfaceFormat::OpenGLContextProfile prof = form.profile();
 
-    const char *profile =
-        prof == QSurfaceFormat::CoreProfile ? "Core" :
-        prof == QSurfaceFormat::CompatibilityProfile ? "Compatibility" :
-        "None";
+    const char* profile = prof == QSurfaceFormat::CoreProfile            ? "Core"
+                          : prof == QSurfaceFormat::CompatibilityProfile ? "Compatibility"
+                                                                         : "None";
 
     printf("Requested format:\n");
     printf("  Version: %d.%d\n", form.majorVersion(), form.minorVersion());
     printf("  Profile: %s\n", profile);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
 
@@ -32,7 +31,9 @@ int main(int argc, char *argv[])
 
     /*** AUTOMATIC TESTING: DO NOT MODIFY ***/
     /*** Check whether automatic testing is enabled */
-    /***/ if (qgetenv("CIS277_AUTOTESTING") != nullptr) format.setSamples(0);
+    /***/ if (qgetenv("CIS277_AUTOTESTING") != nullptr) {
+        format.setSamples(0);
+    }
 
     QSurfaceFormat::setDefaultFormat(format);
     debugFormatVersion();

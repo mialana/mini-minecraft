@@ -4,7 +4,8 @@
 #include <QMutex>
 #include <unordered_set>
 
-class BDWorker : public QRunnable {
+class BDWorker : public QRunnable
+{
 private:
     int m_xCorner, m_zCorner;
     std::vector<Chunk*> m_chunksToDo;
@@ -12,13 +13,16 @@ private:
     QMutex* mp_chunksCompletedLock;
 
 public:
-    BDWorker(int x, int z, std::vector<Chunk*> toDo,
-             std::unordered_set<Chunk*>* complete, QMutex* completed);
+    BDWorker(int x,
+             int z,
+             std::vector<Chunk*> toDo,
+             std::unordered_set<Chunk*>* complete,
+             QMutex* completed);
     void run() override;
-
 };
 
-class VBOWorker : public QRunnable {
+class VBOWorker : public QRunnable
+{
 private:
     Chunk* mp_chunk;
     std::vector<Chunk*>* mp_VBOsCompleted;

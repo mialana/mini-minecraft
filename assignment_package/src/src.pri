@@ -14,6 +14,7 @@ SOURCES += \
     $$PWD/scene/geometry3d.cpp \
     $$PWD/scene/mob.cpp \
     $$PWD/scene/node.cpp \
+    $$PWD/scene/patharrow.cpp \
     $$PWD/scene/quad.cpp \
     $$PWD/scene/workers.cpp \
     $$PWD/shaderprogram.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     $$PWD/scene/geometry3d.h \
     $$PWD/scene/mob.h \
     $$PWD/scene/node.h \
+    $$PWD/scene/patharrow.h \
     $$PWD/scene/quad.h \
     $$PWD/scene/workers.h \
     $$PWD/shaderprogram.h \

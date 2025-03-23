@@ -7,6 +7,7 @@ class Mob : public Entity
 {
 public:
     float timeSinceLastPathRecompute;
+    float timeSinceLastDirectionCompute;
     bool needsRespawn;
     glm::vec3 directionOfTravel;
 

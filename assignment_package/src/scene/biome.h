@@ -17,15 +17,15 @@ public:
     static float interpNoise(float);
 
     static float fbm(float x);
-    static float fbm(const glm::vec2 uv); // range 0 to 1
-    static float worley(glm::vec2 uv); // range 0 to 1
+    static float fbm(const glm::vec2 uv);  // range 0 to 1
+    static float worley(glm::vec2 uv);     // range 0 to 1
     static glm::vec2 voronoi(glm::vec2 uv, int scale);
 
     static float surflet1(glm::vec2 P, glm::vec2 gridPoint);
     static float surflet2(glm::vec2 P, glm::vec2 gridPoint);
     static float surflet3D(glm::vec3 P, glm::vec3 gridPoint);
 
-    static float perlin1(glm::vec2 uv); // range -1 to 1
+    static float perlin1(glm::vec2 uv);  // range -1 to 1
     static float perlin2(glm::vec2 uv);
     static float perlin3D(glm::vec3 p);
 

@@ -2,10 +2,12 @@
 #include "smartpointerhelp.h"
 #include "geometry3d.h"
 
-class Node {
+class Node
+{
 protected:
-    void copyChildren(const Node &n2);
+    void copyChildren(const Node& n2);
     std::vector<uPtr<Node>> children;
+
 public:
     Geometry3D* geometry;
     QString geomType;
@@ -24,7 +26,8 @@ public:
     const std::vector<uPtr<Node>>& getChildren();
 };
 
-class TranslateNode : public Node {
+class TranslateNode : public Node
+{
 public:
     glm::vec3 translation;
 
@@ -36,7 +39,8 @@ public:
     glm::mat4 transformMatrix() override;
 };
 
-class RotateNode : public Node {
+class RotateNode : public Node
+{
 public:
     float degrees;
     glm::vec3 axisOfRotation;
@@ -50,7 +54,8 @@ public:
     glm::mat4 transformMatrix() override;
 };
 
-class ScaleNode : public Node {
+class ScaleNode : public Node
+{
 public:
     glm::vec3 scale;
 
@@ -61,4 +66,3 @@ public:
 
     glm::mat4 transformMatrix() override;
 };
-

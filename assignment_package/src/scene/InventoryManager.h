@@ -6,12 +6,14 @@
 #include <QListWidgetItem>
 #include <QTableWidgetItem>
 
-class InventoryItem : public QListWidgetItem {
+class InventoryItem : public QListWidgetItem
+{
 public:
-
-    InventoryItem() {
+    InventoryItem()
+    {
         this->setText("0");
     }
+
     ~InventoryItem() {}
 
     int count = 0;
@@ -19,9 +21,9 @@ public:
     BlockType type;
 };
 
-class InventoryManager {
+class InventoryManager
+{
 public:
-
     InventoryManager();
     ~InventoryManager();
 
@@ -29,9 +31,6 @@ public:
 
     bool removeItem(BlockType);
     bool addItem(BlockType);
-
 };
 
-
-
-#endif // INVENTORYMANAGER_H
+#endif  // INVENTORYMANAGER_H

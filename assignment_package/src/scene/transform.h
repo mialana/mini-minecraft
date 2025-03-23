@@ -5,15 +5,15 @@ class Transform
 {
 public:
     Transform();
-    Transform(const glm::vec3 &t, const glm::vec3 &r, const glm::vec3 &s);
+    Transform(const glm::vec3& t, const glm::vec3& r, const glm::vec3& s);
 
     void SetMatrices();
 
-    const glm::mat4 &T();
-    const glm::mat4 &invT();
-    const glm::mat4 &invTransT();
+    const glm::mat4& T();
+    const glm::mat4& invT();
+    const glm::mat4& invTransT();
 
-    const glm::vec3 &position();
+    const glm::vec3& position();
 
 private:
     glm::vec3 translation;
