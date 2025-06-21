@@ -1,6 +1,0 @@
-https://stackoverflow.com/questions/4494170/grouping-switch-statement-cases-together
-    - used this site to understand switch statements better.
-
-https://www.google.com/search?q=c%2B%2B+square+root&oq=c%2B%2B+squar&aqs=chrome.0.0i512l2j69i57j0i512l7.8217j0j7&sourceid=chrome&ie=UTF-8
-    - squareroots in c++
-
