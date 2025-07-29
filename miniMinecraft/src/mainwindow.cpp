@@ -44,6 +44,10 @@ MainWindow::MainWindow(QWidget* parent)
             this,
             SLOT(slot_actionToggleInventory(bool)));
     connect(ui->mygl, SIGNAL(sig_sendRecipeWindow()), this, SLOT(slot_showRecipeWindow()));
+
+    // set up mob paths slots and signals
+    connect(ui->actionMob_Paths, &QAction::triggered, ui->mygl, &MyGL::slot_onActionMob_Paths);
+    connect(ui->mygl, &MyGL::sig_sendMobPathsState, this, &MainWindow::slot_changeMobPathsText);
 }
 
 MainWindow::~MainWindow()
@@ -57,7 +61,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_actionQuit_triggered()
 {
-    QApplication::exit();
+    QApplication::quit();
 }
 
 void MainWindow::on_actionCamera_Controls_triggered()
@@ -80,4 +84,21 @@ void MainWindow::slot_showRecipeWindow()
 {
     this->recipeWindow.populateTable();
     this->recipeWindow.show();
+}
+
+void MainWindow::slot_changeMobPathsText(bool newState)
+{
+    if (newState) {
+        ui->actionMob_Paths->setText(
+            QCoreApplication::translate("MainWindow", "Hide Mob Paths", nullptr));
+    } else {
+        ui->actionMob_Paths->setText(
+            QCoreApplication::translate("MainWindow", "Show Mob Paths", nullptr));
+    }
+}
+
+void MainWindow::closeEvent(QCloseEvent* e)
+{
+    QWidget::closeEvent(e);
+    QApplication::quit();
 }

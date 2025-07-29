@@ -1,3 +1,8 @@
+// Refactor TODOs
+// TODO have Drawable inplement pure virtual hasVBOData() method
+// TODO get rid of all warnings
+// TODO add MyCpp
+
 #ifndef MYGL_H
 #define MYGL_H
 
@@ -101,6 +106,9 @@ protected:
 private slots:
     void tick();  // Slot that gets called ~60 times per second by m_timer firing.
 
+public slots:
+    void slot_onActionMob_Paths();  // triggers path arrows to visualize mob paths
+
 signals:
     void sig_sendPlayerPos(QString) const;
     void sig_sendPlayerVel(QString) const;
@@ -112,6 +120,8 @@ signals:
     void sig_sendInventoryToggle(bool) const;
 
     void sig_sendRecipeWindow() const;
+
+    void sig_sendMobPathsState(bool);
 };
 
 #endif  // MYGL_H

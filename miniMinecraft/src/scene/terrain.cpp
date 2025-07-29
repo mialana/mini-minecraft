@@ -293,22 +293,22 @@ Chunk* Terrain::instantiateChunkAt(int xcoord, int zcoord)
     // Set the neighbor pointers of itself and its neighbors
     if (hasChunkAt(xcoord, zcoord + 16)) {
         auto& chunkNorth = m_chunks[toKey(xcoord, zcoord + 16)];
-        cPtr->linkNeighbor(chunkNorth, ZPOS);
+        cPtr->linkNeighbor(chunkNorth.get(), ZPOS);
     }
 
     if (hasChunkAt(xcoord, zcoord - 16)) {
         auto& chunkSouth = m_chunks[toKey(xcoord, zcoord - 16)];
-        cPtr->linkNeighbor(chunkSouth, ZNEG);
+        cPtr->linkNeighbor(chunkSouth.get(), ZNEG);
     }
 
     if (hasChunkAt(xcoord + 16, zcoord)) {
         auto& chunkEast = m_chunks[toKey(xcoord + 16, zcoord)];
-        cPtr->linkNeighbor(chunkEast, XPOS);
+        cPtr->linkNeighbor(chunkEast.get(), XPOS);
     }
 
     if (hasChunkAt(xcoord - 16, zcoord)) {
         auto& chunkWest = m_chunks[toKey(xcoord - 16, zcoord)];
-        cPtr->linkNeighbor(chunkWest, XNEG);
+        cPtr->linkNeighbor(chunkWest.get(), XNEG);
     }
 
     return cPtr;

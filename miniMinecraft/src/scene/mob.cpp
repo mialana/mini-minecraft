@@ -7,7 +7,11 @@
 
 Mob::Mob(OpenGLContext* context)
     : Entity(context)
+    , m_showPathArrow(false)
+    , m_pathArrow(context)
+    , m_lastPosition(m_position)
     , needsRespawn(true)
+
 {
     this->m_inputs.flightMode = false;
     this->m_inputs.isMoving = false;
@@ -46,6 +50,11 @@ void Mob::respawn(Chunk* c)
     }
 }
 
+bool Mob::getShowPathArrow()
+{
+    return m_showPathArrow;
+}
+
 void Mob::tick(float dT, Terrain& terrain)
 {
     if (!this->needsRespawn) {
@@ -57,6 +66,17 @@ void Mob::tick(float dT, Terrain& terrain)
 
         timeSinceLastPathRecompute += dT;
         timeSinceLastDirectionCompute += dT;
+
+        if (timeSinceLastDirectionCompute > 0.3f) {
+            timeSinceLastDirectionCompute = 0.f;
+
+            if (glm::length(m_position - m_lastPosition) < 0.1f) {
+                m_realDirection = glm::vec3(0.f);
+            } else {
+                m_realDirection = glm::normalize(m_position - m_lastPosition);
+                m_lastPosition = m_position;
+            }
+        }
     }
 
     if (glm::distance(this->m_position, this->m_inputs.playerPosition) > 100.f) {
@@ -104,7 +124,8 @@ void Mob::pathFind()
             = glm::inverse(bodyRotateMatrix);
 
         if (m_inputs.isZombie
-            && glm::distance(this->m_position, this->m_inputs.playerPosition) < 25.f) {
+            && glm::distance(this->m_position, this->m_inputs.playerPosition)
+                   < 25.f) {  // player detected
             glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 1.65f, 0.f),
                                                      m_inputs.playerPosition
                                                          + glm::vec3(0.f, 1.65f, 0.f),
@@ -113,6 +134,8 @@ void Mob::pathFind()
                 = glm::inverse(headRotateMatrix);
 
             m_acceleration *= 10.f;
+
+            this->m_pathArrow.changeColor(glm::vec4(1.f, 0.f, 0.f, 1.f));
         } else {
             if (m_inputs.isZombie) {
                 glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 1.65f, 0.f),
@@ -121,6 +144,8 @@ void Mob::pathFind()
                                                          glm::vec3(0, 1, 0));
                 (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix
                     = glm::inverse(headRotateMatrix);
+
+                this->m_pathArrow.changeColor(glm::vec4(1.f, 1.f, 1.f, 1.f));
 
             } else if (m_inputs.isPig) {
                 glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 0.9f, 0.f)
@@ -135,7 +160,7 @@ void Mob::pathFind()
 
             m_acceleration *= 3.f;
         }
-    } else {
+    } else {  // mob is standing still
         glm::mat4 bodyRotateMatrix = glm::lookAt(glm::vec3(),
                                                  glm::normalize(
                                                      glm::vec3(m_forward.x, 0, m_forward.z)),
@@ -150,6 +175,8 @@ void Mob::pathFind()
                                                      glm::vec3(0, 1, 0));
             (static_cast<RotateNode*>(nodePointerMap["HeadR"]))->overriddenTransformMatrix
                 = glm::inverse(headRotateMatrix);
+
+            this->m_pathArrow.changeColor(glm::vec4(1.f, 1.f, 1.f, 1.f));
         } else if (m_inputs.isPig) {
             glm::mat4 headRotateMatrix = glm::lookAt(m_position + glm::vec3(0.f, 0.9f, 0.f)
                                                          + m_forward * 0.55f,
@@ -160,4 +187,40 @@ void Mob::pathFind()
                 = glm::inverse(headRotateMatrix);
         }
     }
+}
+
+void Mob::drawPathArrow(ShaderProgram& progFlat)
+{
+    if (m_showPathArrow) {
+        if (!m_pathArrow.hasVBOdata()) {
+            // Mob path arrow does not have valid VBO data yet, so draw will cause crash
+            m_pathArrow.createVBOdata();
+        }
+
+        glDisable(GL_CULL_FACE);
+
+        // essentially the rotation of the head minus the translation
+        glm::mat4 pathArrowXform;
+
+        pathArrowXform = glm::lookAt(m_position + glm::vec3(0.f, 0.15f, 0.f)
+                                         + 0.75f * m_realDirection,
+                                     m_position + glm::vec3(0.f, 0.15f, 0.f) + m_realDirection,
+                                     glm::vec3(0, 1, 0));
+
+        progFlat.setModelMatrix(glm::inverse(pathArrowXform));
+
+        progFlat.draw(m_pathArrow);
+
+        glEnable(GL_CULL_FACE);
+    }
+}
+
+bool Mob::changeShowPathArrow()
+{
+    m_showPathArrow = !m_showPathArrow;
+
+    m_pathArrow.destroyVBOdata();
+    m_pathArrow.createVBOdata();
+
+    return m_showPathArrow;
 }

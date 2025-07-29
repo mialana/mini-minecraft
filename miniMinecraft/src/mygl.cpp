@@ -292,6 +292,12 @@ void MyGL::paintGL()
     //    m_progFlat.draw(m_worldAxes);
 
     glEnable(GL_DEPTH_TEST);
+
+    for (auto& mob : m_mobs) {
+        if (!mob->needsRespawn) {
+            mob->drawPathArrow(m_progFlat);
+        }
+    }
 }
 
 // TODO: Change this so it renders the nine zones of generated
@@ -315,6 +321,10 @@ void MyGL::keyPressEvent(QKeyEvent* e)
 
     if (e->key() == Qt::Key_5) {
         m_player.changeCamera();
+    }
+
+    if (e->key() == Qt::Key_V) {
+        this->slot_onActionMob_Paths();
     }
 
     if (e->key() == Qt::Key_I) {
@@ -473,4 +483,14 @@ glm::vec4 MyGL::convertQJsonArrayToGlmVec4(QJsonArray obj)
 void MyGL::showRecipe()
 {
     emit sig_sendRecipeWindow();
+}
+
+void MyGL::slot_onActionMob_Paths()
+{
+    bool newState = true;  // true until proven false (any mob has non-showing path arrow)
+    for (auto& mob : m_mobs) {
+        newState &= mob->changeShowPathArrow();
+    }
+
+    emit sig_sendMobPathsState(newState);
 }

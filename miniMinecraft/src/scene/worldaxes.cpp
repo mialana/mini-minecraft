@@ -1,7 +1,5 @@
 #include "worldaxes.h"
 
-WorldAxes::~WorldAxes() {}
-
 void WorldAxes::createVBOdata()
 {
     GLuint idx[6] = {0, 1, 2, 3, 4, 5};
