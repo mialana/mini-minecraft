@@ -13,7 +13,7 @@ public:
     GLuint m_oBufPos;  // A Vertex Buffer Object that we will use to store mesh vertices (vec4s)
     GLuint m_oBufNor;  // A Vertex Buffer Object that we will use to store mesh normals (vec4s)
     GLuint m_oBufCol;  // Can be used to pass per-vertex color information to the shader, but is currently unused.
-        // Instead, we use a uniform vec4 in the shader to set an overall color for the geometry
+    // Instead, we use a uniform vec4 in the shader to set an overall color for the geometry
     GLuint m_oBufUVs;
     GLuint m_oBufBTs;
     GLuint m_oBufBWts;
@@ -50,8 +50,8 @@ public:
 
     OpenGLContext*
         mp_context;  // Since Qt's OpenGL support is done through classes like QOpenGLFunctions_3_2_Core,
-        // we need to pass our OpenGL context to the Drawable in order to call GL functions
-        // from within this class.
+    // we need to pass our OpenGL context to the Drawable in order to call GL functions
+    // from within this class.
 
 public:
     Drawable(OpenGLContext* mp_context);

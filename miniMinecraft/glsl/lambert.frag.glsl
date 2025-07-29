@@ -11,9 +11,9 @@
 // can compute what color to apply to its pixel based on things like vertex
 // position, light position, and vertex color.
 
-uniform vec4 u_Color; // The color with which to render this instance of geometry.
-uniform sampler2D u_TextureSampler; //
-uniform int u_Time; //
+uniform vec4 u_Color;                // The color with which to render this instance of geometry.
+uniform sampler2D u_TextureSampler;  //
+uniform int u_Time;                  //
 
 // These are the interpolated values out of the rasterizer, so you can't know
 // their specific values without knowing the vertices that contributed to them
@@ -21,36 +21,39 @@ in vec4 fs_Pos;
 in vec4 fs_Nor;
 in vec4 fs_Col;
 in vec2 fs_UV;
-in vec4 fs_BiomeWts; // mountains = 0, hills = 1, forest = 2, islands = 3
+in vec4 fs_BiomeWts;  // mountains = 0, hills = 1, forest = 2, islands = 3
 
 flat in int fs_TexIdx;
 
 in vec4 fs_LightVec;
 
-out vec4 out_Col; // This is the final output color that you will see on your
-                  // screen for the pixel that is currently being processed.
+out vec4 out_Col;  // This is the final output color that you will see on your
 
-float random1(vec3 p) {
-    return fract(sin(dot(p,vec3(127.1, 311.7, 191.999)))
-                 *43758.5453);
+                   // screen for the pixel that is currently being processed.
+
+float random1(vec3 p)
+{
+    return fract(sin(dot(p, vec3(127.1, 311.7, 191.999))) * 43758.5453);
 }
 
-float mySmoothStep(float a, float b, float t) {
+float mySmoothStep(float a, float b, float t)
+{
     t = smoothstep(0, 1, t);
     return mix(a, b, t);
 }
 
-float cubicTriMix(vec3 p) {
+float cubicTriMix(vec3 p)
+{
     vec3 pFract = fract(p);
-    float llb = random1(floor(p) + vec3(0,0,0));
-    float lrb = random1(floor(p) + vec3(1,0,0));
-    float ulb = random1(floor(p) + vec3(0,1,0));
-    float urb = random1(floor(p) + vec3(1,1,0));
+    float llb = random1(floor(p) + vec3(0, 0, 0));
+    float lrb = random1(floor(p) + vec3(1, 0, 0));
+    float ulb = random1(floor(p) + vec3(0, 1, 0));
+    float urb = random1(floor(p) + vec3(1, 1, 0));
 
-    float llf = random1(floor(p) + vec3(0,0,1));
-    float lrf = random1(floor(p) + vec3(1,0,1));
-    float ulf = random1(floor(p) + vec3(0,1,1));
-    float urf = random1(floor(p) + vec3(1,1,1));
+    float llf = random1(floor(p) + vec3(0, 0, 1));
+    float lrf = random1(floor(p) + vec3(1, 0, 1));
+    float ulf = random1(floor(p) + vec3(0, 1, 1));
+    float urf = random1(floor(p) + vec3(1, 1, 1));
 
     float mixLoBack = mySmoothStep(llb, lrb, pFract.x);
     float mixHiBack = mySmoothStep(ulb, urb, pFract.x);
@@ -63,11 +66,12 @@ float cubicTriMix(vec3 p) {
     return mySmoothStep(mixLo, mixHi, pFract.y);
 }
 
-float fbm(vec3 p) {
+float fbm(vec3 p)
+{
     float amp = 0.5;
     float freq = 4.0;
     float sum = 0.0;
-    for(int i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++) {
         sum += cubicTriMix(p * freq) * amp;
         amp *= 0.5;
         freq *= 2.0;
@@ -75,26 +79,30 @@ float fbm(vec3 p) {
     return sum;
 }
 
-float mod(float a, float b) {
-    int div = int (a / b);
+float mod(float a, float b)
+{
+    int div = int(a / b);
     return a - (div * b);
 }
 
-vec4 tint(vec4 origCol, vec4 tintCol, float tintWt) {
-
+vec4 tint(vec4 origCol, vec4 tintCol, float tintWt)
+{
     vec4 finalCol = origCol * (1 - tintWt) + tintCol * tintWt;
     finalCol.a = tintCol.a;
     return finalCol;
 }
-vec4 color(vec4 origCol, vec4 newCol, float newWt) {
+
+vec4 color(vec4 origCol, vec4 newCol, float newWt)
+{
     float grayscaleCol = (0.21 * origCol.r) + (0.72 * origCol.g) + (0.07 * origCol.b);
     vec4 finalCol = newCol * newWt + (grayscaleCol * (1 - newWt) * grayscaleCol);
     finalCol.a = newCol.a;
-//    vec4 finalCol = newCol * grayscaleCol;
+    //    vec4 finalCol = newCol * grayscaleCol;
     return finalCol;
 }
 
-vec4 mySmoothStep(vec4 a, vec4 b, float t) {
+vec4 mySmoothStep(vec4 a, vec4 b, float t)
+{
     t = smoothstep(0, 1, t);
     vec4 newCol;
     newCol.r = mix(a.r, b.r, t);
@@ -189,21 +197,22 @@ void main()
         }
     } else {
         // Material base color (before shading)
-            vec4 diffuseColor = fs_Col;
-            out_Col = diffuseColor * (0.5 * fbm(fs_Pos.xyz) + 0.5);
+        vec4 diffuseColor = fs_Col;
+        out_Col = diffuseColor * (0.5 * fbm(fs_Pos.xyz) + 0.5);
     }
 
     if (fs_TexIdx != 4) {
         float alpha = texture(u_TextureSampler, newUV).a;
         float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
-                    // Avoid negative lighting values
+        // Avoid negative lighting values
         diffuseTerm = clamp(diffuseTerm, 0, 1);
 
         float ambientTerm = 0.3;
 
-        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
-                                                            //to simulate ambient lighting. This ensures that faces that are not
-                                                            //lit by our point light are not completely black.
+        float lightIntensity = diffuseTerm
+                               + ambientTerm;  //Add a small float value to the color multiplier
+        //to simulate ambient lighting. This ensures that faces that are not
+        //lit by our point light are not completely black.
 
         // Compute final shaded color
         out_Col = vec4(out_Col.rgb * lightIntensity, alpha);

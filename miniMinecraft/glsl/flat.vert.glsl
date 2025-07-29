@@ -20,11 +20,11 @@ uniform mat4 u_ViewProj;    // The matrix that defines the camera's transformati
                             // We've written a static matrix for you to use for HW2,
                             // but in HW3 you'll have to generate one yourself
 
-in vec4 vs_Pos;  // The array of vertex positions passed to the shader
+in vec4 vs_Pos;             // The array of vertex positions passed to the shader
 
-in vec4 vs_Nor;  // The array of vertex normals passed to the shader
+in vec4 vs_Nor;             // The array of vertex normals passed to the shader
 
-in vec4 vs_Col;  // The array of vertex colors passed to the shader.
+in vec4 vs_Col;             // The array of vertex colors passed to the shader.
 
 out vec4 fs_Pos;
 out vec4
@@ -38,6 +38,7 @@ const vec4 lightDir = normalize(
          1,
          0.75,
          0));  // The direction of our virtual light, which is used to compute the shading of
+
                // the geometry in the fragment shader.
 
 void main()

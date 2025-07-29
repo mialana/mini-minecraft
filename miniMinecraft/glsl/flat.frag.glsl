@@ -19,6 +19,7 @@ in vec4 fs_LightVec;
 in vec4 fs_Col;
 
 out vec4 out_Col;  // This is the final output color that you will see on your
+
                    // screen for the pixel that is currently being processed.
 
 float random1(vec3 p)
@@ -84,11 +85,11 @@ void main()
 
     float lightIntensity = diffuseTerm
                            + ambientTerm;  //Add a small float value to the color multiplier
-        //to simulate ambient lighting. This ensures that faces that are not
-        //lit by our point light are not completely black.
+    //to simulate ambient lighting. This ensures that faces that are not
+    //lit by our point light are not completely black.
 
     // Compute final shaded color
     out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
-    
+
     out_Col = vec4(diffuseColor.rgb, 1);
 }
