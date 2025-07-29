@@ -2,9 +2,9 @@
 
 ![img](thumbnail.png)
 
-### Overview
-
 **[Demo Video](https://youtu.be/KJk70-qdE_o)**
+
+### Overview
 
 A simple C++ program to emulate the 3D entity interactivity and world exploration themes of Minecraft.
 
