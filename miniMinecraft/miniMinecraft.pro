@@ -62,7 +62,7 @@ DISTFILES += \
     textures/minecraft_normals_all.png \
     textures/minecraft_textures_all.png \
     textures/minecraft_textures_all_copy.png \
-    assignment_package/.clang-format
+    miniMinecraft/.clang-format
 
 HEADERS +=
 

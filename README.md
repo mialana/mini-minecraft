@@ -10,18 +10,18 @@ A simple C++ program to emulate the 3D entity interactivity and world exploratio
 
 ### Build Instructions
 
-The easiest way to get this program running is to use an IDE like QT Creator and select the project root file at `assignment_package/miniMinecraft.pro`.
+The easiest way to get this program running is to use an IDE like QT Creator and select the project root file at `miniMinecraft/miniMinecraft.pro`.
 
 Otherwise, use your favorite build system tool. The following configurations would be neccessary.
 
-- Include libraries within `assignment_package/include`
+- Include libraries within `miniMinecraft/include`
 
 ```cmake
 // example for CMake
-include_directories(assignment_package/include)
+include_directories(miniMinecraft/include)
 ``` 
 
-- Install the contents of `assignment_package/data`, `assignment_package/forms`, `assignment_package/textures`, `assignment_package/glsl` to the project.
+- Install the contents of `miniMinecraft/data`, `miniMinecraft/forms`, `miniMinecraft/textures`, `miniMinecraft/glsl` to the project.
 
 ```cmake
 // example for CMake
